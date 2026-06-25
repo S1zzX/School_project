@@ -1,0 +1,27 @@
+# ── Dependencies ─────────────────────────────────────────
+node_modules/
+server/node_modules/
+
+# ── Build output ─────────────────────────────────────────
+dist/
+
+# ── Environment / secrets ────────────────────────────────
+.env
+server/.env
+*.env.local
+*.env.*.local
+
+# ── Database ─────────────────────────────────────────────
+server/database.sqlite
+server/database.sqlite-shm
+server/database.sqlite-wal
+
+# ── OS / Editor ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── Logs ─────────────────────────────────────────────────
+*.log
+npm-debug.log*
