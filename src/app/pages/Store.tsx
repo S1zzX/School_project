@@ -2,12 +2,13 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   Plus, Search, ShieldCheck, ChevronDown, X, Trash2,
   Package, TrendingUp, Star, ShoppingCart, Layers,
-  CheckCircle2, Filter, Eye,
+  CheckCircle2, Filter, Eye, Crown, Store as StoreIcon,
 } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import {
-  apiGetStoreListings, apiCreateStoreListing, apiAdminDeleteStoreListing, apiAddToCart,
-  StoreListingAPI, getUser,
+  apiGetStoreListings, apiCreateStoreListing, apiAdminDeleteStoreListing, apiDeleteMyListing, apiAddToCart,
+  apiIncrementListingView,
+  StoreListingAPI, getUser, type UserRole,
 } from '../lib/api';
 import { Link, useNavigate } from 'react-router';
 
@@ -15,33 +16,72 @@ const GAMES = ['All', 'LoL', 'CS2', 'Valorant'];
 const GAME_FILTER_INLINE_MAX = 5;
 const SORT  = ['Recent', 'Price: Low', 'Price: High', 'Popular'];
 
-const WEAR_STYLE: Record<string, string> = {
-  'Factory New':   'text-emerald-400',
-  'Minimal Wear':  'text-sky-400',
-  'Field-Tested':  'text-yellow-400',
-  'Well-Worn':     'text-orange-400',
-  'Battle-Scarred':'text-red-400',
+function Badge({ children, variant = 'default' }: { children: React.ReactNode; variant?: 'default' | 'success' | 'danger' }) {
+  const styles = {
+    default: 'bg-gs-surface-2 text-gs-muted border-gs-border',
+    success: 'bg-emerald-500/8 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+    danger:  'bg-red-500/8 text-red-600 dark:text-red-400 border-red-500/20',
+  };
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-medium ${styles[variant]}`}>
+      {children}
+    </span>
+  );
+}
+
+function StatStrip({ items }: { items: { label: string; value: string | number; icon: React.ReactNode }[] }) {
+  return (
+    <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+      <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-gs-border">
+        {items.map((item) => (
+          <div key={item.label} className="flex items-center gap-3 px-5 py-4">
+            <div className="w-9 h-9 rounded-lg bg-gs-surface-2 flex items-center justify-center text-gs-muted shrink-0">
+              {item.icon}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-gs-text tabular-nums leading-none">{item.value}</p>
+              <p className="text-[11px] text-gs-faint font-medium mt-1">{item.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const STATUS_STYLE: Record<string, { label: string; variant: 'success' | 'danger' | 'default' }> = {
+  available: { label: 'In Stock', variant: 'success' },
+  sold:      { label: 'Sold Out', variant: 'danger'  },
+  reserved:  { label: 'Reserved', variant: 'default' },
 };
 
-const TYPE_BADGE: Record<string, string> = {
-  skin:    'text-purple-400 bg-purple-400/10 border-purple-400/20',
-  account: 'text-sky-400 bg-sky-400/10 border-sky-400/20',
-};
-
-const GAME_STYLE: Record<string, { badge: string; glow: string; bg: string }> = {
-  'LoL':      { badge: 'text-blue-400 bg-blue-400/10 border-blue-400/20',   glow: 'rgba(59,130,246,0.15)',  bg: 'rgba(59,130,246,0.05)'  },
-  'CS2':      { badge: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20', glow: 'rgba(234,179,8,0.15)',    bg: 'rgba(234,179,8,0.05)'    },
-  'Valorant': { badge: 'text-red-400 bg-red-400/10 border-red-400/20',     glow: 'rgba(248,113,113,0.15)', bg: 'rgba(248,113,113,0.05)' },
-};
-
-const STATUS_STYLE: Record<string, { label: string; style: string }> = {
-  available: { label: 'In Stock',  style: 'text-emerald-400' },
-  sold:      { label: 'Sold Out',  style: 'text-gs-faint'    },
-  reserved:  { label: 'Reserved',  style: 'text-amber-400'   },
-};
+function filterBtnClass(active: boolean) {
+  return active
+    ? 'px-3 py-2 rounded-lg text-sm font-medium text-gs-text bg-gs-surface-2 border border-gs-accent/30'
+    : 'px-3 py-2 rounded-lg text-sm font-medium text-gs-muted hover:text-gs-text border border-transparent hover:bg-gs-surface-2';
+}
 
 type ViewMode   = 'grid' | 'list';
 type FilterType = 'all' | 'skin' | 'account';
+
+function SellerAdminBadge() {
+  return (
+    <span className="inline-flex items-center gap-0.5 text-[8px] px-1 py-0.5 rounded font-medium uppercase bg-gs-surface-2 text-gs-muted border border-gs-border">
+      <Crown className="size-2 shrink-0" strokeWidth={2.5} />
+    </span>
+  );
+}
+
+function SellerLine({ name, role, size = 'xs' }: { name: string; role?: UserRole; size?: 'sm' | 'xs' }) {
+  const resolvedRole = role ?? (name.toLowerCase() === 'admin' ? 'admin' as UserRole : undefined);
+  const textSize = size === 'sm' ? 'text-xs' : 'text-[10px]';
+  return (
+    <div className={`flex items-center gap-1 flex-wrap min-w-0 ${textSize} text-gs-muted`}>
+      <span className="font-medium truncate">{name}</span>
+      {resolvedRole === 'admin' && <SellerAdminBadge />}
+    </div>
+  );
+}
 
 export function Store() {
   const navigate = useNavigate();
@@ -79,6 +119,18 @@ export function Store() {
   useEffect(() => {
     apiGetStoreListings().then(setListings).catch(console.error);
   }, []);
+
+  // Track a view when a listing detail is opened (feeds live analytics)
+  useEffect(() => {
+    if (!selectedListing) return;
+    const listingId = selectedListing.id;
+    apiIncrementListingView(listingId)
+      .then(({ views }) => {
+        setListings(prev => prev.map(l => l.id === listingId ? { ...l, views } : l));
+        setSelectedListing(prev => (prev?.id === listingId ? { ...prev, views } : prev));
+      })
+      .catch(() => {});
+  }, [selectedListing?.id]);
 
   const availableGames = useMemo(() => {
     const fromListings = Array.from(new Set(listings.map(l => l.game).filter(Boolean))).sort();
@@ -150,14 +202,22 @@ export function Store() {
     finally { setSubmitting(false); }
   };
 
-  const handleDeleteListing = async (e: React.MouseEvent, id: string) => {
+  const handleDeleteListing = async (e: React.MouseEvent, item: StoreListingAPI) => {
     e.stopPropagation();
     if (!confirm('Delete this listing?')) return;
     try {
-      await apiAdminDeleteStoreListing(id);
-      setListings(prev => prev.filter(l => l.id !== id));
+      if (user?.role === 'admin') {
+        await apiAdminDeleteStoreListing(item.id);
+      } else {
+        await apiDeleteMyListing(item.id);
+      }
+      setListings(prev => prev.filter(l => l.id !== item.id));
+      if (selectedListing?.id === item.id) setSelectedListing(null);
     } catch { alert('Failed to delete.'); }
   };
+
+  const canDeleteListing = (item: StoreListingAPI) =>
+    user?.role === 'admin' || Number(item.user_id) === Number(user?.id);
 
   const handleAddToCart = async (e: React.MouseEvent, item: StoreListingAPI) => {
     e.stopPropagation();
@@ -168,7 +228,7 @@ export function Store() {
       await apiAddToCart({
         item_id: `store_${item.id}`,
         name: item.type === 'skin' ? item.item! : item.highlight || `${item.game} Account`,
-        game: item.game, game_color: GAME_STYLE[item.game]?.bg || '#1b2838',
+        game: item.game, game_color: '#eef3fb',
         type: item.type === 'skin' ? 'Skin' : 'Account', platform: 'PC',
         price: item.price, original_price: null, image: item.image,
       });
@@ -201,144 +261,115 @@ export function Store() {
   const RANK_OPTIONS = ['Unranked', 'Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grandmaster', 'Challenger'];
 
   return (
-    <div className="max-w-screen-xl mx-auto px-5 py-8 space-y-6">
+    <div className="max-w-screen-xl mx-auto px-6 py-8 space-y-8">
 
       {/* Cart toast */}
       {cartToast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl"
-          style={{ background: 'var(--gs-surface)', borderColor: 'rgba(34,197,94,0.4)', boxShadow: '0 0 30px rgba(34,197,94,0.18)' }}>
-          <div className="w-5 h-5 rounded-full bg-emerald-400/20 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="size-3.5 text-emerald-400" />
-          </div>
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border border-gs-border bg-gs-surface shadow-lg">
+          <CheckCircle2 className="size-4 text-gs-muted shrink-0" />
           <div>
-            <p className="text-sm font-semibold text-gs-text">Added to cart!</p>
+            <p className="text-sm font-medium text-gs-text">Added to cart</p>
             <p className="text-xs text-gs-faint">{cartToast}</p>
           </div>
-          <Link to="/cart" className="ml-2 text-xs font-bold px-3 py-1.5 rounded-lg text-white" style={{ background: 'var(--gs-accent)' }}>
+          <Link to="/cart" className="ml-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-gs-accent text-white hover:opacity-90">
             View Cart
           </Link>
         </div>
       )}
 
-      {/* ── HEADER ── */}
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-gs-text tracking-tight">Player Store</h1>
-          <p className="text-gs-faint text-sm mt-1">Community marketplace — skins, accounts, and exclusive items</p>
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-gs-surface-2 border border-gs-border flex items-center justify-center text-gs-muted">
+            <StoreIcon className="size-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gs-text tracking-tight">Player Store</h1>
+            <p className="text-sm text-gs-faint mt-0.5">Community marketplace — skins, accounts, and exclusive items</p>
+          </div>
         </div>
         {(!user || user.role === 'shop_owner' || user.role === 'admin') && (
           <button
             onClick={() => user ? setShowModal(true) : navigate('/login')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity shrink-0"
-            style={{ background: 'var(--gs-accent)' }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-gs-accent text-white hover:opacity-90 transition-opacity shrink-0"
           >
             <Plus className="size-4" /> Post Listing
           </button>
         )}
       </div>
 
-      {/* ── STATS BAR ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: 'Total Listings',  value: listings.length,  icon: <Layers className="size-4 text-gs-accent" />    },
-          { label: 'Available Now',   value: totalAvailable,   icon: <Package className="size-4 text-emerald-400" /> },
-          { label: 'Total Sold',      value: totalSold,        icon: <TrendingUp className="size-4 text-amber-400" />},
-          { label: 'Active Sellers',  value: new Set(listings.map(l => l.seller)).size, icon: <Star className="size-4 text-blue-400" /> },
-        ].map((s, i) => (
-          <div key={i} className="bg-gs-surface border border-gs-border rounded-xl px-4 py-3 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gs-surface-2 flex items-center justify-center shrink-0">{s.icon}</div>
-            <div>
-              <p className="text-lg font-extrabold text-gs-text">{s.value}</p>
-              <p className="text-[11px] text-gs-faint">{s.label}</p>
-            </div>
+      {/* Stats */}
+      <StatStrip items={[
+        { label: 'Total Listings', value: listings.length, icon: <Layers className="size-4" /> },
+        { label: 'Available Now', value: totalAvailable, icon: <Package className="size-4" /> },
+        { label: 'Total Sold', value: totalSold, icon: <TrendingUp className="size-4" /> },
+        { label: 'Active Sellers', value: new Set(listings.map(l => l.seller)).size, icon: <Star className="size-4" /> },
+      ]} />
+
+      {/* Filters */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-44 max-w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-gs-faint" />
+            <input
+              value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search listings..."
+              className="w-full bg-gs-surface border border-gs-border rounded-lg pl-9 pr-3 py-2 text-gs-text placeholder:text-gs-faint focus:outline-none focus:border-gs-accent/40 text-sm"
+            />
           </div>
-        ))}
-      </div>
 
-      {/* ── FILTERS ── */}
-      <div className="flex flex-wrap items-center gap-3 bg-gs-surface border border-gs-border rounded-xl p-3">
-        {/* Search */}
-        <div className="relative flex-1 min-w-44 max-w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-gs-faint" />
-          <input
-            value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search listings..."
-            className="w-full bg-gs-surface-2 border border-gs-border rounded-lg pl-9 pr-3 py-2 text-gs-text placeholder-gs-faint focus:outline-none focus:border-gs-accent/50 text-sm"
-          />
-        </div>
-
-        {/* Game filter */}
-        <div className="flex gap-1 flex-wrap items-center">
-          {useGameFilterModal ? (
-            <>
-              <button
-                onClick={() => setGameFilter('All')}
-                className={`px-3 py-2 rounded-lg text-sm transition-all font-medium ${
-                  gameFilter === 'All' ? 'text-white font-bold' : 'text-gs-muted hover:text-gs-text bg-gs-surface-2 border border-gs-border'
-                }`}
-                style={gameFilter === 'All' ? { background: 'var(--gs-accent)' } : {}}
-              >
-                All
-              </button>
-              {gameFilter !== 'All' && (
-                <span className="px-3 py-2 rounded-lg text-sm font-medium text-white" style={{ background: 'var(--gs-accent)' }}>
-                  {gameFilter}
-                </span>
-              )}
-              <button
-                onClick={() => setShowGameFilterModal(true)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gs-muted hover:text-gs-text bg-gs-surface-2 border border-gs-border transition-all"
-              >
-                <Filter className="size-3.5" />
-                {gameFilter === 'All' ? `Games (${availableGames.length - 1})` : 'Change game'}
-              </button>
-            </>
-          ) : (
-            availableGames.map(g => (
-              <button key={g} onClick={() => setGameFilter(g)}
-                className={`px-3 py-2 rounded-lg text-sm transition-all font-medium ${
-                  gameFilter === g ? 'text-white font-bold' : 'text-gs-muted hover:text-gs-text bg-gs-surface-2 border border-gs-border'
-                }`}
-                style={gameFilter === g ? { background: 'var(--gs-accent)' } : {}}
-              >
-                {g}
-              </button>
-            ))
-          )}
-        </div>
-
-        {/* Type filter */}
-        <div className="flex gap-1">
-          {(['all', 'skin', 'account'] as FilterType[]).map(t => (
-            <button key={t} onClick={() => setTypeFilter(t)}
-              className={`px-3 py-2 rounded-lg text-sm transition-all font-medium capitalize ${
-                typeFilter === t ? 'bg-gs-surface-2 text-gs-text border border-gs-accent/40' : 'text-gs-faint hover:text-gs-muted'
-              }`}
-            >
-              {t === 'all' ? 'All Types' : t === 'skin' ? 'Skins' : 'Accounts'}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 ml-auto">
-          {/* Sort */}
           <div className="relative">
             <select value={sort} onChange={e => setSort(e.target.value)}
-              className="appearance-none bg-gs-surface-2 border border-gs-border rounded-lg pl-3 pr-8 py-2 text-gs-muted text-sm focus:outline-none cursor-pointer">
+              className="appearance-none bg-gs-surface border border-gs-border rounded-lg pl-3 pr-8 py-2 text-gs-muted text-sm focus:outline-none cursor-pointer">
               {SORT.map(s => <option key={s}>{s}</option>)}
             </select>
             <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 text-gs-faint pointer-events-none" />
           </div>
 
-          {/* View toggle */}
-          <div className="flex gap-1 bg-gs-surface-2 border border-gs-border rounded-lg p-1">
+          <div className="flex gap-1 bg-gs-surface border border-gs-border rounded-lg p-1">
             {([
-              { mode: 'grid', icon: <Layers className="size-3.5" /> },
-              { mode: 'list', icon: <Filter className="size-3.5" /> },
-            ] as const).map(v => (
+              { mode: 'grid' as const, icon: <Layers className="size-3.5" /> },
+              { mode: 'list' as const, icon: <Filter className="size-3.5" /> },
+            ]).map(v => (
               <button key={v.mode} onClick={() => setViewMode(v.mode)}
-                className={`p-1.5 rounded transition-all ${viewMode === v.mode ? 'bg-gs-accent/20 text-gs-accent' : 'text-gs-faint hover:text-gs-muted'}`}>
+                className={`p-1.5 rounded transition-colors ${viewMode === v.mode ? 'bg-gs-surface-2 text-gs-text' : 'text-gs-faint hover:text-gs-muted'}`}>
                 {v.icon}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex gap-1 flex-wrap items-center">
+            {useGameFilterModal ? (
+              <>
+                <button onClick={() => setGameFilter('All')} className={filterBtnClass(gameFilter === 'All')}>All</button>
+                {gameFilter !== 'All' && (
+                  <span className={filterBtnClass(true)}>{gameFilter}</span>
+                )}
+                <button
+                  onClick={() => setShowGameFilterModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gs-muted hover:text-gs-text border border-gs-border hover:bg-gs-surface-2 transition-colors"
+                >
+                  <Filter className="size-3.5" />
+                  {gameFilter === 'All' ? `Games (${availableGames.length - 1})` : 'Change game'}
+                </button>
+              </>
+            ) : (
+              availableGames.map(g => (
+                <button key={g} onClick={() => setGameFilter(g)} className={filterBtnClass(gameFilter === g)}>
+                  {g}
+                </button>
+              ))
+            )}
+          </div>
+
+          <span className="hidden sm:block w-px h-5 bg-gs-border" />
+
+          <div className="flex gap-1">
+            {(['all', 'skin', 'account'] as FilterType[]).map(t => (
+              <button key={t} onClick={() => setTypeFilter(t)} className={filterBtnClass(typeFilter === t)}>
+                {t === 'all' ? 'All Types' : t === 'skin' ? 'Skins' : 'Accounts'}
               </button>
             ))}
           </div>
@@ -363,8 +394,7 @@ export function Store() {
             <>
               <p className="text-gs-faint text-sm max-w-xs">Be the first! Post a CS2 skin or a LoL / Valorant account to the community store.</p>
               <button onClick={() => user ? setShowModal(true) : navigate('/login')}
-                className="mt-1 flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity"
-                style={{ background: 'var(--gs-accent)' }}>
+                className="mt-1 flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-gs-accent text-white hover:opacity-90 transition-opacity">
                 <Plus className="size-4" /> Post a Listing
               </button>
             </>
@@ -374,63 +404,56 @@ export function Store() {
         // GRID VIEW
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filtered.map(item => {
-            const gs = GAME_STYLE[item.game] ?? GAME_STYLE['CS2'];
             const isSold = item.status === 'sold';
+            const statusInfo = STATUS_STYLE[item.status || 'available'] ?? STATUS_STYLE.available;
             return (
               <div key={item.id} onClick={() => setSelectedListing(item)}
-                className={`bg-gs-surface border border-gs-border rounded-xl overflow-hidden group cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-xl ${isSold ? 'opacity-60' : ''}`}
-                style={{ '--hover-shadow': gs.glow } as React.CSSProperties}>
+                className={`bg-gs-surface border border-gs-border rounded-xl overflow-hidden group cursor-pointer transition-all hover:border-gs-accent/25 ${isSold ? 'opacity-60' : ''}`}>
 
-                {/* Image */}
                 <div className="relative h-36 overflow-hidden bg-gs-surface-2">
                   <ImageWithFallback src={item.image} alt={item.type === 'skin' ? item.item! : item.game}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ background: `linear-gradient(to top, ${gs.glow}, transparent 60%)` }} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
                   <div className="absolute top-2 left-2 flex items-center gap-1.5 flex-wrap">
-                    <span className={`text-[9px] px-2 py-0.5 rounded-full border font-bold backdrop-blur-sm ${TYPE_BADGE[item.type] ?? TYPE_BADGE.account}`}>
-                      {item.type === 'skin' ? 'Skin' : 'Account'}
-                    </span>
+                    <Badge>{item.type === 'skin' ? 'Skin' : 'Account'}</Badge>
                     {item.type === 'account' && item.rank && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/60 text-gs-accent border border-gs-accent/30 font-bold backdrop-blur-sm">{item.rank}</span>
+                      <Badge>{item.rank}</Badge>
                     )}
                     {item.type === 'skin' && (
-                      <span className="text-[8px] px-1.5 py-0.5 rounded-full font-bold backdrop-blur-sm" style={{ background: 'rgba(249,115,22,0.85)', color: '#fff' }}>
-                        🛡 Middleman
-                      </span>
+                      <Badge>Middleman</Badge>
                     )}
                   </div>
 
                   {isSold && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <span className="text-xs font-bold text-gs-faint bg-gs-surface/80 px-3 py-1 rounded-full border border-gs-border">SOLD</span>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                      <span className="text-xs font-semibold text-gs-text bg-gs-surface/90 px-3 py-1 rounded-md border border-gs-border">Sold</span>
                     </div>
                   )}
 
-                  {user?.role === 'admin' && !isSold && (
-                    <button onClick={e => handleDeleteListing(e, item.id)}
-                      className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm text-gs-faint hover:text-red-400 p-1.5 rounded-md border border-gs-border hover:border-red-400/50 transition-colors">
+                  {canDeleteListing(item) && (
+                    <button onClick={e => handleDeleteListing(e, item)}
+                      className="absolute top-2 right-2 z-10 bg-black/70 text-gs-faint hover:text-red-400 p-1.5 rounded-md border border-gs-border transition-colors">
                       <Trash2 className="size-3.5" />
                     </button>
                   )}
                 </div>
 
-                {/* Info */}
                 <div className="p-3 space-y-2">
                   {item.type === 'skin' ? (
                     <>
-                      <p className="text-gs-text text-xs font-bold truncate">{item.item}</p>
-                      <div className="flex items-center justify-between text-[10px]">
-                        <span className={WEAR_STYLE[item.wear || ''] ?? 'text-gs-muted'}>{item.wear}</span>
-                        <span className="text-gs-faint">float {item.float}</span>
+                      <p className="text-gs-text text-sm font-semibold truncate leading-tight">{item.item}</p>
+                      <SellerLine name={item.seller} role={item.seller_role} />
+                      <div className="flex items-center justify-between text-xs text-gs-faint">
+                        <span>{item.wear}</span>
+                        <span>float {item.float}</span>
                       </div>
                     </>
                   ) : (
                     <>
-                      <p className="text-gs-text text-xs font-bold truncate">{item.highlight}</p>
-                      <div className="flex items-center gap-1.5 text-[10px] text-gs-faint">
+                      <p className="text-gs-text text-sm font-semibold truncate leading-tight">{item.highlight}</p>
+                      <SellerLine name={item.seller} role={item.seller_role} />
+                      <div className="flex items-center gap-1.5 text-xs text-gs-faint">
                         <span>{item.hoursPlayed}h</span>
                         <span>·</span>
                         <span>{item.skinsOwned} skins</span>
@@ -439,35 +462,26 @@ export function Store() {
                     </>
                   )}
 
-                  {/* Stock indicator */}
-                  <div className="flex items-center gap-1 text-[10px]">
+                  <div className="flex items-center gap-1.5 text-xs">
                     {item.stock && item.stock > 1 ? (
-                      <span className="text-emerald-400">{item.stock} in stock</span>
+                      <Badge variant="success">{item.stock} in stock</Badge>
                     ) : (
-                      <span className={STATUS_STYLE[item.status || 'available']?.style ?? 'text-emerald-400'}>
-                        {STATUS_STYLE[item.status || 'available']?.label}
-                      </span>
+                      <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
                     )}
                     {(item.order_count ?? 0) > 0 && (
-                      <>
-                        <span className="text-gs-faint">·</span>
-                        <span className="text-gs-faint flex items-center gap-0.5"><TrendingUp className="size-2.5" />{item.order_count} orders</span>
-                      </>
+                      <span className="text-gs-faint flex items-center gap-0.5"><TrendingUp className="size-3" />{item.order_count}</span>
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between pt-1.5 border-t border-gs-border">
+                  <div className="flex items-center justify-between pt-2 border-t border-gs-border">
                     <div>
-                      <p className="text-gs-text font-extrabold text-base">${item.price.toLocaleString()}</p>
-                      <div className="flex items-center gap-1 text-[10px] mt-0.5">
-                        <ShieldCheck className="size-3 text-gs-accent" />
-                        <span className="text-gs-accent font-bold">Verified</span>
-                        <span className="text-gs-faint">· ★{item.sellerRating?.toFixed(1) || '5.0'}</span>
-                      </div>
+                      <p className="text-gs-text font-bold text-base tabular-nums">${item.price.toLocaleString()}</p>
+                      <p className="text-[10px] text-gs-faint mt-0.5">{item.sellerRating?.toFixed(1) || '5.0'} seller rating</p>
                     </div>
                     <button onClick={e => handleAddToCart(e, item)} disabled={addingToCart[item.id] || isSold}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
-                      style={{ background: isSold ? 'var(--gs-surface-2)' : 'var(--gs-accent)', color: isSold ? 'var(--gs-faint)' : '#fff' }}>
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-opacity disabled:opacity-40 ${
+                        isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-accent text-white hover:opacity-90'
+                      }`}>
                       {isSold ? 'Sold' : addingToCart[item.id] ? '...' : item.type === 'skin' ? 'Trade' : 'Buy'}
                     </button>
                   </div>
@@ -478,64 +492,64 @@ export function Store() {
         </div>
       ) : (
         // LIST VIEW
-        <div className="bg-gs-surface border border-gs-border rounded-2xl overflow-hidden">
+        <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gs-border">
                 {['Item', 'Game', 'Type', 'Details', 'Stock', 'Orders', 'Price', 'Actions'].map(h => (
-                  <th key={h} className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-widest text-gs-faint">{h}</th>
+                  <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gs-faint">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map(item => {
-                const gs = GAME_STYLE[item.game] ?? GAME_STYLE['CS2'];
                 const isSold = item.status === 'sold';
+                const statusInfo = STATUS_STYLE[item.status || 'available'] ?? STATUS_STYLE.available;
                 return (
                   <tr key={item.id} onClick={() => setSelectedListing(item)}
                     className={`border-b border-gs-border last:border-0 hover:bg-gs-surface-2/60 cursor-pointer transition-colors ${isSold ? 'opacity-60' : ''}`}>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-gs-surface-2 shrink-0">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-gs-surface-2 shrink-0 border border-gs-border">
                           <ImageWithFallback src={item.image} alt="" className="w-full h-full object-cover" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-gs-text">{item.type === 'skin' ? item.item : item.highlight || `${item.game} Account`}</p>
-                          <p className="text-[10px] text-gs-faint">{item.type === 'skin' ? item.wear : item.rank}</p>
+                          <p className="text-sm font-medium text-gs-text truncate">{item.type === 'skin' ? item.item : item.highlight || `${item.game} Account`}</p>
+                          <SellerLine name={item.seller} role={item.seller_role} />
+                          <p className="text-xs text-gs-faint mt-0.5">{item.type === 'skin' ? item.wear : item.rank}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${gs.badge}`}>{item.game}</span>
-                    </td>
+                    <td className="px-5 py-4"><Badge>{item.game}</Badge></td>
                     <td className="px-5 py-4 text-xs text-gs-muted capitalize">{item.type}</td>
-                    <td className="px-5 py-4 text-[11px] text-gs-faint">
+                    <td className="px-5 py-4 text-xs text-gs-faint">
                       {item.type === 'skin' ? `Float: ${item.float}` : `${item.hoursPlayed}h · ${item.skinsOwned} skins`}
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`text-xs font-semibold ${STATUS_STYLE[item.status || 'available']?.style}`}>
-                        {item.stock && item.stock > 1 ? `${item.stock} left` : STATUS_STYLE[item.status || 'available']?.label}
-                      </span>
+                      <Badge variant={statusInfo.variant}>
+                        {item.stock && item.stock > 1 ? `${item.stock} left` : statusInfo.label}
+                      </Badge>
                     </td>
-                    <td className="px-5 py-4 text-xs text-gs-faint">
-                      <span className="flex items-center gap-1"><TrendingUp className="size-3 text-emerald-400" />{item.order_count ?? 0}</span>
+                    <td className="px-5 py-4 text-xs text-gs-muted tabular-nums">
+                      <span className="flex items-center gap-1"><TrendingUp className="size-3 text-gs-faint" />{item.order_count ?? 0}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="text-sm font-extrabold text-gs-text">${item.price.toLocaleString()}</span>
+                      <span className="text-sm font-semibold text-gs-text tabular-nums">${item.price.toLocaleString()}</span>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                         <button onClick={e => handleAddToCart(e, item)} disabled={addingToCart[item.id] || isSold}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
-                          style={{ background: isSold ? 'var(--gs-surface-2)' : 'var(--gs-accent)', color: isSold ? 'var(--gs-faint)' : '#fff' }}>
+                          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-opacity disabled:opacity-40 ${
+                            isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-accent text-white hover:opacity-90'
+                          }`}>
                           <ShoppingCart className="size-3" />{isSold ? 'Sold' : 'Buy'}
                         </button>
                         <button onClick={() => setSelectedListing(item)}
                           className="p-1.5 rounded-lg hover:bg-gs-surface-2 text-gs-faint hover:text-gs-text transition-colors" title="View details">
                           <Eye className="size-3.5" />
                         </button>
-                        {user?.role === 'admin' && (
-                          <button onClick={e => handleDeleteListing(e, item.id)}
+                        {canDeleteListing(item) && (
+                          <button onClick={e => handleDeleteListing(e, item)}
                             className="p-1.5 rounded-lg hover:bg-red-400/10 text-gs-faint hover:text-red-400 transition-colors" title="Delete">
                             <Trash2 className="size-3.5" />
                           </button>
@@ -680,8 +694,7 @@ export function Store() {
                 <button onClick={() => { setShowModal(false); resetForm(); }}
                   className="flex-1 border border-gs-border text-gs-muted py-3 rounded-xl text-sm hover:bg-gs-surface-2 transition-colors font-semibold">Cancel</button>
                 <button disabled={submitting || !newName || !newPrice} onClick={handlePostListing}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-40"
-                  style={{ background: 'var(--gs-accent)' }}>
+                  className="flex-1 py-3 rounded-lg text-sm font-semibold bg-gs-accent text-white hover:opacity-90 transition-opacity disabled:opacity-40">
                   {submitting ? 'Posting...' : 'Post Listing'}
                 </button>
               </div>
@@ -697,7 +710,7 @@ export function Store() {
         const isSold    = sl.status === 'sold';
         const stock     = sl.stock ?? 1;
         const orders    = sl.order_count ?? 0;
-        const wearColor = WEAR_STYLE[sl.wear || ''] ?? 'text-gs-muted';
+        const wearColor = 'text-gs-text';
         const title     = isSkin ? sl.item : sl.highlight || `${sl.game} Account`;
         const hasNotes  = Boolean(sl.description?.trim());
         const sellerNotes = hasNotes
@@ -741,14 +754,8 @@ export function Store() {
                   <X className="size-4" />
                 </button>
                 <div className="absolute top-3 left-3 flex gap-1.5">
-                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${TYPE_BADGE[sl.type] ?? TYPE_BADGE.account}`}>
-                    {isSkin ? 'Skin' : 'Account'}
-                  </span>
-                  {isSkin && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-md font-semibold bg-orange-500/90 text-white">
-                      Escrow
-                    </span>
-                  )}
+                  <Badge>{isSkin ? 'Skin' : 'Account'}</Badge>
+                  {isSkin && <Badge>Escrow</Badge>}
                 </div>
               </div>
 
@@ -756,17 +763,15 @@ export function Store() {
               <div className="flex-1 overflow-y-auto px-5 pt-4 pb-2 space-y-5">
                 <div>
                   <h2 className="text-lg font-bold text-gs-text leading-snug pr-6">{title}</h2>
-                  <p className="text-xs text-gs-faint mt-1">
-                    {sl.game}
-                    <span className="mx-1.5">·</span>
-                    Listed by {sl.seller}
+                  <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                    <SellerLine name={sl.seller} role={sl.seller_role} />
+                    <span className="text-xs text-gs-faint">· {sl.game}</span>
                     {sl.created_at && (
-                      <>
-                        <span className="mx-1.5">·</span>
-                        {new Date(sl.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </>
+                      <span className="text-xs text-gs-faint">
+                        · {new Date(sl.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
                     )}
-                  </p>
+                  </div>
                 </div>
 
                 {/* Specs */}
@@ -802,10 +807,10 @@ export function Store() {
                     <span className="flex items-center gap-1"><Eye className="size-3" />{sl.views} views</span>
                   )}
                   {orders > 0 && (
-                    <span className="flex items-center gap-1 text-emerald-400"><TrendingUp className="size-3" />{orders} sold</span>
+                    <span className="flex items-center gap-1"><TrendingUp className="size-3" />{orders} sold</span>
                   )}
                   {!isSold && stock <= 3 && stock > 0 && (
-                    <span className="text-amber-400">{stock === 1 ? 'Last unit' : `${stock} units left`}</span>
+                    <span>{stock === 1 ? 'Last unit' : `${stock} units left`}</span>
                   )}
                 </div>
               </div>
@@ -821,8 +826,9 @@ export function Store() {
                 <button
                   onClick={e => handleAddToCart(e, sl)}
                   disabled={addingToCart[sl.id] || isSold}
-                  className="ml-auto flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-40 shrink-0"
-                  style={{ background: isSold ? 'var(--gs-surface-2)' : 'var(--gs-accent)', color: isSold ? 'var(--gs-faint)' : '#fff' }}
+                  className={`ml-auto flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-40 shrink-0 ${
+                    isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-accent text-white hover:opacity-90'
+                  }`}
                 >
                   <ShoppingCart className="size-4" />
                   {isSold ? 'Sold out' : addingToCart[sl.id] ? 'Adding…' : isSkin ? 'Request trade' : 'Add to cart'}
@@ -857,12 +863,7 @@ export function Store() {
                 <button
                   key={g}
                   onClick={() => { setGameFilter(g); setShowGameFilterModal(false); }}
-                  className={`px-3 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
-                    gameFilter === g
-                      ? 'text-white border-transparent'
-                      : 'text-gs-muted border-gs-border hover:bg-gs-surface-2 hover:text-gs-text'
-                  }`}
-                  style={gameFilter === g ? { background: 'var(--gs-accent)' } : {}}
+                  className={filterBtnClass(gameFilter === g)}
                 >
                   {g}
                 </button>

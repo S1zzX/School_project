@@ -194,10 +194,12 @@ export function Community() {
     }
   };
 
-  const handleDelete = async (post: ForumPostAPI) => {
+  const handleDelete = async (post: ForumPostAPI, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    e?.preventDefault();
     if (!confirm('Delete this thread?')) return;
     try {
-      if (user?.role === 'admin' && post.user_id !== user.id) {
+      if (user?.role === 'admin') {
         await apiAdminDeleteForumPost(post.id);
       } else {
         await apiDeletePost(post.id);
@@ -285,9 +287,8 @@ export function Community() {
     setSubmitting(true);
     try {
       if (editingId) {
-        const postToEdit = posts.find(p => p.id === editingId);
         let updated;
-        if (user.role === 'admin' && postToEdit?.user_id !== user.id) {
+        if (user.role === 'admin') {
           updated = await apiAdminEditForumPost(editingId, { game: newGame, category: newCategory, title: newTitle, body: newBody, image: newImage });
         } else {
           updated = await apiEditPost(editingId, { game: newGame, category: newCategory, title: newTitle, body: newBody, image: newImage });
@@ -317,7 +318,7 @@ export function Community() {
       );
     }
 
-    const isOwn = user?.id === selectedPost.user_id;
+    const isOwn = user != null && Number(selectedPost.user_id) === Number(user.id);
     return (
       <div className="max-w-3xl mx-auto px-4 py-6 pb-32">
         {/* Breadcrumb */}
@@ -528,6 +529,16 @@ export function Community() {
                   <span>{timeAgo(post.created_at)}</span>
                 </p>
               </div>
+              {(user?.role === 'admin' || (user && Number(post.user_id) === Number(user.id))) && (
+                <button
+                  type="button"
+                  onClick={(e) => handleDelete(post, e)}
+                  className="shrink-0 p-1.5 rounded-md text-gs-faint hover:text-red-400 hover:bg-red-400/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Delete thread"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              )}
               <ChevronRight className="size-4 text-gs-faint shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           ))}

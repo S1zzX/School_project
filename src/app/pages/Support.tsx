@@ -23,26 +23,26 @@ const CATEGORIES: { value: TicketCategory; label: string }[] = [
 ];
 
 const STATUS_CONFIG: Record<TicketStatus, { label: string; style: string; icon: React.ReactNode }> = {
-  open:        { label: 'Open',        style: 'text-sky-600 bg-sky-50 border-sky-200',      icon: <Clock className="size-3" /> },
-  in_progress: { label: 'In Progress', style: 'text-amber-600 bg-amber-50 border-amber-200', icon: <RefreshCw className="size-3" /> },
-  resolved:    { label: 'Resolved',    style: 'text-emerald-600 bg-emerald-50 border-emerald-200', icon: <CheckCircle2 className="size-3" /> },
-  closed:      { label: 'Closed',      style: 'text-slate-500 bg-slate-100 border-slate-200', icon: <X className="size-3" /> },
+  open:        { label: 'Open',        style: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-500/10 dark:border-sky-500/20',      icon: <Clock className="size-3" /> },
+  in_progress: { label: 'In Progress', style: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20', icon: <RefreshCw className="size-3" /> },
+  resolved:    { label: 'Resolved',    style: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20', icon: <CheckCircle2 className="size-3" /> },
+  closed:      { label: 'Closed',      style: 'text-gs-muted bg-gs-surface-2 border-gs-border', icon: <X className="size-3" /> },
 };
 
 const PRIORITY_STYLE: Record<TicketPriority, string> = {
-  low:    'text-slate-500 bg-slate-100 border-slate-200',
-  normal: 'text-blue-600 bg-blue-50 border-blue-200',
-  high:   'text-orange-600 bg-orange-50 border-orange-200',
-  urgent: 'text-red-600 bg-red-50 border-red-200',
+  low:    'text-gs-muted bg-gs-surface-2 border-gs-border',
+  normal: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-500/10 dark:border-sky-500/20',
+  high:   'text-orange-600 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-500/10 dark:border-orange-500/20',
+  urgent: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-500/10 dark:border-red-500/20',
 };
 
 const TRADE_STATUS_CONFIG: Record<TradeStatus, { label: string; style: string; icon: React.ReactNode; desc: string }> = {
-  pending:         { label: 'Awaiting Seller',   style: 'text-amber-600 bg-amber-50 border-amber-200',  icon: <Clock className="size-3" />,         desc: 'Your request was sent to the seller. Waiting for them to accept and upload proof.' },
-  seller_accepted: { label: 'Seller Accepted',   style: 'text-blue-600 bg-blue-50 border-blue-200',    icon: <CheckCircle2 className="size-3" />,  desc: 'The seller accepted and uploaded proof. Admin is now reviewing it.' },
-  seller_declined: { label: 'Seller Declined',   style: 'text-red-600 bg-red-50 border-red-200',     icon: <X className="size-3" />,             desc: 'The seller declined your trade request. Contact support if you need help.' },
-  verified:        { label: 'Verified',        style: 'text-sky-600 bg-sky-50 border-sky-200',     icon: <CheckCircle2 className="size-3" />,  desc: 'Admin confirmed the item is legitimate. You may proceed with the trade.' },
-  completed:       { label: 'Completed',       style: 'text-emerald-600 bg-emerald-50 border-emerald-200', icon: <CheckCircle2 className="size-3" />, desc: 'Trade completed successfully. Item has been delivered.' },
-  rejected:        { label: 'Rejected',        style: 'text-red-600 bg-red-50 border-red-200',     icon: <X className="size-3" />,             desc: 'Admin rejected this trade. The listing may be fraudulent. Do not proceed.' },
+  pending:         { label: 'Awaiting Seller',   style: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/20',  icon: <Clock className="size-3" />,         desc: 'Your request was sent to the seller. Waiting for them to accept and upload proof.' },
+  seller_accepted: { label: 'Seller Accepted',   style: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-500/10 dark:border-sky-500/20',    icon: <CheckCircle2 className="size-3" />,  desc: 'The seller accepted and uploaded proof. Admin is now reviewing it.' },
+  seller_declined: { label: 'Seller Declined',   style: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-500/10 dark:border-red-500/20',     icon: <X className="size-3" />,             desc: 'The seller declined your trade request. Contact support if you need help.' },
+  verified:        { label: 'Verified',        style: 'text-sky-600 bg-sky-50 border-sky-200 dark:text-sky-400 dark:bg-sky-500/10 dark:border-sky-500/20',     icon: <CheckCircle2 className="size-3" />,  desc: 'Admin confirmed the item is legitimate. You may proceed with the trade.' },
+  completed:       { label: 'Completed',       style: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20', icon: <CheckCircle2 className="size-3" />, desc: 'Trade completed successfully. Item has been delivered.' },
+  rejected:        { label: 'Rejected',        style: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-500/10 dark:border-red-500/20',     icon: <X className="size-3" />,             desc: 'Admin rejected this trade. The listing may be fraudulent. Do not proceed.' },
 };
 
 type Article = { q: string; a: string };
@@ -114,13 +114,13 @@ const FEATURED = [
   {
     id: 'essentials',
     title: 'GameGuide Essentials',
-    icon: <BookOpen className="size-7 text-slate-400" strokeWidth={1.5} />,
+    icon: <BookOpen className="size-7 text-gs-faint" strokeWidth={1.5} />,
     topicIds: ['getting-started', 'store'],
   },
   {
     id: 'good-to-know',
     title: 'Good to know',
-    icon: <Info className="size-7 text-slate-400" strokeWidth={1.5} />,
+    icon: <Info className="size-7 text-gs-faint" strokeWidth={1.5} />,
     topicIds: ['trades', 'billing', 'faq'],
   },
 ];
@@ -269,30 +269,30 @@ export function Support() {
   const openTopic = (id: string) => { setActiveTopicId(id); setPageView('topic'); };
 
   return (
-    <div className="min-h-screen" style={{ background: '#f4f6f9' }}>
+    <div className="min-h-screen bg-gs-bg">
 
       {/* ── Help center bar (no logo/sign-in — already in site header) ── */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-gs-surface border-b border-gs-border">
         <div className="max-w-5xl mx-auto px-5 h-11 flex items-center justify-between">
           <button
             onClick={goHome}
-            className="text-sm font-semibold text-slate-700 hover:text-blue-600 transition-colors"
+            className="text-sm font-semibold text-gs-text hover:text-gs-accent transition-colors"
           >
             Help Center
           </button>
           <div className="flex items-center gap-4 text-sm">
             <button
               onClick={() => setPageView('submit')}
-              className="text-slate-600 hover:text-slate-900 transition-colors"
+              className="text-gs-muted hover:text-gs-text transition-colors"
             >
               Submit a request
             </button>
             {user && (
               <>
-                <button onClick={() => setPageView('tickets')} className="text-slate-600 hover:text-slate-900 transition-colors hidden sm:inline">
+                <button onClick={() => setPageView('tickets')} className="text-gs-muted hover:text-gs-text transition-colors hidden sm:inline">
                   My tickets
                 </button>
-                <button onClick={() => setPageView('trades')} className="text-slate-600 hover:text-slate-900 transition-colors hidden sm:inline">
+                <button onClick={() => setPageView('trades')} className="text-gs-muted hover:text-gs-text transition-colors hidden sm:inline">
                   My trades
                 </button>
               </>
@@ -312,18 +312,18 @@ export function Support() {
             }}
           >
             <div className="max-w-2xl mx-auto text-center">
-              <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-6 tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-bold text-gs-text mb-6 tracking-tight">
                 How can we help?
               </h1>
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-slate-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gs-faint" />
                 <input
                   ref={searchRef}
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search"
-                  className="w-full pl-12 pr-4 py-3.5 rounded-md bg-white text-slate-800 placeholder-slate-400 text-base shadow-sm border border-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-md bg-gs-surface text-gs-text placeholder:text-gs-faint text-base shadow-sm border border-gs-border focus:outline-none focus:ring-2 focus:ring-gs-accent/30"
                 />
               </div>
             </div>
@@ -341,11 +341,11 @@ export function Support() {
                     <button
                       key={card.id}
                       onClick={() => openTopic(card.topicIds[0])}
-                      className="bg-white rounded-lg border border-slate-200 p-8 text-left shadow-sm hover:shadow-md hover:border-slate-300 transition-all group"
+                      className="bg-gs-surface rounded-lg border border-gs-border p-8 text-left shadow-sm hover:shadow-md hover:border-gs-accent/30 transition-all group"
                     >
                       <div className="mb-5">{card.icon}</div>
-                      <h2 className="text-lg font-bold text-slate-800 mb-4">{card.title}</h2>
-                      <span className="text-sm font-medium text-blue-600 group-hover:underline inline-flex items-center gap-0.5">
+                      <h2 className="text-lg font-bold text-gs-text mb-4">{card.title}</h2>
+                      <span className="text-sm font-medium text-gs-accent group-hover:underline inline-flex items-center gap-0.5">
                         See all {count} articles <ChevronRight className="size-4" />
                       </span>
                     </button>
@@ -356,20 +356,20 @@ export function Support() {
 
             {/* Common topics */}
             <div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-8">
+              <h2 className="text-2xl font-bold text-gs-text mb-8">
                 {searchQuery.trim() ? 'Search results' : 'Common Topics'}
               </h2>
               {filteredTopics.length === 0 ? (
-                <p className="text-slate-500 text-sm">No articles match your search. Try different keywords or submit a request.</p>
+                <p className="text-gs-faint text-sm">No articles match your search. Try different keywords or submit a request.</p>
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-10">
                   {filteredTopics.map(topic => (
                     <div key={topic.id} className="space-y-2">
-                      <h3 className="text-base font-bold text-slate-800">{topic.title}</h3>
-                      <p className="text-sm text-slate-500 leading-relaxed min-h-[2.5rem]">{topic.description}</p>
+                      <h3 className="text-base font-bold text-gs-text">{topic.title}</h3>
+                      <p className="text-sm text-gs-faint leading-relaxed min-h-[2.5rem]">{topic.description}</p>
                       <button
                         onClick={() => openTopic(topic.id)}
-                        className="text-sm font-medium text-blue-600 hover:underline inline-flex items-center gap-0.5 pt-1"
+                        className="text-sm font-medium text-gs-accent hover:underline inline-flex items-center gap-0.5 pt-1"
                       >
                         See all {topic.articles.length} article{topic.articles.length !== 1 ? 's' : ''} <ChevronRight className="size-4" />
                       </button>
@@ -381,7 +381,7 @@ export function Support() {
 
             {/* Quick actions row */}
             {user && (
-              <div className="flex flex-wrap gap-3 pt-2 border-t border-slate-200">
+              <div className="flex flex-wrap gap-3 pt-2 border-t border-gs-border">
                 <QuickLink icon={<Ticket className="size-4" />} label="My tickets" onClick={() => setPageView('tickets')} />
                 <QuickLink icon={<ArrowLeftRight className="size-4" />} label="My trades" onClick={() => setPageView('trades')} />
                 <QuickLink icon={<Send className="size-4" />} label="Submit a request" onClick={() => setPageView('submit')} />
@@ -395,18 +395,18 @@ export function Support() {
       {pageView === 'topic' && activeTopic && (
         <div className="max-w-3xl mx-auto px-5 py-10">
           <BackLink onClick={goHome} label="Help Center" />
-          <h1 className="text-2xl font-bold text-slate-800 mt-4 mb-2">{activeTopic.title}</h1>
-          <p className="text-slate-500 text-sm mb-8">{activeTopic.description}</p>
-          <div className="space-y-0 divide-y divide-slate-200 bg-white rounded-lg border border-slate-200 overflow-hidden">
+          <h1 className="text-2xl font-bold text-gs-text mt-4 mb-2">{activeTopic.title}</h1>
+          <p className="text-gs-faint text-sm mb-8">{activeTopic.description}</p>
+          <div className="space-y-0 divide-y divide-gs-border bg-gs-surface rounded-lg border border-gs-border overflow-hidden">
             {activeTopic.articles.map((item, i) => (
               <FAQItem key={i} q={item.q} a={item.a} />
             ))}
           </div>
-          <div className="mt-8 p-6 bg-white rounded-lg border border-slate-200 text-center">
-            <p className="text-sm text-slate-500 mb-3">Still need help?</p>
+          <div className="mt-8 p-6 bg-gs-surface rounded-lg border border-gs-border text-center">
+            <p className="text-sm text-gs-faint mb-3">Still need help?</p>
             <button
               onClick={() => setPageView('submit')}
-              className="px-5 py-2.5 rounded-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+              className="px-5 py-2.5 rounded-md text-sm font-semibold text-white bg-gs-accent hover:opacity-90 transition-colors"
             >
               Submit a request
             </button>
@@ -419,30 +419,30 @@ export function Support() {
         <div className="max-w-3xl mx-auto px-5 py-10">
           <BackLink onClick={goHome} label="Help Center" />
           {submitted ? (
-            <div className="mt-8 bg-white rounded-lg border border-slate-200 p-10 text-center">
+            <div className="mt-8 bg-gs-surface rounded-lg border border-gs-border p-10 text-center">
               <CheckCircle2 className="size-12 text-emerald-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-slate-800 mb-2">Request submitted</h2>
-              <p className="text-slate-500 text-sm mb-6">Our team will review your message and get back to you soon.</p>
+              <h2 className="text-xl font-bold text-gs-text mb-2">Request submitted</h2>
+              <p className="text-gs-faint text-sm mb-6">Our team will review your message and get back to you soon.</p>
               <div className="flex justify-center gap-3">
-                <button onClick={() => setSubmitted(false)} className="px-4 py-2 rounded-md border border-slate-200 text-sm text-slate-600 hover:bg-slate-50">
+                <button onClick={() => setSubmitted(false)} className="px-4 py-2 rounded-md border border-gs-border text-sm text-gs-muted hover:bg-gs-surface-2">
                   Submit another
                 </button>
                 {user && (
-                  <button onClick={() => { setPageView('tickets'); setSubmitted(false); }} className="px-4 py-2 rounded-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700">
+                  <button onClick={() => { setPageView('tickets'); setSubmitted(false); }} className="px-4 py-2 rounded-md text-sm font-semibold text-white bg-gs-accent hover:opacity-90">
                     View my tickets
                   </button>
                 )}
               </div>
             </div>
           ) : (
-            <div className="mt-6 bg-white rounded-lg border border-slate-200 p-6 sm:p-8 space-y-5">
+            <div className="mt-6 bg-gs-surface rounded-lg border border-gs-border p-6 sm:p-8 space-y-5">
               <div>
-                <h1 className="text-xl font-bold text-slate-800">Submit a request</h1>
-                <p className="text-sm text-slate-500 mt-1">Describe your issue and we will respond by email.</p>
+                <h1 className="text-xl font-bold text-gs-text">Submit a request</h1>
+                <p className="text-sm text-gs-faint mt-1">Describe your issue and we will respond by email.</p>
               </div>
 
               {formError && (
-                <div className="flex items-center gap-2 px-3 py-2.5 rounded-md border border-red-200 bg-red-50 text-red-700 text-sm">
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-md border border-red-500/20 bg-red-500/8 text-red-600 dark:text-red-400 text-sm">
                   <AlertCircle className="size-4 shrink-0" />{formError}
                 </div>
               )}
@@ -486,7 +486,7 @@ export function Support() {
               </Field>
 
               <button onClick={handleSubmit} disabled={submitting}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-md text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-md text-sm font-semibold text-white bg-gs-accent hover:opacity-90 disabled:opacity-50 transition-colors">
                 <Send className="size-4" />
                 {submitting ? 'Sending…' : 'Submit request'}
               </button>
@@ -500,21 +500,21 @@ export function Support() {
         <div className="max-w-3xl mx-auto px-5 py-10">
           <BackLink onClick={goHome} label="Help Center" />
           <div className="flex items-center justify-between mt-4 mb-6">
-            <h1 className="text-xl font-bold text-slate-800">My tickets</h1>
-            <button onClick={loadTickets} className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1">
+            <h1 className="text-xl font-bold text-gs-text">My tickets</h1>
+            <button onClick={loadTickets} className="text-xs text-gs-faint hover:text-gs-text flex items-center gap-1">
               <RefreshCw className="size-3.5" /> Refresh
             </button>
           </div>
 
           {!user ? (
-            <EmptyState message="Sign in to view your tickets." action={<Link to="/login" className="text-blue-600 text-sm font-medium hover:underline">Sign in</Link>} />
+            <EmptyState message="Sign in to view your tickets." action={<Link to="/login" className="text-gs-accent text-sm font-medium hover:underline">Sign in</Link>} />
           ) : ticketsLoading ? (
             <LoadingState />
           ) : tickets.length === 0 ? (
             <EmptyState
               message="No tickets yet."
               action={
-                <button onClick={() => setPageView('submit')} className="text-blue-600 text-sm font-medium hover:underline">
+                <button onClick={() => setPageView('submit')} className="text-gs-accent text-sm font-medium hover:underline">
                   Submit a request
                 </button>
               }
@@ -523,25 +523,25 @@ export function Support() {
             <div className="space-y-3">
               {tickets.map(ticket => (
                 <div key={ticket.id} onClick={() => setSelectedTicket(t => t?.id === ticket.id ? null : ticket)}
-                  className="bg-white border border-slate-200 rounded-lg p-4 cursor-pointer hover:border-blue-300 transition-colors">
+                  className="bg-gs-surface border border-gs-border rounded-lg p-4 cursor-pointer hover:border-gs-accent/40 transition-colors">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap gap-1.5 mb-1.5">
                         <Badge cfg={STATUS_CONFIG[ticket.status]} />
                         <span className={`text-[10px] px-2 py-0.5 rounded border font-medium ${PRIORITY_STYLE[ticket.priority]}`}>{ticket.priority}</span>
                       </div>
-                      <p className="text-sm font-semibold text-slate-800 truncate">{ticket.subject}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">#{ticket.id} · {new Date(ticket.created_at).toLocaleDateString()}</p>
+                      <p className="text-sm font-semibold text-gs-text truncate">{ticket.subject}</p>
+                      <p className="text-xs text-gs-faint mt-0.5">#{ticket.id} · {new Date(ticket.created_at).toLocaleDateString()}</p>
                     </div>
-                    <ChevronDown className={`size-4 text-slate-400 shrink-0 transition-transform ${selectedTicket?.id === ticket.id ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`size-4 text-gs-faint shrink-0 transition-transform ${selectedTicket?.id === ticket.id ? 'rotate-180' : ''}`} />
                   </div>
                   {selectedTicket?.id === ticket.id && (
-                    <div className="mt-4 pt-4 border-t border-slate-100 space-y-3" onClick={e => e.stopPropagation()}>
+                    <div className="mt-4 pt-4 border-t border-gs-border space-y-3" onClick={e => e.stopPropagation()}>
                       <Block label="Your message" text={ticket.message} />
                       {ticket.admin_response && (
                         <Block label="Support response" text={ticket.admin_response} highlight />
                       )}
-                      <p className="text-xs text-slate-400">Updated {new Date(ticket.updated_at).toLocaleString()}</p>
+                      <p className="text-xs text-gs-faint">Updated {new Date(ticket.updated_at).toLocaleString()}</p>
                     </div>
                   )}
                 </div>
@@ -557,18 +557,18 @@ export function Support() {
           <BackLink onClick={goHome} label="Help Center" />
           <div className="flex items-center justify-between mt-4 mb-6">
             <div>
-              <h1 className="text-xl font-bold text-slate-800">{isSellerView ? 'Incoming trade requests' : 'My trades'}</h1>
+              <h1 className="text-xl font-bold text-gs-text">{isSellerView ? 'Incoming trade requests' : 'My trades'}</h1>
               {isSellerView && (
-                <p className="text-xs text-slate-500 mt-0.5">Accept skin trades and upload proof for admin review.</p>
+                <p className="text-xs text-gs-faint mt-0.5">Accept skin trades and upload proof for admin review.</p>
               )}
             </div>
-            <button onClick={loadTrades} className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1">
+            <button onClick={loadTrades} className="text-xs text-gs-faint hover:text-gs-text flex items-center gap-1">
               <RefreshCw className="size-3.5" /> Refresh
             </button>
           </div>
 
           {!user ? (
-            <EmptyState message="Sign in to track skin trades." action={<Link to="/login" className="text-blue-600 text-sm font-medium hover:underline">Sign in</Link>} />
+            <EmptyState message="Sign in to track skin trades." action={<Link to="/login" className="text-gs-accent text-sm font-medium hover:underline">Sign in</Link>} />
           ) : tradesLoading ? (
             <LoadingState />
           ) : trades.length === 0 ? (
@@ -581,39 +581,39 @@ export function Support() {
                 const isPending = trade.status === 'pending';
                 return (
                   <div key={trade.id} onClick={() => !isSellerView && setSelectedTrade(t => t?.id === trade.id ? null : trade)}
-                    className={`bg-white border border-slate-200 rounded-lg p-4 ${isSellerView ? '' : 'cursor-pointer hover:border-blue-300'} transition-colors`}>
+                    className={`bg-gs-surface border border-gs-border rounded-lg p-4 ${isSellerView ? '' : 'cursor-pointer hover:border-gs-accent/40'} transition-colors`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border font-medium mb-1.5 ${cfg.style}`}>
                           {cfg.icon} {cfg.label}
                         </span>
-                        <p className="text-sm font-semibold text-slate-800 truncate">{trade.item_name}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">
+                        <p className="text-sm font-semibold text-gs-text truncate">{trade.item_name}</p>
+                        <p className="text-xs text-gs-faint mt-0.5">
                           #{trade.id} · {trade.game} · ${trade.price.toFixed(2)}
                           {isSellerView && trade.buyer_username ? ` · Buyer: ${trade.buyer_username}` : ''}
                         </p>
                       </div>
-                      {!isSellerView && <ChevronDown className={`size-4 text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
+                      {!isSellerView && <ChevronDown className={`size-4 text-gs-faint shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
                     </div>
 
                     {isSellerView && trade.proof_image && (
-                      <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 max-w-xs">
-                        <p className="text-xs text-slate-400 px-2 pt-2">Submitted proof:</p>
+                      <div className="mt-3 rounded-lg overflow-hidden border border-gs-border max-w-xs">
+                        <p className="text-xs text-gs-faint px-2 pt-2">Submitted proof:</p>
                         <img src={trade.proof_image} alt="Trade proof" className="w-full max-h-48 object-contain p-2" />
                       </div>
                     )}
 
                     {isSellerView && isPending && (
-                      <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+                      <div className="flex gap-2 mt-3 pt-3 border-t border-gs-border">
                         <button
                           onClick={() => openTradeModal(trade, 'accepted')}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-100"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-500/15"
                         >
                           <Check className="size-3.5" /> Accept & Upload Proof
                         </button>
                         <button
                           onClick={() => openTradeModal(trade, 'declined')}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs font-bold hover:bg-red-100"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-500/15"
                         >
                           <X className="size-3.5" /> Decline
                         </button>
@@ -621,14 +621,14 @@ export function Support() {
                     )}
 
                     {!isSellerView && isOpen && (
-                      <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
-                        <p className="text-sm text-slate-600 bg-slate-50 rounded-md p-3 border border-slate-100">{cfg.desc}</p>
+                      <div className="mt-4 pt-4 border-t border-gs-border space-y-3">
+                        <p className="text-sm text-gs-muted bg-gs-surface-2 rounded-md p-3 border border-gs-border">{cfg.desc}</p>
                         {trade.admin_note && (
                           <Block label="Admin note" text={trade.admin_note} highlight />
                         )}
                         {(trade.status === 'rejected' || trade.status === 'seller_declined') && (
                           <button onClick={e => { e.stopPropagation(); setPageView('submit'); }}
-                            className="text-sm text-blue-600 hover:underline">
+                            className="text-sm text-gs-accent hover:underline">
                             Open a support ticket
                           </button>
                         )}
@@ -645,24 +645,24 @@ export function Support() {
       {/* Seller trade respond modal */}
       {tradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-              <h3 className="text-base font-bold text-slate-800">
+          <div className="bg-gs-surface border border-gs-border rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gs-border">
+              <h3 className="text-base font-bold text-gs-text">
                 {tradeAction === 'accepted' ? 'Accept trade & upload proof' : 'Decline trade request'}
               </h3>
-              <button onClick={() => setTradeModal(null)} className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100">
+              <button onClick={() => setTradeModal(null)} className="text-gs-faint hover:text-gs-text p-1.5 rounded-lg hover:bg-gs-surface-2">
                 <X className="size-5" />
               </button>
             </div>
             <div className="p-6 space-y-4">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                <p className="text-sm font-bold text-slate-800">{tradeModal.item_name}</p>
-                <p className="text-xs text-slate-500">Buyer: {tradeModal.buyer_username} · ${tradeModal.price.toFixed(2)}</p>
+              <div className="p-3 rounded-xl bg-gs-surface-2 border border-gs-border space-y-1">
+                <p className="text-sm font-bold text-gs-text">{tradeModal.item_name}</p>
+                <p className="text-xs text-gs-faint">Buyer: {tradeModal.buyer_username} · ${tradeModal.price.toFixed(2)}</p>
               </div>
 
               {tradeAction === 'accepted' && (
                 <div>
-                  <label className="text-xs text-slate-600 block mb-2 font-semibold flex items-center gap-1.5">
+                  <label className="text-xs text-gs-muted block mb-2 font-semibold flex items-center gap-1.5">
                     <ImageIcon className="size-3.5" /> Proof screenshot <span className="text-red-500">*</span>
                   </label>
                   <input type="file" accept="image/*" ref={tradeFileRef} onChange={handleProofImageUpload} className="hidden" />
@@ -676,7 +676,7 @@ export function Support() {
                   ) : (
                     <button
                       onClick={() => tradeFileRef.current?.click()}
-                      className="w-full flex flex-col items-center gap-2 py-6 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 hover:border-blue-300 hover:text-slate-600"
+                      className="w-full flex flex-col items-center gap-2 py-6 border-2 border-dashed border-gs-border rounded-xl text-gs-faint hover:border-gs-accent/40 hover:text-gs-muted"
                     >
                       <Upload className="size-6" />
                       <span className="text-xs">Click to upload screenshot</span>
@@ -686,7 +686,7 @@ export function Support() {
               )}
 
               <div>
-                <label className="text-xs text-slate-600 block mb-1.5 font-semibold">
+                <label className="text-xs text-gs-muted block mb-1.5 font-semibold">
                   {tradeAction === 'accepted' ? 'Note to admin (optional)' : 'Reason for declining'}
                 </label>
                 <textarea
@@ -699,13 +699,13 @@ export function Support() {
               </div>
 
               {tradeError && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 bg-red-50 text-red-600 text-sm">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-red-500/20 bg-red-500/8 text-red-600 dark:text-red-400 text-sm">
                   <AlertCircle className="size-4 shrink-0" />{tradeError}
                 </div>
               )}
 
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setTradeModal(null)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50">
+                <button onClick={() => setTradeModal(null)} className="flex-1 py-2.5 rounded-xl border border-gs-border text-gs-muted text-sm font-semibold hover:bg-gs-surface-2">
                   Cancel
                 </button>
                 <button
@@ -728,11 +728,11 @@ export function Support() {
 
 /* ── Small UI helpers ── */
 
-const inputCls = 'w-full bg-white border border-slate-200 rounded-md px-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/30';
+const inputCls = 'w-full bg-gs-surface border border-gs-border rounded-md px-3 py-2.5 text-sm text-gs-text placeholder:text-gs-faint focus:outline-none focus:border-gs-accent/50 focus:ring-1 focus:ring-gs-accent/30';
 
 function BackLink({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button onClick={onClick} className="text-sm text-blue-600 hover:underline inline-flex items-center gap-1">
+    <button onClick={onClick} className="text-sm text-gs-accent hover:underline inline-flex items-center gap-1">
       ← {label}
     </button>
   );
@@ -741,7 +741,7 @@ function BackLink({ onClick, label }: { onClick: () => void; label: string }) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-xs font-medium text-slate-600 block mb-1.5">{label}</label>
+      <label className="text-xs font-medium text-gs-muted block mb-1.5">{label}</label>
       {children}
     </div>
   );
@@ -749,7 +749,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function QuickLink({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-white border border-slate-200 text-sm text-slate-600 hover:border-blue-300 hover:text-blue-700 transition-colors">
+    <button onClick={onClick} className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-gs-surface border border-gs-border text-sm text-gs-muted hover:border-gs-accent/40 hover:text-gs-accent transition-colors">
       {icon}{label}
     </button>
   );
@@ -757,8 +757,8 @@ function QuickLink({ icon, label, onClick }: { icon: React.ReactNode; label: str
 
 function LoadingState() {
   return (
-    <div className="flex items-center justify-center py-16 gap-2 text-slate-400 text-sm">
-      <span className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-blue-500 animate-spin" />
+    <div className="flex items-center justify-center py-16 gap-2 text-gs-faint text-sm">
+      <span className="w-4 h-4 rounded-full border-2 border-gs-border border-t-gs-accent animate-spin" />
       Loading…
     </div>
   );
@@ -766,9 +766,9 @@ function LoadingState() {
 
 function EmptyState({ message, action }: { message: string; action?: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-10 text-center">
-      <HelpCircle className="size-10 text-slate-300 mx-auto mb-3" />
-      <p className="text-sm text-slate-500 mb-2">{message}</p>
+    <div className="bg-gs-surface rounded-lg border border-gs-border p-10 text-center">
+      <HelpCircle className="size-10 text-gs-faint mx-auto mb-3" />
+      <p className="text-sm text-gs-faint mb-2">{message}</p>
       {action}
     </div>
   );
@@ -785,8 +785,8 @@ function Badge({ cfg }: { cfg: { label: string; style: string; icon: React.React
 function Block({ label, text, highlight }: { label: string; text: string; highlight?: boolean }) {
   return (
     <div>
-      <p className={`text-xs font-semibold mb-1.5 ${highlight ? 'text-blue-600' : 'text-slate-500'}`}>{label}</p>
-      <p className={`text-sm whitespace-pre-wrap rounded-md p-3 border ${highlight ? 'bg-blue-50 border-blue-100 text-slate-700' : 'bg-slate-50 border-slate-100 text-slate-700'}`}>
+      <p className={`text-xs font-semibold mb-1.5 ${highlight ? 'text-gs-accent' : 'text-gs-faint'}`}>{label}</p>
+      <p className={`text-sm whitespace-pre-wrap rounded-md p-3 border ${highlight ? 'bg-gs-accent/10 border-gs-accent/20 text-gs-text' : 'bg-gs-surface-2 border-gs-border text-gs-text'}`}>
         {text}
       </p>
     </div>
@@ -796,16 +796,16 @@ function Block({ label, text, highlight }: { label: string; text: string; highli
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="bg-white">
+    <div className="bg-gs-surface">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left text-sm font-medium text-slate-800 hover:bg-slate-50 transition-colors"
+        className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left text-sm font-medium text-gs-text hover:bg-gs-surface-2 transition-colors"
       >
         {q}
-        <ChevronDown className={`size-4 text-slate-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`size-4 text-gs-faint shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="px-5 pb-4 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3 bg-slate-50/50">
+        <div className="px-5 pb-4 text-sm text-gs-muted leading-relaxed border-t border-gs-border pt-3 bg-gs-surface-2/50">
           {a}
         </div>
       )}

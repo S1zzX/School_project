@@ -1,85 +1,210 @@
-# Project Structure Overview
+# Project Structure
 
-Here is an overview of the project's folder structure and an explanation of the purpose of each file and folder. This structure is common for modern React projects built with **Vite**, **TypeScript**, **Tailwind CSS**, and **shadcn/ui**.
+Reference for the **GameGuide AI Assistant** codebase — a Vite + React frontend and an Express + SQLite backend.
 
-## Root Directory
+---
 
-* **`index.html`** - The main HTML entry point. The browser loads this first, and it contains the `<div id="root"></div>` where your React application is rendered.
-* **`package.json`** - Contains important metadata about your project. It defines your app's dependencies (like React, Tailwind, and various UI libraries) and your run scripts (`npm run dev`, `npm run build`).
-* **`vite.config.ts`** - The configuration file for Vite, the fast build tool and development server powering your app.
-* **`postcss.config.mjs`** - Configuration for PostCSS, which is a tool that processes your CSS. It's primarily used here to process Tailwind CSS.
-* **`pnpm-workspace.yaml`** - Configuration file for `pnpm` workspaces (useful if your project is set up as a monorepo containing multiple packages).
-* **`default_shadcn_theme.css`** - Contains the CSS variables to define the initial theme and color palette for your UI components.
+## Root directory
 
-## `server/` directory (Backend — Express + SQLite)
+| File / folder | Purpose |
+|---------------|---------|
+| `index.html` | HTML shell; mounts React at `#root` |
+| `package.json` | Frontend dependencies and scripts (`dev`, `build`) |
+| `vite.config.ts` | Vite + React + Tailwind; proxies `/api` → `localhost:3001` |
+| `README.md` | Project overview, setup, demo GIF placeholders |
+| `ACCOUNTS.md` | Test account credentials and role permissions |
+| `PROJECT_STRUCTURE.md` | This file |
+| `docs/demo/` | Drop GIF screen recordings referenced by `README.md` |
 
-Runs separately on port **3001**. Start it with `cd server && node index.js` (or `npm run dev` in the `server/` folder).
+---
 
-* **`index.js`** - Express app entry point. Configures middleware, mounts all API routes, and starts the HTTP server.
-* **`db.js`** - Initialises the SQLite database (`database.sqlite`), runs the schema creation, applies safe migrations for new columns, and seeds the default admin account on first run.
+## `server/` — Backend (Express + SQLite, port 3001)
+
+| File | Purpose |
+|------|---------|
+| `index.js` | Express entry — CORS, JSON body (50 MB limit), route mounting, health check |
+| `db.js` | SQLite init (`database.sqlite`), schema, migrations (`app_migrations`), admin seed |
+| `seed-demo.js` | Optional demo users, store listings, forum posts (`demo_seed_v2`) |
+| `.env.example` | Template for `GROQ_API_KEY` and optional `PORT` |
+| `package.json` | Backend-only deps (`express`, `better-sqlite3`, `bcryptjs`, `jsonwebtoken`) |
 
 ### `server/middleware/`
-* **`auth.js`** - Reusable JWT middleware: `requireAuth` (verifies token, attaches `req.user`) and `requireRole(...roles)` (factory that blocks access to non-matching roles).
+
+| File | Purpose |
+|------|---------|
+| `auth.js` | `requireAuth` (JWT verify) and `requireRole(...roles)` guards |
+
+### `server/lib/`
+
+| File | Purpose |
+|------|---------|
+| `notifications.js` | Create in-app notifications for users and admins |
 
 ### `server/routes/`
-* **`auth.js`** - `POST /api/auth/register` (with role + shop_category), `POST /api/auth/login`, `GET /api/auth/me`.
-* **`cart.js`** - Cart CRUD: add, list, remove, clear items for authenticated users.
-* **`forum.js`** - Forum posts CRUD: create, list, like, delete (author or admin only).
-* **`admin.js`** - Admin-only user management: `GET /api/admin/users`, `PATCH /api/admin/users/:id`, `DELETE /api/admin/users/:id`.
+
+| File | Base path | Responsibility |
+|------|-----------|----------------|
+| `auth.js` | `/api/auth` | Register, login, `GET /me`, profile update, token refresh |
+| `cart.js` | `/api/cart` | Cart CRUD for authenticated users |
+| `store.js` | `/api/store` | Public listings, create listing, purchase, view counter |
+| `forum.js` | `/api/forum` | Posts, replies, likes; admin can delete/edit any post |
+| `admin.js` | `/api/admin` | User CRUD, forum/store moderation, tickets, trades (admin only) |
+| `shop-owner.js` | `/api/shop-owner` | Seller dashboard stats and listing delete |
+| `support.js` | `/api/support` | Support tickets (user + admin) |
+| `trades.js` | `/api/trades` | Skin trade escrow requests |
+| `notifications.js` | `/api/notifications` | Notification inbox and preferences |
+| `chat.js` | `/api/chat` | AI chat proxy (Groq) |
+| `vision.js` | `/api/vision` | Screenshot analysis (Groq vision) |
+| `analytics.js` | `/api/analytics` | Market summary, charts, top listings, price prediction |
 
 ---
 
-## `src/` directory (Frontend — React + Vite)
+## `src/` — Frontend (React + Vite, port 5173)
 
-* **`main.tsx`** - The main entry point for the React code. Mounts the app into `index.html`.
-
-### `src/app/`
-Contains the core structure of your application.
-* **`App.tsx`** - The root component of your application.
-* **`routes.ts`** - Defines all navigation paths. Includes the protected `/admin` route.
-
-### `src/app/lib/`
-* **`api.ts`** - Shared fetch helper, JWT token storage, and all API call functions (auth, cart, forum, admin). Exports `AuthUser`, `UserRole`, `ShopCategory`, and `SHOP_CATEGORIES`.
+| File | Purpose |
+|------|---------|
+| `main.tsx` | React DOM entry |
+| `app/App.tsx` | Router provider wrapper |
+| `app/routes.ts` | All route definitions |
 
 ### `src/app/pages/`
-Contains the main views or screens of your application. Each file represents a different page a user can visit.
 
 | File | Route | Access |
-|---|---|---|
-| `Dashboard.tsx` | `/` | Public (landing) + personalised (logged in) |
-| `Login.tsx` | `/login` | Public |
-| `Register.tsx` | `/register` | Public — includes role selector (Gamer / Shop Owner) |
-| `Library.tsx` | `/library` | All logged-in users |
-| `Store.tsx` | `/store` | All users |
-| `Community.tsx` | `/community` | All users |
-| `Cart.tsx` | `/cart` | Logged-in users |
-| `Admin.tsx` | `/admin` | **Admin only** — user management table with inline edit & delete |
+|------|-------|--------|
+| `Dashboard.tsx` | `/` | Public home + catalog carousels |
+| `Store.tsx` | `/store` | Player marketplace (skins + accounts) |
+| `Community.tsx` | `/community` | Forum threads and replies |
+| `VisionPage.tsx` | `/vision` | Vision AI upload + chat |
+| `Analytics.tsx` | `/analytics` | Market analytics dashboard |
+| `Cart.tsx` | `/cart` | Shopping cart and checkout |
+| `ProductDetail.tsx` | `/product/:id` | Single product page |
+| `PurchaseHistory.tsx` | `/purchase-history` | Order history |
+| `Support.tsx` | `/support` | Tickets and trade requests |
+| `ShopOwner.tsx` | `/shop-owner` | Seller dashboard |
+| `Admin.tsx` | `/admin` | Admin panel |
+| `Settings.tsx` | `/settings` | Theme, language, account, notifications |
+| `Login.tsx` | `/login` | Sign in (no layout shell) |
+| `Register.tsx` | `/register` | Sign up with role selection |
 
 ### `src/app/components/`
-Contains React components used to build up pages.
-* **`Layout.tsx`** - App shell with sticky header, nav, dark-mode toggle. Shows **Admin** nav link only when `user.role === 'admin'`. Displays a role badge (Admin / Shop / Gamer) in the user dropdown menu.
-* **`ChatBot.tsx`** - AI chat interface component.
-* **`GameCard.tsx`** - Reusable card component for displaying game information.
-* **`figma/ImageWithFallback.tsx`** - Utility component for safe image loading.
 
-### `src/app/components/ui/`
-Smaller, highly reusable standard UI elements (Buttons, Inputs, Dialogs, etc.) generated by **shadcn/ui** using Radix UI primitives.
+| File | Purpose |
+|------|---------|
+| `Layout.tsx` | Sticky header, inline nav (4 links), search, cart, user menu, footer |
+| `HomeProductCarousel.tsx` | Horizontal product row with scroll arrows (home page) |
+| `AvatarCropModal.tsx` | Circular profile photo crop (zoom + rotate) |
+| `NotificationBell.tsx` | Header notification dropdown |
+| `VisionAnalyzer.tsx` | Screenshot upload and AI analysis UI |
+| `VisionChat.tsx` | Follow-up chat after vision analysis |
+| `ChatBot.tsx` | General AI chat widget |
+| `FloatingContact.tsx` | Floating support shortcut |
+| `IntroSplash.tsx` | First-visit intro animation |
+| `figma/ImageWithFallback.tsx` | Safe image loading with fallback |
+| `ui/` | shadcn/ui primitives (Button, Dialog, Slider, etc.) |
+
+### `src/app/lib/`
+
+| File | Purpose |
+|------|---------|
+| `api.ts` | Fetch helper, JWT + avatar cache, all API functions |
+| `AppContext.tsx` | Theme, accent color, language, motion preferences |
+| `i18n.ts` | English / Vietnamese translation strings |
+| `products.ts` | Static catalog products (keys, software, gift cards) |
+| `catalog.ts` | Category definitions for header and home sections |
+| `purchaseHistory.ts` | Client-side purchase history helpers |
+| `cropImage.ts` | Canvas helper for avatar crop export |
+
+### `src/assets/`
+
+Game art, gift card images, subscription banners, `iconweb.png`.
 
 ### `src/styles/`
-Contains all global stylesheets.
-* **`theme.css`** - CSS variables for the `gs-*` design token system (background, surface, border, text, accent, etc.) used across all components in both light and dark modes.
-* **`globals.css`** & **`index.css`** - Main styling entry files with global resets and Tailwind directives.
-* **`tailwind.css`** - Tailwind-specific configurations or overrides.
-* **`fonts.css`** - Custom font definitions.
+
+| File | Purpose |
+|------|---------|
+| `theme.css` | `gs-*` CSS variables (light + `.dark`) |
+| `index.css` / `tailwind.css` | Tailwind entry and global resets |
+| `fonts.css` | Font imports |
 
 ---
 
-## User Role System
+## Navigation map
 
-Three roles are defined in the system:
+**Header (always visible):** Home, Store, Community, Vision AI
 
-| Role | Can Do | Notes |
-|---|---|---|
-| **Gamer** | Browse store, purchase items, use AI guides, post in community | Default role at registration |
-| **Shop Owner** | All Gamer permissions + sell in-game items | **Restricted to one category** chosen at registration. Category can be changed by an Admin. |
-| **Admin** | Full CRUD on all users via `/admin` panel | Seeded automatically on first server start. Login: `admin@gameguide.dev` / `Admin@1234` |
+**User dropdown:** Settings, Purchase History, Analytics, Support, Shop Dashboard (seller/admin), Admin Panel (admin), Sign Out
+
+**Header icons:** Cart (badge), notifications bell, wishlist (UI), search
+
+---
+
+## User roles
+
+| Role | Key capabilities |
+|------|------------------|
+| **Gamer** | Browse, buy, cart, forum, support, Vision AI |
+| **Shop owner** | All gamer features + post listings, shop dashboard |
+| **Admin** | Full moderation, user management, trades, tickets |
+
+Shop owners pick one category at registration (changeable by admin). See [ACCOUNTS.md](ACCOUNTS.md).
+
+---
+
+## Data flow (simplified)
+
+```
+Browser (React)
+    │  fetch /api/*  (JWT in Authorization header)
+    ▼
+Vite dev proxy → Express (server/index.js)
+    │  requireAuth / requireRole
+    ▼
+SQLite (server/database.sqlite)
+```
+
+**Avatar note:** Profile images are stored in the database as data URLs. JWT tokens stay small (no embedded image) to avoid HTTP 431 header errors. Avatars are cached in `localStorage` under `gg_user_profile`.
+
+---
+
+## Key API groups (quick reference)
+
+```
+POST   /api/auth/register | /login | /refresh
+PATCH  /api/auth/profile
+GET    /api/auth/me
+
+GET    /api/store
+POST   /api/store | /store/purchase | /store/:id/view
+
+GET    /api/forum
+POST   /api/forum | /forum/:id/like | /forum/:id/replies
+DELETE /api/forum/:id
+
+GET    /api/analytics/summary | /by-game | /top-listings | ...
+
+GET    /api/admin/users          [admin]
+PATCH  /api/admin/users/:id      [admin]
+DELETE /api/admin/forum/:id      [admin]
+```
+
+---
+
+## Development commands
+
+```bash
+# Both services
+npm run dev
+
+# Seed demo marketplace + forum data
+cd server && node seed-demo.js
+
+# Production build (frontend)
+npm run build
+```
+
+---
+
+## Related docs
+
+- [README.md](README.md) — setup, features, demo GIF placeholders
+- [ACCOUNTS.md](ACCOUNTS.md) — credentials and permissions table

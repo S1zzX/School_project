@@ -243,6 +243,15 @@ try {
   }
 } catch { /* table may not exist yet on fresh DB */ }
 
+// ─── One-time: reset seeded fake view counts so analytics track real opens ───
+db.exec(`CREATE TABLE IF NOT EXISTS app_migrations (key TEXT PRIMARY KEY, applied_at TEXT NOT NULL DEFAULT (datetime('now')))`);
+const viewsMigration = db.prepare(`SELECT 1 AS ok FROM app_migrations WHERE key = 'listing_views_live_v1'`).get();
+if (!viewsMigration) {
+  db.exec(`UPDATE store_listings SET views = 0`);
+  db.prepare(`INSERT INTO app_migrations (key) VALUES ('listing_views_live_v1')`).run();
+  console.log('[db] Migration: reset listing views — now tracked live when users open listings');
+}
+
 // ─── Users migrations ────────────────────────────────────────────────────────
 const userCols = db.pragma('table_info(users)').map(c => c.name);
 if (!userCols.includes('avatar_url')) {

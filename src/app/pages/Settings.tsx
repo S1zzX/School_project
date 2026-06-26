@@ -9,6 +9,7 @@ import {
 import { useAppSettings, ACCENT_MAP, type AccentKey, type ColorMode, type AppLanguage } from '../lib/AppContext';
 import { getUser, apiUpdateProfile, apiGetNotificationPrefs, apiUpdateNotificationPrefs, type NotificationPrefs } from '../lib/api';
 import { useT } from '../lib/i18n';
+import { AvatarCropModal } from '../components/AvatarCropModal';
 
 type Section = 'appearance' | 'language' | 'preferences' | 'account' | 'notifications';
 
@@ -151,6 +152,7 @@ export function Settings() {
   const [saveStatus,       setSaveStatus]       = useState<'idle' | 'success' | 'error'>('idle');
   const [saveMessage,      setSaveMessage]      = useState('');
   const [avatarUrl,        setAvatarUrl]        = useState(currentUser?.avatar_url ?? '');
+  const [cropImageSrc,     setCropImageSrc]     = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs>({
@@ -192,9 +194,16 @@ export function Settings() {
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => setAvatarUrl(String(reader.result ?? ''));
+    reader.onload = () => setCropImageSrc(String(reader.result ?? ''));
     reader.readAsDataURL(file);
   };
+
+  const handleCropComplete = (croppedDataUrl: string) => {
+    setAvatarUrl(croppedDataUrl);
+    setCropImageSrc(null);
+  };
+
+  const handleCropClose = () => setCropImageSrc(null);
 
   /* Account save handler */
   const handleSaveAccount = async () => {
@@ -746,6 +755,15 @@ export function Settings() {
           )}
         </div>
       </div>
+
+      {cropImageSrc && (
+        <AvatarCropModal
+          imageSrc={cropImageSrc}
+          open={!!cropImageSrc}
+          onClose={handleCropClose}
+          onComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }

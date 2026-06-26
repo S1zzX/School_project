@@ -1,27 +1,92 @@
-# ── Dependencies ─────────────────────────────────────────
+# =============================================================================
+# GameGuide AI Assistant — .gitignore
+# Files and folders listed here are NOT pushed to GitHub.
+# =============================================================================
+
+# ── Dependencies (reinstall with: npm install) ─────────────────────────────
 node_modules/
 server/node_modules/
+.pnp
+.pnp.js
 
-# ── Build output ─────────────────────────────────────────
+# ── Build output (regenerated with: npm run build) ───────────────────────────
 dist/
+dist-ssr/
+build/
+.vite/
+*.local
 
-# ── Environment / secrets ────────────────────────────────
+# ── Environment & secrets (NEVER commit API keys or passwords) ───────────────
 .env
+.env.*
+!.env.example
+!server/.env.example
 server/.env
 *.env.local
 *.env.*.local
 
-# ── Database ─────────────────────────────────────────────
+# ── Database (local SQLite — recreated on server start) ──────────────────────
 server/database.sqlite
-server/database.sqlite-shm
-server/database.sqlite-wal
+server/database.sqlite-*
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
 
-# ── OS / Editor ──────────────────────────────────────────
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-
-# ── Logs ─────────────────────────────────────────────────
+# ── Logs & debug ───────────────────────────────────────────────────────────
+logs/
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── Test & coverage (if you add tests later) ─────────────────────────────────
+coverage/
+.nyc_output/
+*.lcov
+
+# ── TypeScript / tooling cache ───────────────────────────────────────────────
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+.cache/
+.parcel-cache/
+.turbo/
+
+# ── OS generated files ───────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Editors & IDEs ───────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+
+# ── Cursor / AI workspace (local only) ───────────────────────────────────────
+.cursor/
+
+# ── Optional: large demo media (uncomment if GIFs are too big for GitHub) ─────
+# docs/demo/*.gif
+# docs/demo/*.mp4
+# docs/demo/*.webm
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+*.pem
+*.key
+credentials.json
+secrets.json

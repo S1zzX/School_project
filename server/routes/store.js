@@ -20,13 +20,32 @@ const authMiddleware = (req, res, next) => {
 
 // GET /api/store
 router.get('/', (req, res) => {
-  const listings = db.prepare(`SELECT * FROM store_listings ORDER BY id DESC`).all();
-  // Map rows back to the frontend's expected format
+  const listings = db.prepare(`
+    SELECT l.*, u.role AS seller_role, u.username AS seller_username
+    FROM store_listings l
+    LEFT JOIN users u ON u.id = l.user_id
+    ORDER BY l.id DESC
+  `).all();
   const mapped = listings.map(l => ({
     ...l,
-    price: parseFloat(l.price)
+    seller: l.seller_username || l.seller,
+    price: parseFloat(l.price),
   }));
   res.json(mapped);
+});
+
+// POST /api/store/:id/view — increment listing view count (real-time analytics)
+router.post('/:id/view', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id) || id <= 0) {
+    return res.status(400).json({ error: 'Invalid listing id.' });
+  }
+  const existing = db.prepare('SELECT id FROM store_listings WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'Listing not found.' });
+
+  db.prepare('UPDATE store_listings SET views = COALESCE(views, 0) + 1 WHERE id = ?').run(id);
+  const row = db.prepare('SELECT views FROM store_listings WHERE id = ?').get(id);
+  return res.json({ id, views: row.views });
 });
 
 // POST /api/store

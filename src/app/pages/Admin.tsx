@@ -18,24 +18,85 @@ import {
   type TradeRequestAPI, type TradeStatus, type TradeStatsAPI,
 } from '../lib/api';
 
-const ROLE_LABELS: Record<UserRole, { label: string; style: string }> = {
-  admin:      { label: 'Admin',      style: 'bg-orange-400/15 text-orange-400 border border-orange-400/30' },
-  shop_owner: { label: 'Shop Owner', style: 'bg-amber-400/15 text-amber-400 border border-amber-400/30' },
-  gamer:      { label: 'Gamer',      style: 'bg-gs-surface-2 text-gs-muted border border-gs-border' },
+const ROLE_LABELS: Record<UserRole, string> = {
+  admin:      'Admin',
+  shop_owner: 'Shop Owner',
+  gamer:      'Gamer',
 };
 
-const TICKET_STATUS: Record<TicketStatus, { label: string; style: string; icon: React.ReactNode }> = {
-  open:        { label: 'Open',        style: 'text-sky-400 bg-sky-400/10 border-sky-400/25',            icon: <Clock className="size-3" /> },
-  in_progress: { label: 'In Progress', style: 'text-amber-400 bg-amber-400/10 border-amber-400/25',      icon: <RefreshCw className="size-3" /> },
-  resolved:    { label: 'Resolved',    style: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/25', icon: <CheckCircle2 className="size-3" /> },
-  closed:      { label: 'Closed',      style: 'text-gs-faint bg-gs-surface-2 border-gs-border',          icon: <X className="size-3" /> },
+function Badge({
+  children,
+  variant = 'default',
+}: {
+  children: React.ReactNode;
+  variant?: 'default' | 'danger' | 'success';
+}) {
+  const styles = {
+    default: 'bg-gs-surface-2 text-gs-muted border-gs-border',
+    danger:  'bg-red-500/8 text-red-600 dark:text-red-400 border-red-500/20',
+    success: 'bg-emerald-500/8 text-emerald-700 dark:text-emerald-400 border-emerald-500/20',
+  };
+  return (
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-[11px] font-medium ${styles[variant]}`}>
+      {children}
+    </span>
+  );
+}
+
+function StatStrip({ items }: { items: { label: string; value: string | number; icon: React.ReactNode }[] }) {
+  const colClass = items.length > 4
+    ? 'sm:grid-cols-3 lg:grid-cols-5'
+    : 'sm:grid-cols-4';
+  return (
+    <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+      <div className={`grid grid-cols-2 ${colClass} divide-y sm:divide-y-0 sm:divide-x divide-gs-border`}>
+        {items.map((item) => (
+          <div key={item.label} className="flex items-center gap-3 px-5 py-4">
+            <div className="w-9 h-9 rounded-lg bg-gs-surface-2 flex items-center justify-center text-gs-muted shrink-0">
+              {item.icon}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-gs-text tabular-nums leading-none">{item.value}</p>
+              <p className="text-[11px] text-gs-faint font-medium mt-1">{item.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SectionHeader({ icon, title, trailing }: { icon: React.ReactNode; title: string; trailing?: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3 px-6 py-4 border-b border-gs-border">
+      <span className="text-gs-muted">{icon}</span>
+      <h2 className="text-sm font-semibold text-gs-text">{title}</h2>
+      {trailing && <div className="ml-auto">{trailing}</div>}
+    </div>
+  );
+}
+
+const TICKET_STATUS: Record<TicketStatus, { label: string; variant: 'default' | 'danger' | 'success'; icon: React.ReactNode }> = {
+  open:        { label: 'Open',        variant: 'default', icon: <Clock className="size-3" /> },
+  in_progress: { label: 'In Progress', variant: 'default', icon: <RefreshCw className="size-3" /> },
+  resolved:    { label: 'Resolved',    variant: 'success', icon: <CheckCircle2 className="size-3" /> },
+  closed:      { label: 'Closed',      variant: 'default', icon: <X className="size-3" /> },
 };
 
-const TICKET_PRIORITY: Record<TicketPriority, string> = {
-  low:    'text-gs-faint',
-  normal: 'text-sky-400',
-  high:   'text-orange-400',
-  urgent: 'text-red-400 font-bold',
+const TICKET_PRIORITY: Record<TicketPriority, { label: string; variant: 'default' | 'danger' | 'success' }> = {
+  low:    { label: 'low',    variant: 'default' },
+  normal: { label: 'normal', variant: 'default' },
+  high:   { label: 'high',   variant: 'default' },
+  urgent: { label: 'urgent', variant: 'danger' },
+};
+
+const TRADE_STATUS: Record<TradeStatus, { label: string; variant: 'default' | 'danger' | 'success'; icon: React.ReactNode }> = {
+  pending:         { label: 'Pending',         variant: 'default', icon: <Clock className="size-3" /> },
+  seller_accepted: { label: 'Seller Accepted', variant: 'default', icon: <CheckCircle2 className="size-3" /> },
+  seller_declined: { label: 'Seller Declined', variant: 'danger',  icon: <X className="size-3" /> },
+  verified:        { label: 'Verified',        variant: 'default', icon: <ShieldCheck className="size-3" /> },
+  completed:       { label: 'Completed',       variant: 'success', icon: <CheckCircle2 className="size-3" /> },
+  rejected:        { label: 'Rejected',        variant: 'danger',  icon: <X className="size-3" /> },
 };
 
 type AdminTab = 'users' | 'tickets' | 'trades' | 'platform';
@@ -227,44 +288,34 @@ export function Admin() {
   const adminCount     = users.filter(u => u.role === 'admin').length;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
       {/* ── HEADER ── */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.25)' }}>
-            <ShieldCheck className="size-6" style={{ color: 'var(--gs-accent)' }} />
+          <div className="w-11 h-11 rounded-xl bg-gs-surface-2 border border-gs-border flex items-center justify-center text-gs-muted">
+            <ShieldCheck className="size-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-gs-text tracking-tight">Admin Panel</h1>
-            <p className="text-xs text-gs-faint mt-0.5">Manage users, handle support tickets, and monitor platform health</p>
+            <h1 className="text-2xl font-bold text-gs-text tracking-tight">Admin Panel</h1>
+            <p className="text-sm text-gs-faint mt-0.5">Manage users, support tickets, and platform health</p>
           </div>
         </div>
         <button
           onClick={() => activeTab === 'users' ? loadUsers() : activeTab === 'trades' ? loadTrades() : loadTickets()}
-          className="flex items-center gap-2 text-sm text-gs-muted hover:text-gs-text border border-gs-border rounded-xl px-4 py-2 transition-all hover:bg-gs-surface-2"
+          className="flex items-center gap-2 text-sm text-gs-muted hover:text-gs-text border border-gs-border rounded-lg px-4 py-2 transition-colors hover:bg-gs-surface-2"
         >
           <RefreshCw className="size-4" /> Refresh
         </button>
       </div>
 
-      {/* ── STATS BAR ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Users',    value: users.length,   color: 'text-gs-text',    icon: <Users className="size-4 text-gs-accent" /> },
-          { label: 'Gamers',         value: gamerCount,     color: 'text-sky-400',    icon: <Users className="size-4 text-sky-400" /> },
-          { label: 'Shop Owners',    value: shopCount,      color: 'text-amber-400',  icon: <Package className="size-4 text-amber-400" /> },
-          { label: 'Open Tickets',   value: ticketStats?.open ?? '…', color: ticketStats?.open ? 'text-red-400' : 'text-gs-faint', icon: <Ticket className="size-4 text-red-400" /> },
-        ].map((s, i) => (
-          <div key={i} className="bg-gs-surface border border-gs-border rounded-xl px-5 py-4 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gs-surface-2 flex items-center justify-center shrink-0">{s.icon}</div>
-            <div>
-              <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
-              <p className="text-[11px] text-gs-faint">{s.label}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* ── STATS ── */}
+      <StatStrip items={[
+        { label: 'Total Users', value: users.length, icon: <Users className="size-4" /> },
+        { label: 'Gamers', value: gamerCount, icon: <Users className="size-4" /> },
+        { label: 'Shop Owners', value: shopCount, icon: <Package className="size-4" /> },
+        { label: 'Open Tickets', value: ticketStats?.open ?? '—', icon: <Ticket className="size-4" /> },
+      ]} />
 
       {error && (
         <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-red-400/25 bg-red-400/8 text-red-400 text-sm">
@@ -274,36 +325,39 @@ export function Admin() {
       )}
 
       {/* ── TABS ── */}
-      <div className="flex gap-1 p-1 bg-gs-surface border border-gs-border rounded-xl">
-        {([
-          { id: 'users',    label: `Users (${users.length})`,                             icon: <Users className="size-3.5" /> },
-          { id: 'tickets',  label: `Support Tickets${ticketStats ? ` (${ticketStats.open} open)` : ''}`, icon: <Ticket className="size-3.5" /> },
-          { id: 'trades',   label: `Skin Trades${tradeStats ? ` (${tradeStats.pending} pending)` : ''}`,  icon: <ArrowLeftRight className="size-3.5" /> },
-          { id: 'platform', label: 'Platform Overview',                                   icon: <BarChart3 className="size-3.5" /> },
-        ] as const).map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-              activeTab === t.id ? 'text-white' : 'text-gs-faint hover:text-gs-muted'
-            }`}
-            style={activeTab === t.id ? { background: 'var(--gs-accent)' } : {}}
-          >
-            {t.icon}{t.label}
-          </button>
-        ))}
+      <div className="border-b border-gs-border">
+        <nav className="flex gap-1 overflow-x-auto">
+          {([
+            { id: 'users',    label: `Users (${users.length})`,                             icon: <Users className="size-3.5" /> },
+            { id: 'tickets',  label: `Support Tickets${ticketStats ? ` (${ticketStats.open} open)` : ''}`, icon: <Ticket className="size-3.5" /> },
+            { id: 'trades',   label: `Skin Trades${tradeStats ? ` (${tradeStats.pending} pending)` : ''}`,  icon: <ArrowLeftRight className="size-3.5" /> },
+            { id: 'platform', label: 'Platform Overview',                                   icon: <BarChart3 className="size-3.5" /> },
+          ] as const).map(t => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+                activeTab === t.id
+                  ? 'border-gs-accent text-gs-text'
+                  : 'border-transparent text-gs-faint hover:text-gs-muted'
+              }`}
+            >
+              {t.icon}{t.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
       {/* ════════════════════════════════════
           USERS TAB
           ════════════════════════════════════ */}
       {activeTab === 'users' && (
-        <section className="bg-gs-surface border border-gs-border rounded-2xl overflow-hidden shadow-sm">
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-gs-border bg-gs-surface-2">
-            <Users className="size-4 text-gs-faint" />
-            <h2 className="text-sm font-bold text-gs-text uppercase tracking-widest">All Users</h2>
-            <span className="ml-auto text-xs text-gs-faint bg-gs-surface px-2.5 py-1 rounded-full border border-gs-border">{users.length} total</span>
-          </div>
+        <section className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+          <SectionHeader
+            icon={<Users className="size-4" />}
+            title="All Users"
+            trailing={<span className="text-xs text-gs-faint font-medium">{users.length} total</span>}
+          />
 
           {loading ? (
             <div className="py-20 flex items-center justify-center gap-2 text-gs-faint text-sm">
@@ -329,12 +383,12 @@ export function Admin() {
                         <td className="px-5 py-4 text-gs-faint text-xs tabular-nums font-mono">#{u.id}</td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style={{ background: 'var(--gs-accent)', color: '#fff' }}>
+                            <div className="w-8 h-8 rounded-full bg-gs-surface-2 border border-gs-border flex items-center justify-center text-[11px] font-semibold text-gs-muted shrink-0">
                               {u.username.slice(0, 2).toUpperCase()}
                             </div>
                             <div>
-                              <p className="text-gs-text font-semibold text-sm">{u.username}</p>
-                              {isMe && <span className="text-[9px] text-gs-accent font-bold uppercase tracking-wider">(you)</span>}
+                              <p className="text-gs-text font-medium text-sm">{u.username}</p>
+                              {isMe && <span className="text-[10px] text-gs-accent font-medium">(you)</span>}
                             </div>
                           </div>
                         </td>
@@ -348,9 +402,7 @@ export function Admin() {
                               <option value="admin">Admin</option>
                             </select>
                           ) : (
-                            <span className={`inline-flex px-2.5 py-1 rounded-lg text-[11px] font-semibold ${ROLE_LABELS[u.role].style}`}>
-                              {ROLE_LABELS[u.role].label}
-                            </span>
+                            <Badge>{ROLE_LABELS[u.role]}</Badge>
                           )}
                         </td>
                         <td className="px-5 py-4">
@@ -417,20 +469,13 @@ export function Admin() {
 
           {/* Ticket stats */}
           {ticketStats && (
-            <div className="grid grid-cols-5 gap-3">
-              {[
-                { label: 'Total',       value: ticketStats.total,       style: 'text-gs-text' },
-                { label: 'Open',        value: ticketStats.open,        style: 'text-sky-400' },
-                { label: 'In Progress', value: ticketStats.in_progress, style: 'text-amber-400' },
-                { label: 'Resolved',    value: ticketStats.resolved,    style: 'text-emerald-400' },
-                { label: 'Urgent',      value: ticketStats.urgent,      style: 'text-red-400 font-extrabold' },
-              ].map(s => (
-                <div key={s.label} className="bg-gs-surface border border-gs-border rounded-xl px-4 py-3 text-center">
-                  <p className={`text-2xl font-extrabold ${s.style}`}>{s.value}</p>
-                  <p className="text-[11px] text-gs-faint mt-0.5">{s.label}</p>
-                </div>
-              ))}
-            </div>
+            <StatStrip items={[
+              { label: 'Total', value: ticketStats.total, icon: <Ticket className="size-4" /> },
+              { label: 'Open', value: ticketStats.open, icon: <Clock className="size-4" /> },
+              { label: 'In Progress', value: ticketStats.in_progress, icon: <RefreshCw className="size-4" /> },
+              { label: 'Resolved', value: ticketStats.resolved, icon: <CheckCircle2 className="size-4" /> },
+              { label: 'Urgent', value: ticketStats.urgent, icon: <AlertCircle className="size-4" /> },
+            ]} />
           )}
 
           {/* Filters */}
@@ -475,7 +520,7 @@ export function Admin() {
               <p className="text-gs-faint text-sm">No support tickets match the current filters.</p>
             </div>
           ) : (
-            <div className="bg-gs-surface border border-gs-border rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gs-border">
@@ -499,12 +544,14 @@ export function Admin() {
                         <span className="text-[10px] bg-gs-surface-2 border border-gs-border text-gs-muted px-2 py-0.5 rounded-full">{ticket.category}</span>
                       </td>
                       <td className="px-5 py-4">
-                        <span className={`text-xs font-semibold ${TICKET_PRIORITY[ticket.priority]}`}>{ticket.priority}</span>
+                        <Badge variant={TICKET_PRIORITY[ticket.priority].variant}>
+                          {TICKET_PRIORITY[ticket.priority].label}
+                        </Badge>
                       </td>
                       <td className="px-5 py-4">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${TICKET_STATUS[ticket.status].style}`}>
+                        <Badge variant={TICKET_STATUS[ticket.status].variant}>
                           {TICKET_STATUS[ticket.status].icon} {TICKET_STATUS[ticket.status].label}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="px-5 py-4 text-gs-faint text-xs whitespace-nowrap">
                         {new Date(ticket.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -537,40 +584,37 @@ export function Admin() {
         <div className="space-y-5">
           {/* Stats */}
           {tradeStats && (
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {[
-                { label: 'Total',     value: tradeStats.total,     color: 'text-gs-text'     },
-                { label: 'Pending',   value: tradeStats.pending,   color: 'text-orange-400'  },
-                { label: 'Verified',  value: tradeStats.verified,  color: 'text-sky-400'     },
-                { label: 'Completed', value: tradeStats.completed, color: 'text-emerald-400' },
-                { label: 'Rejected',  value: tradeStats.rejected,  color: 'text-red-400'     },
-              ].map(s => (
-                <div key={s.label} className="bg-gs-surface border border-gs-border rounded-xl px-4 py-3 text-center">
-                  <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
-                  <p className="text-[11px] text-gs-faint mt-0.5">{s.label}</p>
-                </div>
-              ))}
-            </div>
+            <StatStrip items={[
+              { label: 'Total', value: tradeStats.total, icon: <ArrowLeftRight className="size-4" /> },
+              { label: 'Pending', value: tradeStats.pending, icon: <Clock className="size-4" /> },
+              { label: 'Verified', value: tradeStats.verified, icon: <ShieldCheck className="size-4" /> },
+              { label: 'Completed', value: tradeStats.completed, icon: <CheckCircle2 className="size-4" /> },
+              { label: 'Rejected', value: tradeStats.rejected, icon: <X className="size-4" /> },
+            ]} />
           )}
 
           {/* Filter + table */}
-          <div className="bg-gs-surface border border-gs-border rounded-2xl overflow-hidden shadow-sm">
-            <div className="flex items-center gap-3 px-6 py-4 border-b border-gs-border bg-gs-surface-2">
-              <ArrowLeftRight className="size-4 text-gs-faint" />
-              <h3 className="text-sm font-bold text-gs-text flex-1">Skin Trade Requests</h3>
-              <div className="relative">
-                <select value={tradeFilter} onChange={e => setTradeFilter(e.target.value)}
-                  className="appearance-none bg-gs-surface border border-gs-border rounded-lg pl-3 pr-7 py-1.5 text-xs text-gs-muted focus:outline-none cursor-pointer">
-                  <option value="">All Statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="verified">Verified</option>
-                  <option value="completed">Completed</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gs-faint pointer-events-none" />
-              </div>
-              <span className="text-xs text-gs-faint">{trades.length} requests</span>
-            </div>
+          <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+            <SectionHeader
+              icon={<ArrowLeftRight className="size-4" />}
+              title="Skin Trade Requests"
+              trailing={
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <select value={tradeFilter} onChange={e => setTradeFilter(e.target.value)}
+                      className="appearance-none bg-gs-surface border border-gs-border rounded-lg pl-3 pr-7 py-1.5 text-xs text-gs-muted focus:outline-none cursor-pointer">
+                      <option value="">All Statuses</option>
+                      <option value="pending">Pending</option>
+                      <option value="verified">Verified</option>
+                      <option value="completed">Completed</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 size-3 text-gs-faint pointer-events-none" />
+                  </div>
+                  <span className="text-xs text-gs-faint">{trades.length} requests</span>
+                </div>
+              }
+            />
 
             {tradesLoading ? (
               <div className="py-20 flex items-center justify-center gap-2 text-gs-faint text-sm">
@@ -594,12 +638,7 @@ export function Admin() {
                 </thead>
                 <tbody>
                   {trades.map(tr => {
-                    const statusStyles: Record<TradeStatus, string> = {
-                      pending:   'text-orange-400  bg-orange-400/10  border-orange-400/25',
-                      verified:  'text-sky-400     bg-sky-400/10     border-sky-400/25',
-                      completed: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/25',
-                      rejected:  'text-red-400     bg-red-400/10     border-red-400/25',
-                    };
+                    const sc = TRADE_STATUS[tr.status] ?? TRADE_STATUS.pending;
                     return (
                       <tr key={tr.id} className="border-b border-gs-border last:border-0 hover:bg-gs-surface-2/60 transition-colors">
                         <td className="px-5 py-4 text-gs-faint text-xs font-mono">#{tr.id}</td>
@@ -614,9 +653,9 @@ export function Admin() {
                         <td className="px-5 py-4 text-xs text-gs-muted">{tr.game}</td>
                         <td className="px-5 py-4 text-xs font-bold text-gs-text">${tr.price.toFixed(2)}</td>
                         <td className="px-5 py-4">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${statusStyles[tr.status]}`}>
-                            {tr.status}
-                          </span>
+                          <Badge variant={sc.variant}>
+                            {sc.icon} {sc.label}
+                          </Badge>
                         </td>
                         <td className="px-5 py-4 text-xs text-gs-faint whitespace-nowrap">
                           {new Date(tr.created_at).toLocaleDateString()}
@@ -646,7 +685,7 @@ export function Admin() {
             <div className="flex items-center justify-between px-6 py-5 border-b border-gs-border bg-gs-surface-2">
               <div>
                 <h3 className="text-base font-bold text-gs-text flex items-center gap-2">
-                  <ArrowLeftRight className="size-4" style={{ color: 'var(--gs-accent)' }} />
+                  <ArrowLeftRight className="size-4 text-gs-muted" />
                   Trade #{selectedTrade.id} — {selectedTrade.item_name}
                 </h3>
                 <p className="text-xs text-gs-muted mt-0.5">Buyer: {selectedTrade.buyer_username} · ${selectedTrade.price.toFixed(2)}</p>
@@ -688,31 +727,24 @@ export function Admin() {
                   const isCurrent = currentIdx === stepIdx;
                   return (
                     <React.Fragment key={step.key}>
-                      <div className={`flex flex-col items-center gap-1 flex-1 ${isDone ? 'text-emerald-400' : 'text-gs-faint'}`}>
-                        <div className={`size-5 rounded-full border-2 flex items-center justify-center ${isDone ? 'border-emerald-400 bg-emerald-400/15' : 'border-gs-border'} ${isCurrent ? 'ring-2 ring-emerald-400/30' : ''}`}>
-                          {isDone && <Check className="size-2.5" strokeWidth={3} />}
+                      <div className={`flex flex-col items-center gap-1 flex-1 ${isDone ? 'text-gs-text' : 'text-gs-faint'}`}>
+                        <div className={`size-5 rounded-full border-2 flex items-center justify-center ${isDone ? 'border-gs-accent bg-gs-accent/10' : 'border-gs-border'} ${isCurrent ? 'ring-2 ring-gs-accent/20' : ''}`}>
+                          {isDone && <Check className="size-2.5 text-gs-accent" strokeWidth={3} />}
                         </div>
-                        <span className={`text-[9px] text-center leading-tight ${isDone ? 'text-emerald-400 font-semibold' : 'text-gs-faint'}`}>{step.label}</span>
+                        <span className={`text-[9px] text-center leading-tight ${isDone ? 'text-gs-text font-medium' : 'text-gs-faint'}`}>{step.label}</span>
                       </div>
-                      {i < arr.length - 1 && <div className={`flex-1 h-px mb-4 ${currentIdx > stepIdx ? 'bg-emerald-400/50' : 'bg-gs-border'}`} />}
+                      {i < arr.length - 1 && <div className={`flex-1 h-px mb-4 ${currentIdx > stepIdx ? 'bg-gs-accent/40' : 'bg-gs-border'}`} />}
                     </React.Fragment>
                   );
                 })}
               </div>
 
               {/* Seller response info */}
-              <div className={`rounded-xl px-4 py-3 text-xs space-y-1 border ${
-                selectedTrade.seller_status === 'accepted' ? 'bg-emerald-400/6 border-emerald-400/25' :
-                selectedTrade.seller_status === 'declined' ? 'bg-red-400/6 border-red-400/25' :
-                'bg-amber-400/6 border-amber-400/25'
-              }`}>
-                <p className={`font-bold text-sm ${
-                  selectedTrade.seller_status === 'accepted' ? 'text-emerald-400' :
-                  selectedTrade.seller_status === 'declined' ? 'text-red-400' : 'text-amber-400'
-                }`}>
+              <div className="rounded-lg px-4 py-3 text-xs space-y-1 border border-gs-border bg-gs-surface-2">
+                <p className="font-semibold text-sm text-gs-text">
                   Seller Status:{' '}
-                  {selectedTrade.seller_status === 'accepted' ? '✓ Accepted & Proof Uploaded' :
-                   selectedTrade.seller_status === 'declined' ? '✗ Declined' : '⏳ Awaiting Response'}
+                  {selectedTrade.seller_status === 'accepted' ? 'Accepted & proof uploaded' :
+                   selectedTrade.seller_status === 'declined' ? 'Declined' : 'Awaiting response'}
                 </p>
                 {selectedTrade.seller_note && (
                   <p className="text-gs-faint">Seller note: <span className="text-gs-muted">{selectedTrade.seller_note}</span></p>
@@ -728,29 +760,29 @@ export function Admin() {
                   <p className="text-xs font-bold text-gs-faint uppercase tracking-wider flex items-center gap-1.5">
                     <ImageIcon className="size-3.5" /> Seller's Proof Screenshot
                   </p>
-                  <div className="rounded-xl overflow-hidden border-2 border-emerald-400/30 bg-gs-surface-2">
+                  <div className="rounded-lg overflow-hidden border border-gs-border bg-gs-surface-2">
                     <img src={selectedTrade.proof_image} alt="Trade proof" className="w-full max-h-64 object-contain" />
                   </div>
                   <p className="text-[10px] text-gs-faint">Review this screenshot carefully. If it looks legitimate, set status to Verified or Completed.</p>
                 </div>
               ) : (
                 selectedTrade.seller_status !== 'declined' && (
-                  <div className="rounded-xl border border-dashed border-amber-400/30 bg-amber-400/5 px-4 py-4 text-center space-y-1">
-                    <ImageIcon className="size-5 text-amber-400/50 mx-auto" />
-                    <p className="text-xs text-amber-400 font-semibold">No proof uploaded yet</p>
+                  <div className="rounded-lg border border-dashed border-gs-border bg-gs-surface-2 px-4 py-4 text-center space-y-1">
+                    <ImageIcon className="size-5 text-gs-faint mx-auto" />
+                    <p className="text-xs text-gs-muted font-medium">No proof uploaded yet</p>
                     <p className="text-[10px] text-gs-faint">Seller has not accepted and uploaded proof. Wait before making a decision.</p>
                   </div>
                 )
               )}
 
               {/* Admin instructions */}
-              <div className="rounded-xl px-4 py-3 text-xs space-y-1" style={{ background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.2)' }}>
-                <p className="font-bold" style={{ color: 'var(--gs-accent)' }}>Admin Escrow Guide</p>
+              <div className="rounded-lg px-4 py-3 text-xs space-y-1 border border-gs-border bg-gs-surface-2">
+                <p className="font-semibold text-gs-text">Admin escrow guide</p>
                 <p className="text-gs-faint">1. Wait for seller to accept and upload a proof screenshot above</p>
                 <p className="text-gs-faint">2. Inspect the screenshot — does the seller clearly hold the item?</p>
-                <p className="text-gs-faint">3. Set to <span className="text-sky-400 font-semibold">Verified</span> to notify the buyer it's safe to proceed</p>
-                <p className="text-gs-faint">4. Set to <span className="text-emerald-400 font-semibold">Completed</span> once delivery is confirmed — this decrements stock</p>
-                <p className="text-gs-faint">5. Set to <span className="text-red-400 font-semibold">Rejected</span> if the listing is fraudulent</p>
+                <p className="text-gs-faint">3. Set to <span className="text-gs-text font-medium">Verified</span> to notify the buyer it's safe to proceed</p>
+                <p className="text-gs-faint">4. Set to <span className="text-gs-text font-medium">Completed</span> once delivery is confirmed — this decrements stock</p>
+                <p className="text-gs-faint">5. Set to <span className="text-red-600 dark:text-red-400 font-medium">Rejected</span> if the listing is fraudulent</p>
               </div>
 
               <div>
@@ -786,8 +818,7 @@ export function Admin() {
                 <button
                   onClick={handleUpdateTrade}
                   disabled={updatingTradeId === selectedTrade.id}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
-                  style={{ background: 'var(--gs-accent)' }}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg bg-gs-accent text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   <Check className="size-4" />
                   {updatingTradeId === selectedTrade.id ? 'Saving…' : 'Save Decision'}
@@ -803,23 +834,28 @@ export function Admin() {
           ════════════════════════════════════ */}
       {activeTab === 'platform' && (
         <div className="grid md:grid-cols-2 gap-5">
-          <div className="bg-gs-surface border border-gs-border rounded-2xl p-6">
-            <h3 className="text-sm font-bold text-gs-text mb-4 flex items-center gap-2">
-              <Users className="size-4 text-gs-accent" /> User Distribution
+          <div className="bg-gs-surface border border-gs-border rounded-xl p-6">
+            <h3 className="text-sm font-semibold text-gs-text mb-4 flex items-center gap-2">
+              <Users className="size-4 text-gs-muted" /> User Distribution
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {([
-                { label: 'Gamers',      count: gamerCount,  color: 'bg-sky-400',    width: users.length > 0 ? (gamerCount / users.length) * 100 : 0 },
-                { label: 'Shop Owners', count: shopCount,   color: 'bg-amber-400',  width: users.length > 0 ? (shopCount / users.length) * 100 : 0 },
-                { label: 'Admins',      count: adminCount,  color: 'bg-orange-400', width: users.length > 0 ? (adminCount / users.length) * 100 : 0 },
-              ] as const).map(item => (
+                { label: 'Gamers',      count: gamerCount,  width: users.length > 0 ? (gamerCount / users.length) * 100 : 0 },
+                { label: 'Shop Owners', count: shopCount,   width: users.length > 0 ? (shopCount / users.length) * 100 : 0 },
+                { label: 'Admins',      count: adminCount,  width: users.length > 0 ? (adminCount / users.length) * 100 : 0 },
+              ]).map((item, i) => (
                 <div key={item.label}>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-gs-muted">{item.label}</span>
-                    <span className="font-bold text-gs-text">{item.count} <span className="text-gs-faint font-normal">({item.width.toFixed(0)}%)</span></span>
+                    <span className="font-medium text-gs-muted">{item.label}</span>
+                    <span className="font-semibold text-gs-text tabular-nums">
+                      {item.count} <span className="text-gs-faint font-normal">({item.width.toFixed(0)}%)</span>
+                    </span>
                   </div>
-                  <div className="h-2 bg-gs-surface-2 rounded-full overflow-hidden">
-                    <div className={`h-full ${item.color} rounded-full transition-all duration-500`} style={{ width: `${item.width}%` }} />
+                  <div className="h-1.5 bg-gs-surface-2 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gs-accent rounded-full transition-all duration-500"
+                      style={{ width: `${item.width}%`, opacity: 1 - i * 0.2 }}
+                    />
                   </div>
                 </div>
               ))}
@@ -827,24 +863,30 @@ export function Admin() {
           </div>
 
           {ticketStats && (
-            <div className="bg-gs-surface border border-gs-border rounded-2xl p-6">
-              <h3 className="text-sm font-bold text-gs-text mb-4 flex items-center gap-2">
-                <Ticket className="size-4 text-sky-400" /> Support Ticket Health
+            <div className="bg-gs-surface border border-gs-border rounded-xl p-6">
+              <h3 className="text-sm font-semibold text-gs-text mb-4 flex items-center gap-2">
+                <Ticket className="size-4 text-gs-muted" /> Support Ticket Health
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {[
-                  { label: 'Open',        value: ticketStats.open,        color: 'bg-sky-400',      total: ticketStats.total },
-                  { label: 'In Progress', value: ticketStats.in_progress, color: 'bg-amber-400',    total: ticketStats.total },
-                  { label: 'Resolved',    value: ticketStats.resolved,    color: 'bg-emerald-400',  total: ticketStats.total },
-                  { label: 'Urgent',      value: ticketStats.urgent,      color: 'bg-red-400',      total: ticketStats.total },
-                ].map(item => (
+                  { label: 'Open',        value: ticketStats.open,        total: ticketStats.total },
+                  { label: 'In Progress', value: ticketStats.in_progress, total: ticketStats.total },
+                  { label: 'Resolved',    value: ticketStats.resolved,    total: ticketStats.total },
+                  { label: 'Urgent',      value: ticketStats.urgent,      total: ticketStats.total },
+                ].map((item, i) => (
                   <div key={item.label}>
                     <div className="flex justify-between text-xs mb-1.5">
-                      <span className="text-gs-muted">{item.label}</span>
-                      <span className="font-bold text-gs-text">{item.value}</span>
+                      <span className="font-medium text-gs-muted">{item.label}</span>
+                      <span className="font-semibold text-gs-text tabular-nums">{item.value}</span>
                     </div>
-                    <div className="h-2 bg-gs-surface-2 rounded-full overflow-hidden">
-                      <div className={`h-full ${item.color} rounded-full transition-all duration-500`} style={{ width: item.total > 0 ? `${(item.value / item.total) * 100}%` : '0%' }} />
+                    <div className="h-1.5 bg-gs-surface-2 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gs-accent rounded-full transition-all duration-500"
+                        style={{
+                          width: item.total > 0 ? `${(item.value / item.total) * 100}%` : '0%',
+                          opacity: 1 - i * 0.15,
+                        }}
+                      />
                     </div>
                   </div>
                 ))}
@@ -852,31 +894,27 @@ export function Admin() {
             </div>
           )}
 
-          <div className="md:col-span-2 bg-gs-surface border border-gs-border rounded-2xl p-6">
-            <h3 className="text-sm font-bold text-gs-text mb-4 flex items-center gap-2">
-              <BarChart3 className="size-4 text-purple-400" /> Quick Moderation Actions
+          <div className="md:col-span-2 bg-gs-surface border border-gs-border rounded-xl p-6">
+            <h3 className="text-sm font-semibold text-gs-text mb-4 flex items-center gap-2">
+              <BarChart3 className="size-4 text-gs-muted" /> Quick Actions
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <button onClick={() => { setActiveTab('users'); loadUsers(); }} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gs-border hover:bg-gs-surface-2 hover:border-gs-accent/30 transition-all text-gs-muted hover:text-gs-text">
-                <Users className="size-6 text-gs-accent" />
-                <span className="text-xs font-semibold">Manage Users</span>
-              </button>
-              <button onClick={() => setActiveTab('tickets')} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gs-border hover:bg-gs-surface-2 hover:border-sky-400/30 transition-all text-gs-muted hover:text-gs-text">
-                <Ticket className="size-6 text-sky-400" />
-                <span className="text-xs font-semibold">View Tickets</span>
-                {ticketStats && ticketStats.open > 0 && (
-                  <span className="text-[10px] text-red-400 font-bold">{ticketStats.open} pending</span>
-                )}
-              </button>
-              <button onClick={() => setActiveTab('tickets')} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gs-border hover:bg-gs-surface-2 hover:border-orange-400/30 transition-all text-gs-muted hover:text-gs-text">
-                <AlertCircle className="size-6 text-orange-400" />
-                <span className="text-xs font-semibold">Urgent Issues</span>
-                {ticketStats && <span className="text-[10px] text-orange-400 font-bold">{ticketStats.urgent} urgent</span>}
-              </button>
-              <button onClick={() => window.open('/community', '_self')} className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gs-border hover:bg-gs-surface-2 hover:border-purple-400/30 transition-all text-gs-muted hover:text-gs-text">
-                <MessageSquare className="size-6 text-purple-400" />
-                <span className="text-xs font-semibold">Forum</span>
-              </button>
+              {[
+                { label: 'Manage Users', icon: <Users className="size-5" />, onClick: () => { setActiveTab('users'); loadUsers(); } },
+                { label: 'View Tickets', icon: <Ticket className="size-5" />, onClick: () => setActiveTab('tickets'), sub: ticketStats && ticketStats.open > 0 ? `${ticketStats.open} open` : undefined },
+                { label: 'Urgent Issues', icon: <AlertCircle className="size-5" />, onClick: () => setActiveTab('tickets'), sub: ticketStats ? `${ticketStats.urgent} urgent` : undefined },
+                { label: 'Forum', icon: <MessageSquare className="size-5" />, onClick: () => window.open('/community', '_self') },
+              ].map((action) => (
+                <button
+                  key={action.label}
+                  onClick={action.onClick}
+                  className="flex flex-col items-center gap-2 p-4 rounded-lg border border-gs-border hover:bg-gs-surface-2 hover:border-gs-accent/30 transition-colors text-gs-muted hover:text-gs-text"
+                >
+                  {action.icon}
+                  <span className="text-xs font-medium">{action.label}</span>
+                  {action.sub && <span className="text-[10px] text-gs-faint">{action.sub}</span>}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -889,7 +927,7 @@ export function Admin() {
             <div className="flex items-center justify-between px-6 py-5 border-b border-gs-border bg-gs-surface-2">
               <div>
                 <h3 className="text-base font-bold text-gs-text">Content: {contentUser.username}</h3>
-                <p className="text-xs text-gs-muted mt-0.5">{contentUser.email} · {ROLE_LABELS[contentUser.role].label}</p>
+                <p className="text-xs text-gs-muted mt-0.5">{contentUser.email} · {ROLE_LABELS[contentUser.role]}</p>
               </div>
               <button onClick={() => setContentUser(null)} className="p-2 rounded-xl hover:bg-gs-surface text-gs-faint hover:text-gs-text transition-colors">
                 <X className="size-5" />
@@ -989,9 +1027,9 @@ export function Admin() {
                   </div>
                 </div>
                 <div className="flex items-end">
-                  <div className={`w-full px-3 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${TICKET_STATUS[ticketStatus].style}`}>
+                  <Badge variant={TICKET_STATUS[ticketStatus].variant}>
                     {TICKET_STATUS[ticketStatus].icon} {TICKET_STATUS[ticketStatus].label}
-                  </div>
+                  </Badge>
                 </div>
               </div>
 
@@ -1013,8 +1051,7 @@ export function Admin() {
                 <button
                   onClick={handleRespondTicket}
                   disabled={respondingId === selectedTicket.id}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
-                  style={{ background: 'var(--gs-accent)' }}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg bg-gs-accent text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   <Send className="size-4" />
                   {respondingId === selectedTicket.id ? 'Sending...' : 'Send Response'}

@@ -1,4 +1,3 @@
-// src/app/pages/Analytics.tsx — Market Data Science dashboard
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { TrendingUp, Package, Users, ShoppingBag, BarChart2, Eye, DollarSign, RefreshCw } from 'lucide-react';
@@ -9,85 +8,82 @@ import {
   type PriceRange, type DayActivity, type TopListing,
 } from '../lib/api';
 
-// ── Game accent colours ────────────────────────────────────────────────────────
-const GAME_COLORS: Record<string, string> = {
-  CS2: '#f97316', Valorant: '#ff4655', LoL: '#c9a227',
-  'Apex Legends': '#fc4d00', Fortnite: '#00c2ff', PUBG: '#e2b846',
-  'Dota 2': '#cc2222', 'Overwatch 2': '#f99e1a',
-};
-const gameColor = (g: string) => GAME_COLORS[g] ?? 'var(--gs-accent)';
-
 const TYPE_LABEL: Record<string, string> = {
   account: 'Account', skin: 'Skin', key: 'Game Key',
   subscription: 'Subscription', giftcard: 'Gift Card', other: 'Other',
 };
 
-// ── Tiny bar built from CSS ────────────────────────────────────────────────────
-function Bar({ value, max, color = 'var(--gs-accent)', height = 6 }: {
-  value: number; max: number; color?: string; height?: number;
-}) {
-  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-full rounded-full overflow-hidden" style={{ height, background: 'var(--gs-border)' }}>
-      <div
-        className="h-full rounded-full transition-all duration-500"
-        style={{ width: `${pct}%`, background: color }}
-      />
+    <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-gs-border bg-gs-surface-2 text-[11px] font-medium text-gs-muted">
+      {children}
+    </span>
+  );
+}
+
+function StatStrip({ items }: { items: { label: string; value: string | number; icon: React.ReactNode; sub?: string }[] }) {
+  return (
+    <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+      <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-gs-border">
+        {items.map((item) => (
+          <div key={item.label} className="flex items-center gap-3 px-5 py-4">
+            <div className="w-9 h-9 rounded-lg bg-gs-surface-2 flex items-center justify-center text-gs-muted shrink-0">
+              {item.icon}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xl font-bold text-gs-text tabular-nums leading-none">{item.value}</p>
+              <p className="text-[11px] text-gs-faint font-medium mt-1">{item.label}</p>
+              {item.sub && <p className="text-[10px] text-gs-faint mt-0.5">{item.sub}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
-function StatCard({ icon, label, value, sub }: {
-  icon: React.ReactNode; label: string; value: string | number; sub?: string;
-}) {
+function Bar({ value, max, opacity = 1 }: { value: number; max: number; opacity?: number }) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
   return (
-    <div className="rounded-xl border p-4 flex items-start gap-3"
-      style={{ borderColor: 'var(--gs-border)', background: 'var(--gs-surface)' }}>
-      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-        style={{ background: 'rgba(59,130,246,0.1)' }}>
-        <span style={{ color: 'var(--gs-accent)' }}>{icon}</span>
-      </div>
-      <div>
-        <p className="text-[11px] mb-0.5" style={{ color: 'var(--gs-faint)' }}>{label}</p>
-        <p className="text-xl font-bold" style={{ color: 'var(--gs-text)' }}>{value}</p>
-        {sub && <p className="text-[11px] mt-0.5" style={{ color: 'var(--gs-faint)' }}>{sub}</p>}
-      </div>
+    <div className="w-full h-1.5 rounded-full overflow-hidden bg-gs-surface-2">
+      <div
+        className="h-full rounded-full bg-gs-accent transition-all duration-500"
+        style={{ width: `${pct}%`, opacity }}
+      />
     </div>
   );
 }
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border overflow-hidden" style={{ borderColor: 'var(--gs-border)', background: 'var(--gs-surface)' }}>
-      <div className="px-5 py-3.5 border-b" style={{ borderColor: 'var(--gs-border)' }}>
-        <h2 className="text-sm font-semibold" style={{ color: 'var(--gs-text)' }}>{title}</h2>
+    <div className="rounded-xl border border-gs-border bg-gs-surface overflow-hidden">
+      <div className="px-5 py-4 border-b border-gs-border">
+        <h2 className="text-sm font-semibold text-gs-text">{title}</h2>
       </div>
       <div className="p-5">{children}</div>
     </div>
   );
 }
 
-// ── Activity sparkline (mini bar chart) ────────────────────────────────────────
 function Sparkline({ data }: { data: DayActivity[] }) {
-  if (!data.length) return <p className="text-xs text-center py-4" style={{ color: 'var(--gs-faint)' }}>No recent listings</p>;
+  if (!data.length) return <p className="text-xs text-center py-4 text-gs-faint">No recent listings</p>;
   const max = Math.max(...data.map(d => d.newListings), 1);
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   return (
     <div className="flex items-end gap-1.5 h-20">
-      {data.map(d => {
+      {data.map((d, i) => {
         const pct = Math.round((d.newListings / max) * 100);
         const date = new Date(d.day);
         return (
-          <div key={d.day} className="flex-1 flex flex-col items-center gap-1 group relative">
+          <div key={d.day} className="flex-1 flex flex-col items-center gap-1">
             <div className="w-full rounded-t flex items-end" style={{ height: 60 }}>
               <div
-                className="w-full rounded-t transition-all duration-300"
-                style={{ height: `${Math.max(pct, 4)}%`, background: 'var(--gs-accent)', opacity: 0.8 }}
+                className="w-full rounded-t bg-gs-accent transition-all duration-300"
+                style={{ height: `${Math.max(pct, 4)}%`, opacity: 1 - i * 0.08 }}
                 title={`${d.newListings} listing${d.newListings !== 1 ? 's' : ''}`}
               />
             </div>
-            <span className="text-[9px]" style={{ color: 'var(--gs-faint)' }}>{days[date.getDay()]}</span>
+            <span className="text-[9px] text-gs-faint">{days[date.getDay()]}</span>
           </div>
         );
       })}
@@ -95,7 +91,11 @@ function Sparkline({ data }: { data: DayActivity[] }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+function listingTitle(l: TopListing): string {
+  if (l.type === 'skin' || l.type === 'Skin') return l.item || l.highlight || 'Skin';
+  return l.highlight || l.item || `${l.game} Account`;
+}
+
 export function Analytics() {
   const [summary,  setSummary]  = useState<AnalyticsSummary | null>(null);
   const [byGame,   setByGame]   = useState<GameStat[]>([]);
@@ -105,9 +105,10 @@ export function Analytics() {
   const [activity, setActivity] = useState<DayActivity[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [error,    setError]    = useState('');
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const load = async () => {
-    setLoading(true);
+  const load = async (silent = false) => {
+    if (!silent) setLoading(true);
     setError('');
     try {
       const [s, g, t, top, r, a] = await Promise.all([
@@ -124,137 +125,141 @@ export function Analytics() {
       setTopList(top);
       setRanges(r);
       setActivity(a);
+      setLastUpdated(new Date());
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load analytics');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const interval = setInterval(() => load(true), 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const maxListings = Math.max(...byGame.map(g => g.listings), 1);
   const maxRangeCount = Math.max(...ranges.map(r => r.count), 1);
 
   return (
-    <div className="max-w-6xl mx-auto px-5 py-10 space-y-6">
+    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs mb-3" style={{ color: 'var(--gs-faint)' }}>
-            <BarChart2 className="size-3.5" style={{ color: 'var(--gs-accent)' }} />
-            <span style={{ color: 'var(--gs-accent)' }}>Data Science</span>
-            <span>/</span>
-            <span>Market Analytics</span>
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-xl bg-gs-surface-2 border border-gs-border flex items-center justify-center text-gs-muted">
+            <BarChart2 className="size-5" />
           </div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--gs-text)' }}>Market Analytics</h1>
-          <p className="text-sm" style={{ color: 'var(--gs-faint)' }}>
-            Real-time insights from listings, pricing, and trading activity across all games.
-          </p>
+          <div>
+            <p className="text-xs text-gs-faint mb-1">Data Science / Market Analytics</p>
+            <h1 className="text-2xl font-bold text-gs-text tracking-tight">Market Analytics</h1>
+            <p className="text-sm text-gs-faint mt-0.5">
+              Live insights from listings, pricing, and trading activity — refreshes every 30s.
+            </p>
+            {lastUpdated && (
+              <p className="text-[11px] text-gs-faint mt-1">
+                Last updated {lastUpdated.toLocaleTimeString()}
+              </p>
+            )}
+          </div>
         </div>
         <button
-          onClick={load}
+          onClick={() => load()}
           disabled={loading}
-          className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg border transition-colors disabled:opacity-50"
-          style={{ borderColor: 'var(--gs-border)', color: 'var(--gs-muted)', background: 'var(--gs-surface)' }}
+          className="flex items-center gap-2 text-sm text-gs-muted hover:text-gs-text border border-gs-border rounded-lg px-4 py-2 transition-colors hover:bg-gs-surface-2 disabled:opacity-50"
         >
-          <RefreshCw className={`size-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </button>
       </div>
 
       {error && (
-        <div className="p-3 rounded-lg border text-sm" style={{ borderColor: 'var(--gs-border)', color: 'var(--gs-faint)' }}>
+        <div className="p-3 rounded-lg border border-red-500/20 bg-red-500/8 text-sm text-red-600 dark:text-red-400">
           {error}
         </div>
       )}
 
       {/* Summary stats */}
       {summary && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard icon={<Package className="size-4" />} label="Active Listings"  value={summary.activeListings}  />
-          <StatCard icon={<Users className="size-4" />}   label="Active Sellers"   value={summary.activeSellers}   />
-          <StatCard icon={<ShoppingBag className="size-4" />} label="Trades Completed" value={summary.completedTrades} />
-          <StatCard icon={<DollarSign className="size-4" />}  label="Avg. Listing Price" value={`$${summary.avgPrice}`} sub="across all games" />
-        </div>
+        <StatStrip items={[
+          { label: 'Active Listings', value: summary.activeListings, icon: <Package className="size-4" /> },
+          { label: 'Active Sellers', value: summary.activeSellers, icon: <Users className="size-4" /> },
+          { label: 'Trades Completed', value: summary.completedTrades, icon: <ShoppingBag className="size-4" /> },
+          { label: 'Avg. Listing Price', value: `$${summary.avgPrice}`, icon: <DollarSign className="size-4" />, sub: 'across all games' },
+        ]} />
       )}
 
       {loading && !summary && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 rounded-xl animate-pulse" style={{ background: 'var(--gs-border)' }} />
-          ))}
+        <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+          <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-gs-border">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-20 animate-pulse bg-gs-surface-2 m-4 rounded-lg" />
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Main grid */}
+      {/* Charts grid */}
       <div className="grid lg:grid-cols-2 gap-5">
 
-        {/* By game */}
         <SectionCard title="Listings by Game">
-          {byGame.length === 0
-            ? <p className="text-xs py-4 text-center" style={{ color: 'var(--gs-faint)' }}>No data yet</p>
-            : (
-              <div className="space-y-3.5">
-                {byGame.map(g => (
-                  <div key={g.game}>
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="font-medium" style={{ color: 'var(--gs-text)' }}>{g.game}</span>
-                      <div className="flex items-center gap-3" style={{ color: 'var(--gs-faint)' }}>
-                        <span>{g.listings} listing{g.listings !== 1 ? 's' : ''}</span>
-                        <span className="font-semibold" style={{ color: 'var(--gs-muted)' }}>avg ${g.avgPrice}</span>
-                      </div>
+          {byGame.length === 0 ? (
+            <p className="text-xs py-4 text-center text-gs-faint">No data yet</p>
+          ) : (
+            <div className="space-y-4">
+              {byGame.map((g, i) => (
+                <div key={g.game}>
+                  <div className="flex items-center justify-between text-xs mb-1.5 gap-2">
+                    <span className="font-medium text-gs-text truncate">{g.game}</span>
+                    <div className="flex items-center gap-3 text-gs-faint shrink-0">
+                      <span>{g.listings} listing{g.listings !== 1 ? 's' : ''}</span>
+                      <span className="font-medium text-gs-muted tabular-nums">avg ${g.avgPrice}</span>
                     </div>
-                    <Bar value={g.listings} max={maxListings} color={gameColor(g.game)} />
                   </div>
-                ))}
-              </div>
-            )
-          }
+                  <Bar value={g.listings} max={maxListings} opacity={1 - i * 0.12} />
+                </div>
+              ))}
+            </div>
+          )}
         </SectionCard>
 
-        {/* Price distribution */}
         <SectionCard title="Price Distribution">
-          {ranges.length === 0
-            ? <p className="text-xs py-4 text-center" style={{ color: 'var(--gs-faint)' }}>No data yet</p>
-            : (
-              <div className="space-y-3.5">
-                {ranges.map(r => (
-                  <div key={r.range}>
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span style={{ color: 'var(--gs-text)' }}>{r.range}</span>
-                      <span style={{ color: 'var(--gs-faint)' }}>{r.count} listing{r.count !== 1 ? 's' : ''}</span>
-                    </div>
-                    <Bar value={r.count} max={maxRangeCount} color="var(--gs-accent)" />
+          {ranges.length === 0 ? (
+            <p className="text-xs py-4 text-center text-gs-faint">No data yet</p>
+          ) : (
+            <div className="space-y-4">
+              {ranges.map((r, i) => (
+                <div key={r.range}>
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <span className="text-gs-text">{r.range}</span>
+                    <span className="text-gs-faint">{r.count} listing{r.count !== 1 ? 's' : ''}</span>
                   </div>
-                ))}
-              </div>
-            )
-          }
+                  <Bar value={r.count} max={maxRangeCount} opacity={1 - i * 0.1} />
+                </div>
+              ))}
+            </div>
+          )}
         </SectionCard>
 
-        {/* By type */}
         <SectionCard title="Listings by Category">
-          {byType.length === 0
-            ? <p className="text-xs py-4 text-center" style={{ color: 'var(--gs-faint)' }}>No data yet</p>
-            : (
-              <div className="divide-y" style={{ borderColor: 'var(--gs-border)' }}>
-                {byType.map(t => (
-                  <div key={t.type} className="flex items-center justify-between py-2.5 text-sm">
-                    <span style={{ color: 'var(--gs-text)' }}>{TYPE_LABEL[t.type] ?? t.type}</span>
-                    <div className="flex items-center gap-5 text-xs" style={{ color: 'var(--gs-faint)' }}>
-                      <span>{t.listings} listed</span>
-                      <span className="font-semibold w-16 text-right" style={{ color: 'var(--gs-muted)' }}>avg ${t.avgPrice}</span>
-                    </div>
+          {byType.length === 0 ? (
+            <p className="text-xs py-4 text-center text-gs-faint">No data yet</p>
+          ) : (
+            <div className="divide-y divide-gs-border">
+              {byType.map(t => (
+                <div key={t.type} className="flex items-center justify-between py-3 text-sm first:pt-0 last:pb-0">
+                  <span className="text-gs-text">{TYPE_LABEL[t.type] ?? t.type}</span>
+                  <div className="flex items-center gap-5 text-xs text-gs-faint">
+                    <span>{t.listings} listed</span>
+                    <span className="font-medium text-gs-muted w-16 text-right tabular-nums">avg ${t.avgPrice}</span>
                   </div>
-                ))}
-              </div>
-            )
-          }
+                </div>
+              ))}
+            </div>
+          )}
         </SectionCard>
 
-        {/* Activity sparkline */}
         <SectionCard title="New Listings (Last 7 Days)">
           <Sparkline data={activity} />
         </SectionCard>
@@ -262,66 +267,58 @@ export function Analytics() {
 
       {/* Top listings table */}
       <SectionCard title="Most Viewed Listings">
-        {topList.length === 0
-          ? <p className="text-xs py-4 text-center" style={{ color: 'var(--gs-faint)' }}>No listings yet</p>
-          : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-xs border-b" style={{ borderColor: 'var(--gs-border)', color: 'var(--gs-faint)' }}>
-                    <th className="pb-2 pr-4 font-medium">Item</th>
-                    <th className="pb-2 pr-4 font-medium">Game</th>
-                    <th className="pb-2 pr-4 font-medium">Type</th>
-                    <th className="pb-2 pr-4 font-medium text-right">Price</th>
-                    <th className="pb-2 pr-4 font-medium text-right">
-                      <Eye className="size-3 inline mr-1" />Views
-                    </th>
-                    <th className="pb-2 font-medium text-right">
-                      <TrendingUp className="size-3 inline mr-1" />Sales
-                    </th>
+        {topList.length === 0 ? (
+          <p className="text-xs py-4 text-center text-gs-faint">No listings yet</p>
+        ) : (
+          <div className="overflow-x-auto -mx-5 px-5">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wider border-b border-gs-border text-gs-faint">
+                  <th className="pb-3 pr-4 font-semibold">Item</th>
+                  <th className="pb-3 pr-4 font-semibold">Game</th>
+                  <th className="pb-3 pr-4 font-semibold">Type</th>
+                  <th className="pb-3 pr-4 font-semibold text-right">Price</th>
+                  <th className="pb-3 pr-4 font-semibold text-right">
+                    <span className="inline-flex items-center gap-1 justify-end"><Eye className="size-3" />Views</span>
+                  </th>
+                  <th className="pb-3 font-semibold text-right">
+                    <span className="inline-flex items-center gap-1 justify-end"><TrendingUp className="size-3" />Sales</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {topList.map((l) => (
+                  <tr key={l.id} className="border-b border-gs-border last:border-0 hover:bg-gs-surface-2/50 transition-colors">
+                    <td className="py-3 pr-4">
+                      <Link
+                        to="/store"
+                        className="hover:underline font-medium truncate block max-w-[180px] text-gs-text"
+                      >
+                        {listingTitle(l)}
+                      </Link>
+                      <span className="text-[11px] text-gs-faint">by {l.seller}</span>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <Badge>{l.game}</Badge>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <Badge>{TYPE_LABEL[l.type] ?? l.type}</Badge>
+                    </td>
+                    <td className="py-3 pr-4 text-right font-semibold text-gs-text tabular-nums">
+                      ${l.price}
+                    </td>
+                    <td className="py-3 pr-4 text-right text-xs text-gs-muted tabular-nums">
+                      {l.views.toLocaleString()}
+                    </td>
+                    <td className="py-3 text-right text-xs text-gs-muted tabular-nums">
+                      {l.order_count}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {topList.map((l, i) => (
-                    <tr
-                      key={l.id}
-                      className="border-b transition-colors"
-                      style={{ borderColor: i < topList.length - 1 ? 'var(--gs-border)' : 'transparent' }}
-                    >
-                      <td className="py-2.5 pr-4">
-                        <Link
-                          to={`/product/${l.id}`}
-                          className="hover:underline font-medium truncate block max-w-[180px]"
-                          style={{ color: 'var(--gs-text)' }}
-                        >
-                          {l.item ?? l.type}
-                        </Link>
-                        <span className="text-[11px]" style={{ color: 'var(--gs-faint)' }}>by {l.seller}</span>
-                      </td>
-                      <td className="py-2.5 pr-4">
-                        <span className="text-xs font-semibold px-1.5 py-0.5 rounded" style={{ background: `${gameColor(l.game)}18`, color: gameColor(l.game) }}>
-                          {l.game}
-                        </span>
-                      </td>
-                      <td className="py-2.5 pr-4 text-xs" style={{ color: 'var(--gs-faint)' }}>
-                        {TYPE_LABEL[l.type] ?? l.type}
-                      </td>
-                      <td className="py-2.5 pr-4 text-right font-semibold" style={{ color: 'var(--gs-text)' }}>
-                        ${l.price}
-                      </td>
-                      <td className="py-2.5 pr-4 text-right text-xs" style={{ color: 'var(--gs-faint)' }}>
-                        {l.views.toLocaleString()}
-                      </td>
-                      <td className="py-2.5 text-right text-xs" style={{ color: 'var(--gs-faint)' }}>
-                        {l.order_count}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </SectionCard>
     </div>
   );

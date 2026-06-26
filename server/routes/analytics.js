@@ -71,17 +71,20 @@ router.get('/by-type', (req, res) => {
 });
 
 // ── GET /api/analytics/top-listings ─────────────────────────────────────────
-// Top 8 most viewed listings
+// Top 8 most viewed listings (all statuses — views tracked live from store opens)
 router.get('/top-listings', (req, res) => {
   try {
     const rows = db.prepare(`
-      SELECT id, game, type, item, price, views, order_count, seller, created_at
-      FROM store_listings
-      WHERE status = 'available'
-      ORDER BY views DESC, order_count DESC
+      SELECT
+        l.id, l.game, l.type, l.item, l.highlight, l.price, l.views, l.order_count,
+        COALESCE(u.username, l.seller) AS seller,
+        l.status, l.created_at
+      FROM store_listings l
+      LEFT JOIN users u ON u.id = l.user_id
+      ORDER BY l.views DESC, l.order_count DESC, l.created_at DESC
       LIMIT 8
     `).all();
-    res.json(rows);
+    res.json(rows.map(r => ({ ...r, price: parseFloat(r.price) })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

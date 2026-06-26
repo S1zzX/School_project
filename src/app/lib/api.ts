@@ -1,6 +1,7 @@
 // src/app/lib/api.ts — Shared fetch helper + auth token utilities
 
 const BASE = '/api'; // Proxied to http://localhost:3001 via Vite
+const PROFILE_KEY = 'gg_user_profile';
 
 // ─── Token storage ────────────────────────────────────────────────────────────
 
@@ -12,8 +13,64 @@ export function setToken(token: string): void {
   localStorage.setItem('gg_token', token);
 }
 
+/** Avatar is stored in DB, not in the JWT — cache it locally for display. */
+export function setUserProfile(user: Pick<AuthUser, 'id' | 'avatar_url'>): void {
+  localStorage.setItem(PROFILE_KEY, JSON.stringify({
+    id: user.id,
+    avatar_url: user.avatar_url ?? null,
+  }));
+}
+
+function readCachedAvatar(userId: number): string | null {
+  try {
+    const cached = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null') as { id?: number; avatar_url?: string | null } | null;
+    if (cached?.id === userId) return cached.avatar_url ?? null;
+  } catch { /* ignore */ }
+  return null;
+}
+
+function persistSession(token: string, user: AuthUser) {
+  setToken(token);
+  setUserProfile(user);
+}
+
 export function removeToken(): void {
   localStorage.removeItem('gg_token');
+  localStorage.removeItem(PROFILE_KEY);
+}
+
+/** Swap oversized legacy JWTs (avatar embedded in token) for a slim token via POST body. */
+let migratePromise: Promise<void> | null = null;
+
+export function ensureSlimToken(): Promise<void> {
+  if (!migratePromise) migratePromise = migrateTokenIfNeeded();
+  return migratePromise;
+}
+
+async function migrateTokenIfNeeded(): Promise<void> {
+  const token = getToken();
+  if (!token) return;
+
+  let needsRefresh = token.length > 4096;
+  if (!needsRefresh) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.avatar_url) needsRefresh = true;
+    } catch { /* ignore */ }
+  }
+  if (!needsRefresh) return;
+
+  try {
+    const res = await fetch(`${BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+    if (!res.ok) return;
+    const data = await res.json() as { token: string; user: AuthUser };
+    persistSession(data.token, data.user);
+    window.dispatchEvent(new Event('user_updated'));
+  } catch { /* ignore — user can sign in again */ }
 }
 
 // ─── User types ───────────────────────────────────────────────────────────────
@@ -56,7 +113,7 @@ export function getUser(): AuthUser | null {
       email: payload.email,
       role: payload.role ?? 'gamer',
       shop_category: payload.shop_category ?? null,
-      avatar_url: payload.avatar_url ?? null,
+      avatar_url: readCachedAvatar(payload.id),
     };
   } catch {
     return null;
@@ -75,6 +132,8 @@ export async function apiFetch<T = unknown>(
   path: string,
   { method = 'GET', body, auth = true }: RequestOptions = {}
 ): Promise<T> {
+  if (auth) await ensureSlimToken();
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -119,7 +178,7 @@ export async function apiRegister(
     body: { username, email, password, role, shop_category },
     auth: false,
   });
-  setToken(data.token);
+  persistSession(data.token, data.user);
   return data.user;
 }
 
@@ -129,7 +188,7 @@ export async function apiLogin(email: string, password: string) {
     body: { email, password },
     auth: false,
   });
-  setToken(data.token);
+  persistSession(data.token, data.user);
   return data.user;
 }
 
@@ -300,7 +359,7 @@ export async function apiUpdateProfile(data: ProfileUpdate): Promise<AuthUser> {
     method: 'PATCH',
     body: data,
   });
-  setToken(result.token);
+  persistSession(result.token, result.user);
   window.dispatchEvent(new Event('user_updated'));
   return result.user;
 }
@@ -325,6 +384,7 @@ export interface StoreListingAPI {
   description?: string;
   price: number;
   seller: string;
+  seller_role?: UserRole;
   sellerRating: number;
   image: string;
   views: number;
@@ -336,6 +396,10 @@ export interface StoreListingAPI {
 
 export function apiGetStoreListings() {
   return apiFetch<StoreListingAPI[]>('/store');
+}
+
+export function apiIncrementListingView(id: string | number) {
+  return apiFetch<{ id: number; views: number }>(`/store/${id}/view`, { method: 'POST' });
 }
 
 export function apiCreateStoreListing(listing: Partial<StoreListingAPI>) {
@@ -484,6 +548,10 @@ export function apiGetMyListings() {
 
 export function apiUpdateMyListing(id: string, data: Partial<StoreListingAPI>) {
   return apiFetch<StoreListingAPI>(`/shop-owner/listings/${id}`, { method: 'PATCH', body: data });
+}
+
+export function apiDeleteMyListing(id: string) {
+  return apiFetch<{ ok: boolean }>(`/shop-owner/listings/${id}`, { method: 'DELETE' });
 }
 
 // ─── Purchase & Trade helpers ─────────────────────────────────────────────────
@@ -702,10 +770,12 @@ export interface TopListing {
   game:        string;
   type:        string;
   item:        string | null;
+  highlight:   string | null;
   price:       number;
   views:       number;
   order_count: number;
   seller:      string;
+  status?:     string;
   created_at:  string;
 }
 

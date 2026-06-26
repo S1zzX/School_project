@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import {
   ArrowRight, Star, Tag,
-  ChevronRight, Package, ShoppingCart, CheckCircle2,
+  ChevronRight, Package, ShoppingCart, CheckCircle2, MonitorPlay
 } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { getUser, apiAddToCart } from '../lib/api';
 import { IntroSplash } from '../components/IntroSplash';
+import { HomeProductCarousel, CAROUSEL_ITEM_CLASS, CAROUSEL_SUB_ITEM_CLASS } from '../components/HomeProductCarousel';
 import { getProductsByCatalog, type ProductItem } from '../lib/products';
 import { CATALOG_OPTIONS, HOME_CATALOG_SECTIONS, getCatalogById, type CatalogId } from '../lib/catalog';
 
@@ -241,9 +242,8 @@ export function Dashboard() {
 
       <div style={{ background: 'var(--gs-bg)' }}>
 
-        {/* ══ HERO BANNER — single slide, fixed text position ═══════════════ */}
-        <section className="relative w-full overflow-hidden bg-slate-900" style={{ minHeight: 360 }}>
-          {/* Slides */}
+        {/* ══ HERO BANNER ═══════════════════════════════════════════════════ */}
+        <section className="relative w-full overflow-hidden bg-slate-900 rounded-2xl border border-gs-border shadow-xl mx-auto mt-6" style={{ minHeight: 480, maxWidth: 'calc(100% - 48px)' }}>
           {HERO_GAMES.map((g, i) => (
             <div
               key={i}
@@ -254,84 +254,61 @@ export function Dashboard() {
                 src={g.image}
                 alt={g.title}
                 className="w-full h-full object-cover object-center"
-                style={{ minHeight: 360 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/15" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/25 to-transparent" />
             </div>
           ))}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-          {/* Content — always bottom-left, same spot every slide */}
-          <div className="relative z-10 max-w-screen-2xl mx-auto px-6 flex flex-col justify-end" style={{ minHeight: 360 }}>
-            <div className="pb-10 pt-16 max-w-xl">
-              {(() => {
-                const game = HERO_GAMES[activeHero];
-                return (
-                  <div key={activeHero} className="space-y-3 animate-in fade-in duration-500">
-                    <span
-                      className="inline-block text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-wide"
-                      style={{ background: game.badgeColor || '#22c55e', color: '#fff' }}
-                    >
-                      {game.badge}
+          {/* Content */}
+          <div className="relative z-10 w-full h-full p-10 flex flex-col justify-center max-w-2xl mt-8">
+            {(() => {
+              const game = HERO_GAMES[activeHero];
+              return (
+                <div key={activeHero} className="space-y-4 animate-in fade-in duration-500">
+                  <span
+                    className="inline-block text-[10px] font-bold px-3 py-1 rounded text-white uppercase tracking-wider"
+                    style={{ background: game.badgeColor || '#22c55e' }}
+                  >
+                    {game.badge}
+                  </span>
+                  <h2 className="text-white font-black text-5xl leading-tight tracking-tight drop-shadow-md">
+                    {game.title}
+                  </h2>
+                  <p className="text-white/80 text-sm font-medium flex items-center gap-2">
+                    <span className="flex items-center gap-1.5"><Tag className="size-3.5"/> Xbox Live</span> · {game.subtitle}
+                  </p>
+                  
+                  <div className="flex items-center gap-5 pt-4">
+                    <span className="text-white font-black text-3xl drop-shadow-md">
+                      {game.free ? 'FREE' : `$${game.price.toFixed(2)}`}
                     </span>
-                    <h2 className="text-white font-black text-2xl sm:text-3xl leading-tight drop-shadow-lg">
-                      {game.title}
-                    </h2>
-                    <p className="text-white/75 text-sm">{game.subtitle}</p>
-                    <div className="flex items-center gap-4 pt-2">
-                      <span className="text-white font-black text-2xl drop-shadow-md">
-                        {game.free ? 'FREE' : `$${game.price.toFixed(2)}`}
-                      </span>
-                      <Link
-                        to="/store"
-                        className="flex items-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-bold transition-all hover:opacity-90 shadow-lg"
-                        style={{ background: 'var(--gs-accent)', color: '#fff' }}
-                      >
-                        Buy Now <ArrowRight className="size-3.5" />
-                      </Link>
-                    </div>
+                    <Link
+                      to="/store"
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-blue-500 shadow-lg"
+                      style={{ background: '#1d4ed8', color: '#fff' }}
+                    >
+                      Buy Now <ArrowRight className="size-4" />
+                    </Link>
                   </div>
-                );
-              })()}
-            </div>
+                </div>
+              );
+            })()}
 
-            {/* Thumbnail picker — aligned row, same size each */}
-            <div className="flex gap-2 pb-5 overflow-x-auto scrollbar-none">
+            {/* Thumbnails */}
+            <div className="flex gap-3 pt-8 relative z-10">
               {HERO_GAMES.map((g, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveHero(i)}
-                  className="relative shrink-0 rounded-lg overflow-hidden border-2 transition-all"
-                  style={{
-                    width: 88,
-                    height: 52,
-                    borderColor: i === activeHero ? 'var(--gs-accent)' : 'rgba(255,255,255,0.2)',
-                    opacity: i === activeHero ? 1 : 0.55,
-                  }}
-                >
-                  <ImageWithFallback src={g.image} alt={g.title} className="w-full h-full object-cover" />
-                  {i === activeHero && (
-                    <div className="absolute inset-0 ring-2 ring-inset ring-white/30" />
-                  )}
+                <button key={i} onClick={() => setActiveHero(i)} className={`w-16 h-10 rounded overflow-hidden border-2 transition-all ${i===activeHero ? 'border-blue-600 opacity-100' : 'border-white/20 opacity-60 hover:opacity-100'}`}>
+                  <img src={g.image} className="w-full h-full object-cover" alt="thumbnail" />
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Dot indicators */}
-          <div className="absolute bottom-4 right-6 flex gap-1.5 z-10">
+          {/* Dots */}
+          <div className="absolute bottom-6 right-8 flex gap-2 z-10">
             {HERO_GAMES.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveHero(i)}
-                className="rounded-full transition-all"
-                style={{
-                  width: i === activeHero ? 20 : 6,
-                  height: 6,
-                  background: i === activeHero ? 'var(--gs-accent)' : 'rgba(255,255,255,0.4)',
-                }}
-                aria-label={`Slide ${i + 1}`}
-              />
+              <button key={i} onClick={() => setActiveHero(i)} className={`w-1.5 h-1.5 rounded-full transition-all ${i===activeHero ? 'bg-white' : 'bg-white/40'}`} aria-label={`Slide ${i + 1}`} />
             ))}
           </div>
         </section>
@@ -362,29 +339,133 @@ export function Dashboard() {
           {visibleSections.map(section => {
             const products = getProductsByCatalog(section.id);
             if (products.length === 0) return null;
+
+            if (section.id === 'subscriptions') {
+              return (
+                <section key={section.id}>
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <h2 className="text-2xl font-black tracking-tight" style={{ color: 'var(--gs-text)' }}>{section.label}</h2>
+                      {section.subtitle && (
+                        <p className="text-sm font-medium mt-1" style={{ color: 'var(--gs-faint)' }}>{section.subtitle}</p>
+                      )}
+                    </div>
+                    <Link
+                      to={`/store?cat=${section.id}`}
+                      className="flex items-center gap-1 text-xs font-bold transition-all hover:text-white"
+                      style={{ color: 'var(--gs-muted)' }}
+                    >
+                      View all <ChevronRight className="size-3.5" />
+                    </Link>
+                  </div>
+                  
+                  <HomeProductCarousel>
+                    {products.map((item, i) => {
+                      const showDiscount = item.discount != null && item.origPrice != null;
+                      const isAdding = addingToCart[item.id];
+                      return (
+                        <div key={item.id} className={CAROUSEL_SUB_ITEM_CLASS}>
+                        <div className="relative rounded-2xl overflow-hidden border border-gs-border h-48 group shadow-sm transition-all hover:border-gs-accent/40">
+                          <ImageWithFallback src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+                          <div className="absolute inset-0 p-5 flex flex-col justify-between">
+                            <span className="self-start text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest text-white" style={{ background: showDiscount ? 'var(--gs-sale)' : (item.badgeColor || '#334155') }}>
+                              {showDiscount ? `-${item.discount}%` : item.badge}
+                            </span>
+                            <div>
+                              <h3 className="font-bold text-lg leading-tight text-white mb-0.5">{item.title}</h3>
+                              <p className="text-xs font-semibold text-gs-faint mb-3">{item.platform}</p>
+                              <div className="flex items-end gap-2">
+                                <span className="text-xl font-black text-white">${item.price.toFixed(2)}</span>
+                                {item.origPrice != null && <span className="text-sm font-bold text-gs-faint line-through mb-0.5">${item.origPrice.toFixed(2)}</span>}
+                              </div>
+                            </div>
+                            <button
+                              id={`add-cart-${section.id}-${i}`}
+                              onClick={(e) => { e.preventDefault(); handleAddToCart(item); }}
+                              disabled={isAdding}
+                              className={`absolute bottom-5 right-5 w-10 h-10 rounded-full flex items-center justify-center transition-all ${isAdding ? 'opacity-70 bg-gs-surface' : 'bg-gs-accent hover:scale-105'} text-white shadow-lg`}
+                            >
+                              {isAdding ? <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin inline-block" /> : <ShoppingCart className="size-4" />}
+                            </button>
+                          </div>
+                        </div>
+                        </div>
+                      );
+                    })}
+                  </HomeProductCarousel>
+                </section>
+              );
+            }
+
+            // Normal product grid for other sections
             return (
               <section key={section.id}>
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-5">
                   <div>
-                    <h2 className="text-xl font-bold" style={{ color: 'var(--gs-text)' }}>{section.label}</h2>
+                    <h2 className="text-2xl font-black tracking-tight" style={{ color: 'var(--gs-text)' }}>{section.label}</h2>
                     {section.subtitle && (
-                      <p className="text-sm mt-0.5" style={{ color: 'var(--gs-faint)' }}>{section.subtitle}</p>
+                      <p className="text-sm font-medium mt-1" style={{ color: 'var(--gs-faint)' }}>{section.subtitle}</p>
                     )}
                   </div>
                   <Link
                     to={`/store${section.id !== 'gaming' ? `?cat=${section.id}` : ''}`}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold border transition-all hover:border-gs-accent/50"
-                    style={{ borderColor: 'var(--gs-border)', color: 'var(--gs-muted)' }}
+                    className="flex items-center gap-1 text-xs font-bold transition-all hover:text-white"
+                    style={{ color: 'var(--gs-muted)' }}
                   >
                     View all <ChevronRight className="size-3.5" />
                   </Link>
                 </div>
-                <ProductGrid
-                  items={products}
-                  addingToCart={addingToCart}
-                  onAddToCart={handleAddToCart}
-                  idPrefix={`add-cart-${section.id}`}
-                />
+                
+                <HomeProductCarousel>
+                  {products.map((item, i) => {
+                    const isAdding = addingToCart[item.id];
+                    const showDiscount = item.discount != null && item.origPrice != null;
+                    return (
+                      <div key={item.id} className={CAROUSEL_ITEM_CLASS}>
+                      <div className="group relative rounded-xl overflow-hidden border border-gs-border bg-gs-surface transition-all hover:border-gs-accent/40 hover:shadow-lg flex flex-col h-full">
+                        <Link to={`/product/${item.id}`} className="block flex-1 flex flex-col">
+                          <div className="relative h-44 overflow-hidden">
+                            <ImageWithFallback src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <span className="absolute top-2 left-2 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest text-white" style={{ background: showDiscount ? 'var(--gs-sale)' : (item.badgeColor || '#334155') }}>
+                              {showDiscount ? `-${item.discount}%` : item.badge}
+                            </span>
+                          </div>
+                          <div className="p-4 pt-3 flex-1 flex flex-col">
+                            <h3 className="font-bold text-sm leading-tight mb-1.5 line-clamp-2" style={{ color: 'var(--gs-text)' }}>{item.title}</h3>
+                            <p className="text-[10px] font-semibold text-gs-faint mb-4 flex items-center gap-1"><MonitorPlay className="size-3"/> {item.platform}</p>
+                            <div className="mt-auto flex items-end gap-2">
+                              <span className="text-lg font-black" style={{ color: 'var(--gs-accent)' }}>${item.price.toFixed(2)}</span>
+                              {item.origPrice != null && <span className="text-xs font-bold text-gs-faint line-through mb-0.5">${item.origPrice.toFixed(2)}</span>}
+                            </div>
+                          </div>
+                        </Link>
+                        <div
+                          className={`absolute inset-x-0 bottom-0 z-10 px-2.5 pb-2.5 pt-10 bg-gradient-to-t from-[var(--gs-surface)] via-[var(--gs-surface)]/95 to-transparent transition-all duration-200 ${
+                            isAdding
+                              ? 'opacity-100 translate-y-0 pointer-events-auto'
+                              : 'opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto'
+                          }`}
+                        >
+                          <button
+                            id={`add-cart-${section.id}-${i}`}
+                            onClick={(e) => { e.preventDefault(); handleAddToCart(item); }}
+                            disabled={isAdding}
+                            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-90 shadow-md"
+                            style={{ background: 'var(--gs-accent)', color: '#fff', opacity: isAdding ? 0.7 : 1 }}
+                          >
+                            {isAdding
+                              ? <><span className="w-3 h-3 rounded-full border border-white/30 border-t-white animate-spin inline-block" /> Adding…</>
+                              : <><ShoppingCart className="size-3" /> Add to Cart</>
+                            }
+                          </button>
+                        </div>
+                      </div>
+                      </div>
+                    );
+                  })}
+                </HomeProductCarousel>
               </section>
             );
           })}

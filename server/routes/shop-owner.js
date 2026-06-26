@@ -177,4 +177,18 @@ router.patch('/listings/:id', (req, res) => {
   return res.json(updated);
 });
 
+// ─── DELETE /api/shop-owner/listings/:id — Remove own listing (incl. sold) ─
+router.delete('/listings/:id', (req, res) => {
+  const user = req.user;
+  const listingId = Number(req.params.id);
+  const listing = db.prepare('SELECT * FROM store_listings WHERE id = ?').get(listingId);
+  if (!listing) return res.status(404).json({ error: 'Listing not found.' });
+  if (listing.user_id !== user.id && user.role !== 'admin') {
+    return res.status(403).json({ error: 'Not your listing.' });
+  }
+
+  db.prepare('DELETE FROM store_listings WHERE id = ?').run(listingId);
+  return res.json({ ok: true });
+});
+
 module.exports = router;

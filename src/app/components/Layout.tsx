@@ -4,9 +4,9 @@ import {
   ShoppingCart, User,
   Search, ChevronDown, Heart,
   LogOut, ShieldCheck, Settings,
-  Menu, X, ShoppingBag, HeadphonesIcon, Store, Scan,
+  Menu, X, ShoppingBag, HeadphonesIcon, Store, BarChart3,
 } from 'lucide-react';
-import { getUser, apiLogout, apiGetCart, type AuthUser, type UserRole } from '../lib/api';
+import { getUser, apiLogout, apiGetCart, ensureSlimToken, type AuthUser, type UserRole } from '../lib/api';
 import { useAppSettings } from '../lib/AppContext';
 import { useT } from '../lib/i18n';
 import { NotificationBell } from './NotificationBell';
@@ -14,19 +14,16 @@ import { FloatingContact } from './FloatingContact';
 import { CATALOG_OPTIONS, getCatalogById, getCatalogLabel } from '../lib/catalog';
 
 const ROLE_BADGE: Record<UserRole, { label: string; style: string }> = {
-  admin:      { label: 'Admin', style: 'bg-orange-400/20 text-orange-400' },
-  shop_owner: { label: 'Shop',  style: 'bg-amber-400/20 text-amber-400' },
-  gamer:      { label: 'Gamer', style: 'bg-zinc-700 text-zinc-300'  },
+  admin:      { label: 'Admin', style: 'bg-gs-surface-2 text-gs-muted border border-gs-border' },
+  shop_owner: { label: 'Shop',  style: 'bg-gs-surface-2 text-gs-muted border border-gs-border' },
+  gamer:      { label: 'Gamer', style: 'bg-gs-surface-2 text-gs-muted border border-gs-border' },
 };
 
 const NAV_KEYS = [
   { to: '/',          labelKey: 'nav.home'      as const, end: true },
   { to: '/store',     labelKey: 'nav.store'     as const },
   { to: '/community', labelKey: 'nav.community' as const },
-  { to: '/vision',      labelKey: 'nav.vision'     as const },
-  { to: '/analytics',   labelKey: 'nav.analytics'  as const },
-  { to: '/cart',        labelKey: 'nav.cart'        as const },
-  { to: '/support',     labelKey: 'nav.support'     as const },
+  { to: '/vision',    labelKey: 'nav.vision'    as const },
 ];
 
 export function Layout() {
@@ -49,8 +46,10 @@ export function Layout() {
 
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Fetch user on mount + when profile updates
-  useEffect(() => { setUser(getUser()); }, []);
+  // Fetch user on mount + migrate oversized legacy tokens
+  useEffect(() => {
+    ensureSlimToken().finally(() => setUser(getUser()));
+  }, []);
   useEffect(() => {
     const refreshUser = () => setUser(getUser());
     window.addEventListener('user_updated', refreshUser);
@@ -120,19 +119,39 @@ export function Layout() {
         <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center gap-4">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 mr-2 group">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
             <img
               src="/src/assets/iconweb.png"
               alt="GameGuide"
               className="w-8 h-8 rounded-lg shrink-0 transition-transform duration-200 group-hover:scale-105"
             />
-            <span className="font-extrabold text-lg tracking-tight" style={{ color: '#ffffff' }}>
+            <span className="font-extrabold text-lg tracking-tight hidden sm:inline" style={{ color: '#ffffff' }}>
               Game<span style={{ color: 'var(--gs-accent)' }}>Guide</span>
             </span>
           </Link>
 
+          {/* Main nav — inline on large screens */}
+          <nav className="hidden lg:flex items-stretch gap-0.5 shrink-0">
+            {NAV_KEYS.map(({ to, labelKey, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  `flex items-center px-3 text-sm font-medium border-b-2 transition-colors ${
+                    isActive
+                      ? 'border-[var(--gs-accent)] text-white'
+                      : 'border-transparent text-white/65 hover:text-white'
+                  }`
+                }
+              >
+                {t(labelKey)}
+              </NavLink>
+            ))}
+          </nav>
+
           {/* Search bar with category dropdown */}
-          <div className="flex-1 max-w-2xl flex items-stretch h-9">
+          <div className="flex-1 min-w-0 max-w-xl xl:max-w-2xl flex items-stretch h-9">
             {/* Category selector */}
             <div className="relative">
               <button
@@ -283,6 +302,14 @@ export function Layout() {
                       <ShoppingBag className="size-3.5" /> {t('nav.purchaseHistory')}
                     </Link>
                     <Link
+                      to="/analytics"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-gs-surface-2"
+                      style={{ color: 'var(--gs-muted)' }}
+                    >
+                      <BarChart3 className="size-3.5" /> {t('nav.analytics')}
+                    </Link>
+                    <Link
                       to="/support"
                       onClick={() => setShowUserMenu(false)}
                       className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-gs-surface-2"
@@ -295,7 +322,7 @@ export function Layout() {
                         to="/shop-owner"
                         onClick={() => setShowUserMenu(false)}
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-gs-surface-2"
-                        style={{ color: '#f59e0b' }}
+                        style={{ color: 'var(--gs-muted)' }}
                       >
                         <Store className="size-3.5" /> Shop Dashboard
                       </Link>
@@ -305,7 +332,7 @@ export function Layout() {
                         to="/admin"
                         onClick={() => setShowUserMenu(false)}
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-gs-surface-2"
-                        style={{ color: 'var(--gs-accent)' }}
+                        style={{ color: 'var(--gs-muted)' }}
                       >
                         <ShieldCheck className="size-3.5" /> {t('nav.adminPanel')}
                       </Link>
@@ -362,7 +389,7 @@ export function Layout() {
 
             {/* Mobile menu toggle */}
             <button
-              className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg"
+              className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg"
               style={{ color: 'rgba(255,255,255,0.75)' }}
               onClick={() => setShowMobileMenu(m => !m)}
             >
@@ -371,55 +398,11 @@ export function Layout() {
           </div>
         </div>
 
-        {/* Secondary nav bar */}
-        <nav
-          className="border-t hidden md:block"
-          style={{
-            background: 'var(--gs-subnav-bg)',
-            borderColor: 'var(--gs-subnav-border)',
-          }}
-        >
-          <div className="max-w-screen-2xl mx-auto px-4 flex items-center gap-0.5 h-10 overflow-x-auto scrollbar-none">
-            {NAV_KEYS.map(({ to, labelKey, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }) =>
-                  `relative px-4 py-2 text-sm font-semibold rounded-md whitespace-nowrap transition-all duration-150 ${
-                    isActive
-                      ? 'text-[var(--gs-subnav-text-active)]'
-                      : 'text-[var(--gs-subnav-text)] hover:text-slate-900 hover:bg-slate-100'
-                  }`
-                }
-                style={({ isActive }) => ({
-                  background: isActive ? 'color-mix(in oklab, var(--gs-accent) 12%, transparent)' : undefined,
-                })}
-              >
-                {({ isActive }) => (
-                  <>
-                    {t(labelKey)}
-                    {isActive && (
-                      <span
-                        className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full"
-                        style={{
-                          background: 'linear-gradient(90deg, transparent, var(--gs-accent), transparent)',
-                          boxShadow: '0 0 8px var(--gs-accent)',
-                        }}
-                      />
-                    )}
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </div>
-        </nav>
-
         {/* Mobile menu drawer */}
         {showMobileMenu && (
           <div
-            className="md:hidden border-t py-3 px-4 flex flex-col gap-1"
-            style={{ background: 'var(--gs-surface)', borderColor: 'var(--gs-border)' }}
+            className="lg:hidden border-t py-2 px-3 grid grid-cols-2 gap-1"
+            style={{ background: 'var(--gs-header-bg)', borderColor: 'var(--gs-header-border)' }}
           >
             {NAV_KEYS.map(({ to, labelKey, end }) => (
               <NavLink
@@ -428,10 +411,10 @@ export function Layout() {
                 end={end}
                 onClick={() => setShowMobileMenu(false)}
                 className={({ isActive }) =>
-                  `px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  `px-3 py-2.5 rounded-lg text-sm font-medium text-center transition-colors ${
                     isActive
-                      ? 'bg-gs-accent/10 text-gs-accent'
-                      : 'text-gs-muted hover:text-gs-text hover:bg-gs-surface-2'
+                      ? 'text-white bg-white/12'
+                      : 'text-white/65 hover:text-white hover:bg-white/8'
                   }`
                 }
               >
@@ -449,23 +432,31 @@ export function Layout() {
 
       {/* ══ FOOTER ════════════════════════════════════════════════════════════ */}
       <footer
-        className="border-t mt-16 py-10"
-        style={{ background: 'var(--gs-surface)', borderColor: 'var(--gs-border)' }}
+        className="border-t mt-16 py-8"
+        style={{ background: 'transparent', borderColor: 'var(--gs-border)' }}
       >
-        <div className="max-w-screen-2xl mx-auto px-4">
+        <div className="max-w-screen-2xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <img
                 src="/src/assets/iconweb.png"
                 alt="GameGuide"
-                className="w-6 h-6 rounded"
+                className="w-5 h-5 rounded"
               />
-              <span className="font-bold text-sm" style={{ color: 'var(--gs-text)' }}>
-                Game<span style={{ color: 'var(--gs-accent)' }}>Guide</span> AI Assistant
+              <span className="font-bold text-sm" style={{ color: '#ffffff' }}>
+                GameGuide
               </span>
             </div>
-            <p className="text-xs" style={{ color: 'var(--gs-faint)' }}>
-              © 2026 GameGuide AI · AI-powered gaming hub
+            
+            <div className="flex items-center justify-center gap-6 text-xs font-bold w-full" style={{ color: 'var(--gs-muted)' }}>
+              <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              <Link to="/help" className="hover:text-white transition-colors">Help Center</Link>
+              <Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link>
+            </div>
+
+            <p className="text-xs shrink-0" style={{ color: 'var(--gs-faint)' }}>
+              © 2024 GameGuide Marketplace. All rights reserved.
             </p>
           </div>
         </div>

@@ -82,14 +82,28 @@ router.delete('/forum/:id', (req, res) => {
 });
 
 router.put('/forum/:id', (req, res) => {
+  const postId = Number(req.params.id);
   const { game, category, title, body, image } = req.body;
   if (!game || !category || !title || !body) return res.status(400).json({ error: 'Missing fields' });
-  
+
+  const post = db.prepare('SELECT id FROM forum_posts WHERE id = ?').get(postId);
+  if (!post) return res.status(404).json({ error: 'Post not found.' });
+
   db.prepare(`
     UPDATE forum_posts SET game = ?, category = ?, title = ?, body = ?, image = ? WHERE id = ?
-  `).run(game, category, title.trim(), body.trim(), image || null, req.params.id);
-  
-  return res.json({ success: true });
+  `).run(game, category, title.trim(), body.trim(), image || null, postId);
+
+  const updated = db.prepare(`
+    SELECT p.*,
+      u.role AS author_role,
+      (SELECT COUNT(*) FROM forum_replies r WHERE r.post_id = p.id) AS reply_count,
+      (SELECT COUNT(*) FROM forum_posts fp WHERE fp.user_id = p.user_id) AS author_post_count
+    FROM forum_posts p
+    LEFT JOIN users u ON u.id = p.user_id
+    WHERE p.id = ?
+  `).get(postId);
+
+  return res.json({ ...updated, liked_by_me: false });
 });
 
 // ─── STORE MODERATION ────────────────────────────────────────────────────────

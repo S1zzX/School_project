@@ -213,7 +213,9 @@ router.put('/:id', requireAuth, (req, res) => {
 
   const post = db.prepare('SELECT * FROM forum_posts WHERE id = ?').get(postId);
   if (!post) return res.status(404).json({ error: 'Post not found.' });
-  if (post.user_id !== req.user.id) return res.status(403).json({ error: 'Not authorized to edit this post.' });
+  if (post.user_id !== req.user.id && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Not authorized to edit this post.' });
+  }
 
   if (!game || !category || !title || !body) {
     return res.status(400).json({ error: 'game, category, title, and body are required.' });
@@ -228,8 +230,8 @@ router.put('/:id', requireAuth, (req, res) => {
   db.prepare(`
     UPDATE forum_posts 
     SET game = ?, category = ?, title = ?, body = ?, image = ?
-    WHERE id = ? AND user_id = ?
-  `).run(game, category, title.trim(), body.trim(), image || null, postId, req.user.id);
+    WHERE id = ?
+  `).run(game, category, title.trim(), body.trim(), image || null, postId);
 
   const existingLike = db.prepare('SELECT 1 FROM post_likes WHERE user_id = ? AND post_id = ?').get(req.user.id, postId);
   const updatedPost = db.prepare('SELECT * FROM forum_posts WHERE id = ?').get(postId);
@@ -239,13 +241,14 @@ router.put('/:id', requireAuth, (req, res) => {
 
 // ─── DELETE /api/forum/:id ────────────────────────────────────────────────────
 router.delete('/:id', requireAuth, (req, res) => {
-  const result = db
-    .prepare('DELETE FROM forum_posts WHERE id = ? AND user_id = ?')
-    .run(req.params.id, req.user.id);
-
-  if (result.changes === 0) {
-    return res.status(404).json({ error: 'Post not found or not yours.' });
+  const postId = Number(req.params.id);
+  const post = db.prepare('SELECT user_id FROM forum_posts WHERE id = ?').get(postId);
+  if (!post) return res.status(404).json({ error: 'Post not found.' });
+  if (post.user_id !== req.user.id && req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Not authorized to delete this post.' });
   }
+
+  db.prepare('DELETE FROM forum_posts WHERE id = ?').run(postId);
   return res.json({ success: true });
 });
 

@@ -23,6 +23,17 @@ function toPublicUser(row) {
   };
 }
 
+/** Slim JWT payload — never embed avatar_url (base64 images blow past header limits). */
+function toTokenPayload(row) {
+  return {
+    id: row.id,
+    username: row.username,
+    email: row.email,
+    role: row.role,
+    shop_category: row.shop_category ?? null,
+  };
+}
+
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
 router.post('/register', (req, res) => {
   const { username, email, password, role = 'gamer', shop_category } = req.body;
@@ -53,15 +64,15 @@ router.post('/register', (req, res) => {
     .prepare('INSERT INTO users (username, email, password_hash, role, shop_category) VALUES (?, ?, ?, ?, ?)')
     .run(username, email, password_hash, role, role === 'shop_owner' ? shop_category : null);
 
-  const user = {
+  const user = toPublicUser({
     id: result.lastInsertRowid,
     username,
     email,
     role,
     shop_category: role === 'shop_owner' ? shop_category : null,
     avatar_url: null,
-  };
-  const token = jwt.sign(user, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+  });
+  const token = jwt.sign(toTokenPayload(user), JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
   return res.status(201).json({ token, user });
 });
@@ -85,7 +96,7 @@ router.post('/login', (req, res) => {
   }
 
   const user = toPublicUser(row);
-  const token = jwt.sign(user, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+  const token = jwt.sign(toTokenPayload(row), JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
   return res.json({ token, user });
 });
@@ -101,6 +112,25 @@ router.get('/me', (req, res) => {
     const row = db.prepare('SELECT id, username, email, role, shop_category, avatar_url, created_at FROM users WHERE id = ?').get(payload.id);
     if (!row) return res.status(404).json({ error: 'User not found.' });
     return res.json({ ...toPublicUser(row), created_at: row.created_at });
+  } catch {
+    return res.status(401).json({ error: 'Invalid or expired token.' });
+  }
+});
+
+// ─── POST /api/auth/refresh ──────────────────────────────────────────────────
+// Exchange a (possibly oversized legacy) token for a slim one via POST body.
+router.post('/refresh', (req, res) => {
+  const { token } = req.body;
+  if (!token || typeof token !== 'string') {
+    return res.status(400).json({ error: 'token is required.' });
+  }
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    const row = db.prepare('SELECT * FROM users WHERE id = ?').get(payload.id);
+    if (!row) return res.status(404).json({ error: 'User not found.' });
+    const user = toPublicUser(row);
+    const newToken = jwt.sign(toTokenPayload(row), JWT_SECRET, { expiresIn: JWT_EXPIRES });
+    return res.json({ token: newToken, user });
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token.' });
   }
@@ -166,15 +196,15 @@ router.patch('/profile', (req, res) => {
   db.prepare('UPDATE users SET username = ?, email = ?, password_hash = ?, avatar_url = ? WHERE id = ?')
     .run(newUsername, newEmail, newHash, newAvatarUrl, row.id);
 
-  const updatedUser = {
+  const updatedUser = toPublicUser({
     id: row.id,
     username: newUsername,
     email: newEmail,
     role: row.role,
-    shop_category: row.shop_category ?? null,
+    shop_category: row.shop_category,
     avatar_url: newAvatarUrl,
-  };
-  const token = jwt.sign(updatedUser, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+  });
+  const token = jwt.sign(toTokenPayload({ ...row, username: newUsername, email: newEmail }), JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
   return res.json({ token, user: updatedUser });
 });
