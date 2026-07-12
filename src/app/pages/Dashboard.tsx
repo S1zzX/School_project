@@ -1,20 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import {
   ArrowRight, Star, Tag,
   ChevronRight, Package, ShoppingCart, CheckCircle2, MonitorPlay
 } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { SteamCoverImage } from '../components/SteamCoverImage';
 import { getUser, apiAddToCart } from '../lib/api';
 import { IntroSplash } from '../components/IntroSplash';
 import { HomeProductCarousel, CAROUSEL_ITEM_CLASS, CAROUSEL_SUB_ITEM_CLASS } from '../components/HomeProductCarousel';
-import { getProductsByCatalog, type ProductItem } from '../lib/products';
-import { CATALOG_OPTIONS, HOME_CATALOG_SECTIONS, getCatalogById, type CatalogId } from '../lib/catalog';
-
-import gothicImage from '../../assets/Gothic1_remake.jpg';
-import forzaImage from '../../assets/Forza_Horizon6.jpg';
-import legoBatmanImage from '../../assets/Lego_Batman.jpg';
-import destiny2Image from '../../assets/destiny2.jpg';
+import { getProductsByCatalog, ALL_PRODUCTS, type ProductItem } from '../lib/products';
+import { applyLivePrices, useLiveCatalogPrices, LIVE_PRICE_CATALOGS } from '../lib/livePrices';
+import { applySteamImages } from '../lib/steamImages';
+import { HOME_CATALOG_SECTIONS, getCatalogById, type CatalogId } from '../lib/catalog';
 
 const SPLASH_KEY = 'gg_intro_seen';
 
@@ -24,21 +22,21 @@ const HERO_GAMES = [
     title: 'GOTHIC 1 REMAKE',
     subtitle: 'Steam · Key · GLOBAL',
     badge: 'NEW',
-    image: gothicImage,
+    steamAppId: 1297900,
     price: 29.99,
   },
   {
     title: 'FORZA HORIZON 6',
     subtitle: 'Xbox Live · Key · GLOBAL',
     badge: 'NEW',
-    image: forzaImage,
+    steamAppId: 2483190,
     price: 49.99,
   },
   {
     title: 'LEGO BATMAN',
     subtitle: 'Steam · Key · GLOBAL',
     badge: 'NEW',
-    image: legoBatmanImage,
+    steamAppId: 21000,
     price: 14.99,
   },
   {
@@ -46,7 +44,7 @@ const HERO_GAMES = [
     subtitle: 'Steam · Key · GLOBAL',
     badge: 'BEST SELLER',
     badgeColor: '#1a6fd4',
-    image: destiny2Image,
+    steamAppId: 1085660,
     price: 0,
     free: true,
   },
@@ -69,6 +67,56 @@ function getCartType(item: ProductItem): string {
   return 'Game Key';
 }
 
+function CatalogProductImage({
+  item,
+  className,
+  variant = 'card',
+}: {
+  item: ProductItem;
+  className?: string;
+  variant?: 'hero' | 'card';
+}) {
+  if (item.steamAppId) {
+    return <SteamCoverImage steamAppId={item.steamAppId} variant={variant} alt={item.title} className={className} />;
+  }
+  if (item.catalog === 'software') {
+    return (
+      <div
+        className={`${className ?? ''} flex items-center justify-center`}
+        style={{
+          background: `linear-gradient(135deg, ${item.gameColor}24 0%, #ffffff 52%, ${item.gameColor}18 100%)`,
+        }}
+      >
+        <ImageWithFallback
+          src={item.image}
+          alt={`${item.title} logo`}
+          className="w-[42%] h-[58%] object-contain drop-shadow-md"
+        />
+      </div>
+    );
+  }
+  if (item.catalog === 'gift-cards') {
+    const needsWhiteLogo = item.image.includes('cdn.jsdelivr.net');
+    return (
+      <div
+        className={`${className ?? ''} flex items-center justify-center`}
+        style={{
+          background: `radial-gradient(circle at 78% 20%, ${item.gameColor} 0%, transparent 34%), linear-gradient(135deg, ${item.gameColor} 0%, #090d18 72%)`,
+        }}
+      >
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'repeating-linear-gradient(-45deg, transparent 0 14px, rgba(255,255,255,.12) 14px 15px)' }} />
+        <ImageWithFallback
+          src={item.image}
+          alt={`${item.title} logo`}
+          className="relative z-10 w-[42%] h-[50%] object-contain drop-shadow-lg"
+          style={{ filter: needsWhiteLogo ? 'brightness(0) invert(1)' : undefined }}
+        />
+      </div>
+    );
+  }
+  return <ImageWithFallback src={item.image} alt={item.title} className={className} />;
+}
+
 interface ProductGridProps {
   items: ProductItem[];
   addingToCart: Record<string, boolean>;
@@ -85,14 +133,13 @@ function ProductGrid({ items, addingToCart, onAddToCart, idPrefix }: ProductGrid
         return (
           <div
             key={item.id}
-            className="group relative rounded-xl overflow-hidden border transition-all hover:border-gs-accent/40 hover:shadow-lg flex flex-col"
+            className="group gs-product-card relative rounded-xl overflow-hidden border hover:border-gs-accent/40 hover:shadow-lg flex flex-col"
             style={{ background: 'var(--gs-surface)', borderColor: 'var(--gs-border)' }}
           >
             <Link to={`/product/${item.id}`} className="block">
               <div className="relative h-32 overflow-hidden">
-                <ImageWithFallback
-                  src={item.image}
-                  alt={item.title}
+                <CatalogProductImage
+                  item={item}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -153,12 +200,26 @@ function ProductGrid({ items, addingToCart, onAddToCart, idPrefix }: ProductGrid
 export function Dashboard() {
   const user = getUser();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const activeCatalog = getCatalogById(searchParams.get('cat'));
   const [showSplash, setShowSplash] = useState(false);
   const [activeHero, setActiveHero] = useState(0);
   const [addingToCart, setAddingToCart] = useState<Record<string, boolean>>({});
   const [cartToast, setCartToast] = useState<string | null>(null);
+
+  const steamAppIds = useMemo(
+    () => ALL_PRODUCTS
+      .filter(p => p.steamAppId && LIVE_PRICE_CATALOGS.includes(p.catalog))
+      .map(p => p.steamAppId!),
+    []
+  );
+  const { prices: livePrices, stats: liveStats, loading: livePricesLoading, fetchedAt: livePricesAt } = useLiveCatalogPrices(steamAppIds);
+
+  const productsForSection = useCallback((sectionId: CatalogId) => {
+    const base = getProductsByCatalog(sectionId);
+    if (!LIVE_PRICE_CATALOGS.includes(sectionId)) return applySteamImages(base);
+    return applyLivePrices(base, livePrices, liveStats);
+  }, [livePrices, liveStats]);
 
   useEffect(() => {
     const seen = sessionStorage.getItem(SPLASH_KEY);
@@ -200,14 +261,6 @@ export function Dashboard() {
     }
   };
 
-  const setCatalogFilter = (cat: CatalogId) => {
-    if (cat === 'all') {
-      setSearchParams({});
-    } else {
-      setSearchParams({ cat });
-    }
-  };
-
   const visibleSections =
     activeCatalog === 'all'
       ? HOME_CATALOG_SECTIONS
@@ -240,18 +293,22 @@ export function Dashboard() {
         </div>
       )}
 
-      <div style={{ background: 'var(--gs-bg)' }}>
+      <div className="px-4 lg:px-6 py-6 space-y-10">
 
         {/* ══ HERO BANNER ═══════════════════════════════════════════════════ */}
-        <section className="relative w-full overflow-hidden bg-slate-900 rounded-2xl border border-gs-border shadow-xl mx-auto mt-6" style={{ minHeight: 480, maxWidth: 'calc(100% - 48px)' }}>
+        <section
+          className="relative w-full overflow-hidden rounded-2xl border shadow-2xl"
+          style={{ minHeight: 420, background: '#0e0b16', borderColor: 'var(--gs-border)' }}
+        >
           {HERO_GAMES.map((g, i) => (
             <div
               key={i}
               className="absolute inset-0 transition-opacity duration-700 ease-in-out"
               style={{ opacity: i === activeHero ? 1 : 0, pointerEvents: i === activeHero ? 'auto' : 'none' }}
             >
-              <ImageWithFallback
-                src={g.image}
+              <SteamCoverImage
+                steamAppId={g.steamAppId}
+                variant="hero"
                 alt={g.title}
                 className="w-full h-full object-cover object-center"
               />
@@ -261,34 +318,34 @@ export function Dashboard() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
           {/* Content */}
-          <div className="relative z-10 w-full h-full p-10 flex flex-col justify-center max-w-2xl mt-8">
+          <div className="relative z-10 w-full h-full p-8 lg:p-10 flex flex-col justify-center max-w-2xl">
             {(() => {
               const game = HERO_GAMES[activeHero];
               return (
                 <div key={activeHero} className="space-y-4 animate-in fade-in duration-500">
                   <span
-                    className="inline-block text-[10px] font-bold px-3 py-1 rounded text-white uppercase tracking-wider"
-                    style={{ background: game.badgeColor || '#22c55e' }}
+                    className="inline-block text-[10px] font-bold px-3 py-1 rounded-full text-white uppercase tracking-wider"
+                    style={{ background: game.badgeColor || 'var(--gs-accent)' }}
                   >
                     {game.badge}
                   </span>
-                  <h2 className="text-white font-black text-5xl leading-tight tracking-tight drop-shadow-md">
+                  <h2 className="text-white font-black text-4xl lg:text-5xl leading-tight tracking-tight drop-shadow-md">
                     {game.title}
                   </h2>
-                  <p className="text-white/80 text-sm font-medium flex items-center gap-2">
-                    <span className="flex items-center gap-1.5"><Tag className="size-3.5"/> Xbox Live</span> · {game.subtitle}
+                  <p className="text-white/70 text-sm font-medium">
+                    {game.subtitle}
                   </p>
                   
-                  <div className="flex items-center gap-5 pt-4">
-                    <span className="text-white font-black text-3xl drop-shadow-md">
+                  <div className="flex items-center gap-4 pt-2">
+                    <span className="text-white font-black text-2xl lg:text-3xl drop-shadow-md">
                       {game.free ? 'FREE' : `$${game.price.toFixed(2)}`}
                     </span>
                     <Link
                       to="/store"
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all hover:bg-blue-500 shadow-lg"
-                      style={{ background: '#1d4ed8', color: '#fff' }}
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90 shadow-lg"
+                      style={{ background: 'var(--gs-accent)', color: '#fff' }}
                     >
-                      Buy Now <ArrowRight className="size-4" />
+                      Play Now <ArrowRight className="size-4" />
                     </Link>
                   </div>
                 </div>
@@ -296,10 +353,10 @@ export function Dashboard() {
             })()}
 
             {/* Thumbnails */}
-            <div className="flex gap-3 pt-8 relative z-10">
+            <div className="flex gap-2 pt-6 relative z-10">
               {HERO_GAMES.map((g, i) => (
-                <button key={i} onClick={() => setActiveHero(i)} className={`w-16 h-10 rounded overflow-hidden border-2 transition-all ${i===activeHero ? 'border-blue-600 opacity-100' : 'border-white/20 opacity-60 hover:opacity-100'}`}>
-                  <img src={g.image} className="w-full h-full object-cover" alt="thumbnail" />
+                <button key={i} onClick={() => setActiveHero(i)} className={`w-14 h-9 rounded-lg overflow-hidden border-2 transition-all ${i===activeHero ? 'border-[var(--gs-accent)] opacity-100' : 'border-white/20 opacity-50 hover:opacity-100'}`}>
+                  <SteamCoverImage steamAppId={g.steamAppId} variant="hero" className="w-full h-full object-cover" alt={g.title} />
                 </button>
               ))}
             </div>
@@ -313,39 +370,27 @@ export function Dashboard() {
           </div>
         </section>
 
-        <div className="max-w-screen-2xl mx-auto px-6 py-8 space-y-12">
-
-          {/* ══ CATALOG FILTER CHIPS ═════════════════════════════════════ */}
-          <section>
-            <div className="flex flex-wrap gap-2">
-              {CATALOG_OPTIONS.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setCatalogFilter(cat.id)}
-                  className="px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all"
-                  style={{
-                    background: activeCatalog === cat.id ? 'var(--gs-accent)' : 'var(--gs-surface)',
-                    borderColor: activeCatalog === cat.id ? 'var(--gs-accent)' : 'var(--gs-border)',
-                    color: activeCatalog === cat.id ? '#fff' : 'var(--gs-muted)',
-                  }}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* ══ CATALOG SECTIONS ═════════════════════════════════════════ */}
+        {/* ══ CATALOG SECTIONS ═════════════════════════════════════════ */}
+        <div className="space-y-12">
           {visibleSections.map(section => {
-            const products = getProductsByCatalog(section.id);
+            const products = productsForSection(section.id);
             if (products.length === 0) return null;
+
+            const showLiveBadge = LIVE_PRICE_CATALOGS.includes(section.id) && livePricesAt;
 
             if (section.id === 'subscriptions') {
               return (
                 <section key={section.id}>
                   <div className="flex items-center justify-between mb-5">
                     <div>
-                      <h2 className="text-2xl font-black tracking-tight" style={{ color: 'var(--gs-text)' }}>{section.label}</h2>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h2 className="text-2xl font-black tracking-tight" style={{ color: 'var(--gs-text)' }}>{section.label}</h2>
+                        {showLiveBadge && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ color: 'var(--gs-accent)', borderColor: 'var(--gs-accent)', opacity: livePricesLoading ? 0.6 : 1 }}>
+                            {livePricesLoading ? 'Updating prices…' : 'Live prices'}
+                          </span>
+                        )}
+                      </div>
                       {section.subtitle && (
                         <p className="text-sm font-medium mt-1" style={{ color: 'var(--gs-faint)' }}>{section.subtitle}</p>
                       )}
@@ -366,7 +411,7 @@ export function Dashboard() {
                       return (
                         <div key={item.id} className={CAROUSEL_SUB_ITEM_CLASS}>
                         <div className="relative rounded-2xl overflow-hidden border border-gs-border h-48 group shadow-sm transition-all hover:border-gs-accent/40">
-                          <ImageWithFallback src={item.image} alt={item.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                          <CatalogProductImage item={item} variant="hero" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
                           <div className="absolute inset-0 p-5 flex flex-col justify-between">
                             <span className="self-start text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest text-white" style={{ background: showDiscount ? 'var(--gs-sale)' : (item.badgeColor || '#334155') }}>
@@ -403,7 +448,14 @@ export function Dashboard() {
               <section key={section.id}>
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <h2 className="text-2xl font-black tracking-tight" style={{ color: 'var(--gs-text)' }}>{section.label}</h2>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-2xl font-black tracking-tight" style={{ color: 'var(--gs-text)' }}>{section.label}</h2>
+                      {showLiveBadge && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ color: 'var(--gs-accent)', borderColor: 'var(--gs-accent)', opacity: livePricesLoading ? 0.6 : 1 }}>
+                          {livePricesLoading ? 'Updating prices…' : 'Live prices'}
+                        </span>
+                      )}
+                    </div>
                     {section.subtitle && (
                       <p className="text-sm font-medium mt-1" style={{ color: 'var(--gs-faint)' }}>{section.subtitle}</p>
                     )}
@@ -423,21 +475,21 @@ export function Dashboard() {
                     const showDiscount = item.discount != null && item.origPrice != null;
                     return (
                       <div key={item.id} className={CAROUSEL_ITEM_CLASS}>
-                      <div className="group relative rounded-xl overflow-hidden border border-gs-border bg-gs-surface transition-all hover:border-gs-accent/40 hover:shadow-lg flex flex-col h-full">
+                      <div className="group gs-product-card relative rounded-2xl overflow-hidden border hover:border-[var(--gs-accent)]/40 hover:shadow-lg flex flex-col h-full"
+                        style={{ background: 'var(--gs-surface)', borderColor: 'var(--gs-border)' }}>
                         <Link to={`/product/${item.id}`} className="block flex-1 flex flex-col">
                           <div className="relative h-44 overflow-hidden">
-                            <ImageWithFallback src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <span className="absolute top-2 left-2 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest text-white" style={{ background: showDiscount ? 'var(--gs-sale)' : (item.badgeColor || '#334155') }}>
+                            <CatalogProductImage item={item} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <span className="absolute top-2 left-2 text-[9px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest text-white" style={{ background: showDiscount ? 'var(--gs-sale)' : (item.badgeColor || '#334155') }}>
                               {showDiscount ? `-${item.discount}%` : item.badge}
                             </span>
                           </div>
-                          <div className="p-4 pt-3 flex-1 flex flex-col">
-                            <h3 className="font-bold text-sm leading-tight mb-1.5 line-clamp-2" style={{ color: 'var(--gs-text)' }}>{item.title}</h3>
-                            <p className="text-[10px] font-semibold text-gs-faint mb-4 flex items-center gap-1"><MonitorPlay className="size-3"/> {item.platform}</p>
-                            <div className="mt-auto flex items-end gap-2">
-                              <span className="text-lg font-black" style={{ color: 'var(--gs-accent)' }}>${item.price.toFixed(2)}</span>
-                              {item.origPrice != null && <span className="text-xs font-bold text-gs-faint line-through mb-0.5">${item.origPrice.toFixed(2)}</span>}
+                          <div className="p-3.5 flex-1 flex flex-col">
+                            <h3 className="font-bold text-sm leading-tight mb-1 line-clamp-2" style={{ color: 'var(--gs-text)' }}>{item.title}</h3>
+                            <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+                              <span className="text-base font-black" style={{ color: 'var(--gs-accent)' }}>${item.price.toFixed(2)}</span>
+                              {item.origPrice != null && <span className="text-[10px] font-bold text-gs-faint line-through">${item.origPrice.toFixed(2)}</span>}
+                              <MonitorPlay className="size-3.5 ml-auto shrink-0" style={{ color: 'var(--gs-faint)' }} />
                             </div>
                           </div>
                         </Link>
@@ -470,7 +522,7 @@ export function Dashboard() {
             );
           })}
 
-          {visibleSections.every(s => getProductsByCatalog(s.id).length === 0) && (
+          {visibleSections.every(s => productsForSection(s.id).length === 0) && (
             <section className="rounded-xl border px-6 py-10 text-center" style={{ borderColor: 'var(--gs-border)', background: 'var(--gs-surface)' }}>
               <p className="text-sm font-medium" style={{ color: 'var(--gs-muted)' }}>No products found in this category yet.</p>
               <button
@@ -485,18 +537,19 @@ export function Dashboard() {
 
           {/* ══ AI FEATURES STRIP (for logged-in) or CTA (for guests) ══════ */}
           {user ? (
-            <section className="relative rounded-2xl overflow-hidden border border-gs-border min-h-[140px] flex items-center shadow-sm">
+            <section className="gg-welcome-panel relative rounded-3xl overflow-hidden border border-gs-border min-h-[170px] flex items-center shadow-sm">
               <div className="absolute inset-0">
                 <ImageWithFallback 
                   src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200&q=80" 
                   alt="bg" 
-                  className="w-full h-full object-cover opacity-10" 
+                  className="w-full h-full object-cover opacity-[0.08]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-[var(--gs-surface)] via-[var(--gs-surface)] to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[var(--gs-surface)] via-[var(--gs-surface)]/95 to-[var(--gs-surface)]/65" />
+                <div className="gg-welcome-orb absolute -right-20 -top-32 size-80 rounded-full" />
               </div>
-              <div className="relative z-10 px-6 py-6 w-full flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="relative z-10 px-7 lg:px-9 py-7 w-full flex flex-col md:flex-row items-center justify-between gap-7">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full border border-gs-border p-1 flex items-center justify-center bg-gs-bg shrink-0 shadow-sm">
+                  <div className="gg-avatar-ring w-16 h-16 rounded-2xl border border-gs-border p-1.5 flex items-center justify-center bg-gs-bg shrink-0 shadow-sm">
                     <img 
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}&backgroundColor=b6e3f4`} 
                       alt="avatar" 
@@ -504,21 +557,23 @@ export function Dashboard() {
                     />
                   </div>
                   <div>
-                    <h2 className="font-black text-2xl tracking-tight text-gs-text">
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] mb-1" style={{ color: 'var(--gs-accent)' }}>Player dashboard</p>
+                    <h2 className="font-black text-2xl lg:text-3xl tracking-tight text-gs-text">
                       Welcome back, {user.username}!
                     </h2>
                     <p className="text-sm font-medium text-gs-faint mt-0.5">Your AI-powered gaming hub</p>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-3 w-full md:w-auto">
-                  {QUICK_LINKS.map(l => (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full md:w-auto">
+                  {QUICK_LINKS.map((l, i) => (
                     <Link
                       key={l.to}
                       to={l.to}
-                      className="flex-1 md:flex-none flex justify-center items-center gap-2 px-5 py-2.5 rounded-xl border border-gs-border bg-gs-bg/80 backdrop-blur-md hover:bg-gs-text hover:text-gs-bg hover:border-gs-text transition-all text-sm font-bold shadow-sm"
+                      className="gg-quick-link group flex justify-between items-center gap-3 min-w-[145px] px-4 py-3 rounded-2xl border border-gs-border bg-gs-bg/75 backdrop-blur-md text-sm font-bold shadow-sm"
+                      style={{ animationDelay: `${i * 90 + 120}ms` }}
                     >
-                      <l.icon className="size-4 opacity-80" />
-                      {l.label}
+                      <span className="flex items-center gap-2"><l.icon className="size-4" />{l.label}</span>
+                      <ArrowRight className="size-3.5 opacity-40 transition-transform group-hover:translate-x-1" />
                     </Link>
                   ))}
                 </div>
@@ -569,11 +624,17 @@ export function Dashboard() {
 
           {/* ══ AI FEATURES CARDS ══════════════════════════════════════════ */}
           <section>
-            <h3 className="font-black text-2xl tracking-tight text-gs-text mb-6">Experience GameGuide</h3>
-            <div className="grid md:grid-cols-3 gap-5">
+            <div className="flex items-end justify-between gap-4 mb-6">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] mb-1" style={{ color: 'var(--gs-accent)' }}>Built for players</p>
+                <h3 className="font-black text-2xl tracking-tight text-gs-text">Experience GameGuide</h3>
+              </div>
+              <span className="hidden sm:block text-xs font-medium text-gs-faint">Everything you need, in one hub</span>
+            </div>
+            <div className="grid md:grid-cols-12 gap-4">
               {[
                 {
-                  img: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&q=80',
+                  img: 'https://images.unsplash.com/photo-1775410631936-7de96322df0b?auto=format&fit=crop&w=1400&q=85',
                   title: 'AI Game Guides',
                   desc: 'Personalised strategy tips powered by advanced AI for top competitive games.',
                   link: '/store',
@@ -594,18 +655,24 @@ export function Dashboard() {
                 <Link
                   key={i}
                   to={f.link}
-                  className="group relative h-48 rounded-2xl overflow-hidden border border-gs-border block shadow-sm"
+                  className={`gg-feature-card group relative overflow-hidden border border-gs-border block shadow-sm ${
+                    i === 0 ? 'md:col-span-6 h-64' : 'md:col-span-3 h-64'
+                  }`}
+                  style={{ animationDelay: `${i * 120}ms` }}
                 >
                   <ImageWithFallback 
                     src={f.img} 
                     alt={f.title} 
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
-                  <div className="absolute inset-0 p-5 flex flex-col justify-end">
-                    <h4 className="text-white font-bold text-lg mb-1 tracking-tight">{f.title}</h4>
-                    <p className="text-white/70 text-xs leading-relaxed font-medium">{f.desc}</p>
-                    <div className="mt-3 flex items-center gap-1.5 text-xs font-bold text-gs-accent opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-black/5" />
+                  <div className="absolute top-4 left-4 size-8 rounded-full border border-white/20 bg-black/25 backdrop-blur-md flex items-center justify-center text-[10px] font-black text-white/80">
+                    0{i + 1}
+                  </div>
+                  <div className="absolute inset-0 p-5 lg:p-6 flex flex-col justify-end">
+                    <h4 className={`${i === 0 ? 'text-2xl' : 'text-lg'} text-white font-black mb-1.5 tracking-tight`}>{f.title}</h4>
+                    <p className="text-white/70 text-xs leading-relaxed font-medium max-w-md">{f.desc}</p>
+                    <div className="gg-feature-cta mt-4 flex items-center gap-1.5 text-xs font-bold text-white">
                       Explore now <ArrowRight className="size-3.5" />
                     </div>
                   </div>

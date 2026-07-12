@@ -1,118 +1,115 @@
-# GameGuide AI Assistant — Account Credentials
+# GameGuide AI Assistant — Demo Accounts
 
-## Admin Account
-> Auto-seeded on first server startup. Cannot be registered via UI.
+These credentials are for local development and demonstrations only. Do not reuse them in a public deployment.
 
-| Field    | Value                 |
-|----------|-----------------------|
-| Username | `Admin`               |
-| Email    | `admin@gameguide.dev` |
-| Password | `Admin@1234`          |
-| Role     | `admin`               |
+## Admin
 
-**Access:** Admin Panel (`/admin`), Shop Dashboard (`/shop-owner`), all moderation tools, Support Ticket management, delete any forum thread or store listing.
+The admin account is created automatically when the backend starts for the first time.
 
----
+| Field | Value |
+|---|---|
+| Username | `Admin` |
+| Email | `admin@gameguide.dev` |
+| Password | `Admin@1234` |
+| Role | `admin` |
 
-## Demo Accounts (Shop Owners)
-> Seeded by running `node seed-demo.js` from the `server/` folder.
+Access includes the Admin Panel, Shop Owner Dashboard, user and content moderation, support tickets, escrow trades, analytics, notifications, Vision AI, cart, store, and community features.
 
-### S1zz — FPS / CS2 seller
+## Demo shop owners
 
-| Field         | Value            |
-|---------------|------------------|
-| Username      | `S1zz`           |
-| Email         | `shop@gmail.com` |
-| Password      | `Password123`    |
-| Role          | `shop_owner`     |
-| Shop Category | `FPS Skins`      |
+Created by running `node seed-demo.js` inside `server/`.
 
-**Listings:** RPG accounts, CS2 skins, LoL / Valorant accounts (includes available, multi-stock, and sold items for testing).
+### S1zz
 
-### PixelTrader — MOBA seller
+| Field | Value |
+|---|---|
+| Username | `S1zz` |
+| Email | `shop@gmail.com` |
+| Password | `Password123` |
+| Role | `shop_owner` |
+| Shop category | `FPS Skins` |
 
-| Field         | Value              |
-|---------------|--------------------|
-| Username      | `PixelTrader`      |
-| Email         | `pixel@gmail.com`  |
-| Password      | `Password123`      |
-| Role          | `shop_owner`       |
-| Shop Category | `MOBA Cosmetics`   |
+Seed data includes game accounts, CS2 skins, Valorant accounts, available stock, and sold listings.
 
-**Listings:** LoL and Valorant ranked accounts, CS2 skins.
+### PixelTrader
 
-**Access (both shop owners):** Post store listings, Shop Dashboard (`/shop-owner`), character management, community forum.
+| Field | Value |
+|---|---|
+| Username | `PixelTrader` |
+| Email | `pixel@gmail.com` |
+| Password | `Password123` |
+| Role | `shop_owner` |
+| Shop category | `MOBA Cosmetics` |
 
----
+Seed data includes LoL and Valorant accounts plus CS2 skin listings.
 
-## Demo Gamer Account
-> Also seeded by `node seed-demo.js`. Use this to test buying, cart checkout, and forum replies.
+Shop owners can post and manage listings, manage characters, use AI Vision to scan listing screenshots, access community features, buy products, create support tickets, and respond to trades involving their listings.
 
-| Field    | Value            |
-|----------|------------------|
-| Username | `DemoGamer`      |
-| Email    | `gamer@gmail.com`|
-| Password | `Password123`    |
-| Role     | `gamer`          |
+## Demo gamer
 
-**Access:** Browse store, add to cart, buy accounts, request CS2 skin trades, community forum, purchase history, support tickets.
+| Field | Value |
+|---|---|
+| Username | `DemoGamer` |
+| Email | `gamer@gmail.com` |
+| Password | `Password123` |
+| Role | `gamer` |
 
----
+Use this account to test cart checkout, purchase history, support tickets, CS2 escrow requests, notifications, community posts, AI chat, and screenshot analysis.
 
-## Register Your Own
-> Any additional account can be created at `/register`.
+## Role permissions
 
-| Field    | Value               |
-|----------|---------------------|
-| Username | *(choose your own)* |
-| Email    | *(choose your own)* |
-| Password | *(choose your own)* |
-| Role     | `gamer` *(default)* |
+| Feature | Gamer | Shop owner | Admin |
+|---|:---:|:---:|:---:|
+| Browse catalog and store | Yes | Yes | Yes |
+| Cart and checkout | Yes | Yes | Yes |
+| Purchase history | Yes | Yes | Yes |
+| Community posts, replies, and likes | Yes | Yes | Yes |
+| Support tickets | Yes | Yes | Yes |
+| Vision AI and gaming chat | Yes | Yes | Yes |
+| Create marketplace listings | No | Yes | Yes |
+| Shop Owner Dashboard | No | Yes | Yes |
+| Manage own characters and listings | No | Yes | Yes |
+| Respond to seller trade requests | No | Yes | Yes |
+| Manage users and all content | No | No | Yes |
+| Review all trades and support tickets | No | No | Yes |
 
-> **Tip:** An Admin can upgrade any gamer account to `shop_owner` or `admin` from the Admin Panel → Users tab.
+## Create another account
 
----
+Open `/register`. The public registration flow accepts `gamer` and `shop_owner`; an admin account cannot be registered through the UI.
 
-## Role Permissions Summary
+Valid shop categories:
 
-| Feature                  | Gamer | Shop Owner | Admin |
-|--------------------------|:-----:|:----------:|:-----:|
-| Browse Store             | ✅    | ✅         | ✅    |
-| Add to Cart / Buy        | ✅    | ✅         | ✅    |
-| Post Store Listings      | ❌    | ✅         | ✅    |
-| Shop Dashboard           | ❌    | ✅         | ✅    |
-| Character Management     | ❌    | ✅         | ✅    |
-| Community Forum          | ✅    | ✅         | ✅    |
-| Submit Support Ticket    | ✅    | ✅         | ✅    |
-| Manage Support Tickets   | ❌    | ❌         | ✅    |
-| Admin Panel              | ❌    | ❌         | ✅    |
-| Delete Any Content       | ❌    | ❌         | ✅    |
+- `FPS Skins`
+- `RPG Items`
+- `Strategy Gear`
+- `MOBA Cosmetics`
+- `Battle Royale Loot`
 
----
+Admins can change roles and shop categories from `/admin`.
 
-## How to Start the App
+## Start and seed
 
 ```bash
-# Terminal 1 — Backend
+# Install once
+npm install
 cd server
 npm install
-npm start        # runs on http://localhost:3001
+cd ..
 
-# Terminal 2 — Frontend
-npm install
-npm run dev      # runs on http://localhost:5173
-```
+# Start frontend and backend
+npm run dev
 
-### Seed demo data (optional)
-
-```bash
+# Optional demo data
 cd server
 node seed-demo.js
 ```
 
-**What gets seeded (v2):**
-- 2 shop owners (`S1zz`, `PixelTrader`) + 1 gamer (`DemoGamer`)
-- ~18 store listings (accounts, CS2 skins, sold + available items)
-- 14 community forum threads with sample replies
+The seed is guarded by the `demo_seed_v2` row in `app_migrations`. To intentionally seed again, delete only that row from the local SQLite database and rerun the script.
 
-The script runs once per database. To re-seed, remove the `demo_seed_v2` row from the `app_migrations` table in `server/database.sqlite`, then run `node seed-demo.js` again.
+## Production security checklist
+
+- Replace all demo passwords.
+- Set a strong `JWT_SECRET` in `server/.env`.
+- Do not commit `server/.env` or `server/database.sqlite`.
+- Restrict CORS to the deployed frontend origin.
+- Remove or disable automatic demo/admin seeding for a public deployment.

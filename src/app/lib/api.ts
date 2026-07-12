@@ -685,6 +685,25 @@ export function apiUpdateNotificationPrefs(prefs: Partial<NotificationPrefs>) {
 
 // ─── Computer Vision ─────────────────────────────────────────────────────────
 
+export type VisionProviderId = 'gemini' | 'groq' | 'ollama';
+
+export const VISION_PROVIDER_STORAGE_KEY = 'gameguide-vision-provider';
+
+export function isVisionProviderId(value: string): value is VisionProviderId {
+  return value === 'gemini' || value === 'groq' || value === 'ollama';
+}
+
+export interface VisionProviderOption {
+  id: VisionProviderId;
+  label: string;
+  shortLabel: string;
+  model: string;
+  local?: boolean;
+  ready?: boolean;
+  ollamaRunning?: boolean;
+  ollamaModelPulled?: boolean;
+}
+
 export interface VisionResult {
   detected: boolean;
   game: 'CS2' | 'Valorant' | 'LoL' | 'Apex Legends' | 'Fortnite' | 'PUBG' | 'Dota 2' | 'Overwatch 2' | 'Other' | null;
@@ -697,19 +716,67 @@ export interface VisionResult {
   hoursPlayed: number | null;
   skinsOwned: number | null;
   estimatedPrice: number | null;
+  /** AI-only price guess before market lookup */
+  aiEstimatedPrice?: number | null;
+  /** Live Steam Community Market lowest listing (USD) */
+  marketPrice?: number | null;
+  marketPriceMedian?: number | null;
+  marketVolume?: number | null;
+  marketHashName?: string | null;
+  priceSource?: 'steam_community_market' | null;
+  marketFetchedAt?: string | null;
+  /** Exact CS2 skin name was checked against the external catalogue */
+  catalogVerified?: boolean;
+  /** A live Steam price was found for the verified market hash name */
+  priceVerified?: boolean;
+  firstStageItem?: string | null;
+  verificationReason?: string | null;
+  valorantInventory?: Array<{
+    weapon: string;
+    skin: string;
+    tier?: string;
+    icon?: string | null;
+    confidence: 'high' | 'medium' | 'low';
+    estimatedVp?: { min: number; max: number };
+  }>;
+  valorantTotalVpMin?: number;
+  valorantTotalVpMax?: number;
+  replacementValueUsd?: { min: number; max: number };
+  /** Backend model used for this analysis */
+  visionProvider?: string | null;
   confidence: 'high' | 'medium' | 'low';
   description: string;
   tags: string[];
+}
+
+export interface VisionStatus {
+  online: boolean;
+  provider: VisionProviderId | null;
+  defaultProvider: VisionProviderId | null;
+  label: string | null;
+  configured: string;
+  providers: VisionProviderOption[];
+  ollama?: {
+    running: boolean;
+    modelPulled: boolean;
+    models: string[];
+  };
+  message?: string;
+}
+
+export async function apiVisionStatus(): Promise<VisionStatus> {
+  return apiFetch<VisionStatus>('/vision/status');
 }
 
 export async function apiAnalyzeScreenshot(
   imageBase64: string,
   mimeType: string,
   context?: string,
+  provider?: VisionProviderId,
 ): Promise<VisionResult> {
   return apiFetch<VisionResult>('/vision/analyze', {
     method: 'POST',
-    body: { imageBase64, mimeType, context },
+    body: { imageBase64, mimeType, context, provider },
   });
 }
 
@@ -722,10 +789,11 @@ export async function apiVisionChat(
   message: string,
   visionContext: VisionResult | null,
   history: ChatMessage[],
+  provider?: VisionProviderId,
 ): Promise<{ reply: string }> {
   return apiFetch<{ reply: string }>('/vision/chat', {
     method: 'POST',
-    body: { message, visionContext, history },
+    body: { message, visionContext, history, provider },
   });
 }
 
@@ -812,4 +880,52 @@ export function apiPredictPrice(input: PredictPriceInput): Promise<PricePredicti
     method: 'POST',
     body: input,
   });
+}
+
+// ─── Catalog live prices (CheapShark) ────────────────────────────────────────
+
+export interface CatalogLivePriceEntry {
+  salePrice: number;
+  normalPrice: number;
+  discount: number;
+  storeId?: string;
+  title?: string;
+  isOnSale?: boolean;
+  salePriceChangedAt?: string | null;
+  saleEndsAt?: string | null;
+}
+
+export interface CatalogSteamStatsEntry {
+  currentPlayers?: number;
+  ownersEstimate?: string | null;
+  medianPlaytimeHours?: number | null;
+  steamSpyCcu?: number | null;
+  steamOnSale?: boolean;
+  steamDiscountPercent?: number;
+  isOnSale?: boolean;
+  salePriceChangedAt?: string | null;
+  saleEndsAt?: string | null;
+}
+
+export interface CatalogLivePricesResponse {
+  prices: Record<string, CatalogLivePriceEntry>;
+  stats: Record<string, CatalogSteamStatsEntry>;
+  fetchedAt: string;
+  source: string;
+  ttlSeconds: number;
+  note?: string;
+}
+
+export function apiFetchCatalogLivePrices(steamAppIds: number[]): Promise<CatalogLivePricesResponse> {
+  if (steamAppIds.length === 0) {
+    return Promise.resolve({
+      prices: {},
+      stats: {},
+      fetchedAt: new Date().toISOString(),
+      source: 'cheapshark+steam+steamspy',
+      ttlSeconds: 2700,
+    });
+  }
+  const ids = [...new Set(steamAppIds)].join(',');
+  return apiFetch<CatalogLivePricesResponse>(`/catalog/live-prices?ids=${encodeURIComponent(ids)}`);
 }

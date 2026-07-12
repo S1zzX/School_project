@@ -48,16 +48,16 @@ function StatStrip({ items }: { items: { label: string; value: string | number; 
     ? 'sm:grid-cols-3 lg:grid-cols-5'
     : 'sm:grid-cols-4';
   return (
-    <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+    <div className="ops-stat-strip bg-gs-surface border border-gs-border rounded-2xl overflow-hidden">
       <div className={`grid grid-cols-2 ${colClass} divide-y sm:divide-y-0 sm:divide-x divide-gs-border`}>
-        {items.map((item) => (
-          <div key={item.label} className="flex items-center gap-3 px-5 py-4">
-            <div className="w-9 h-9 rounded-lg bg-gs-surface-2 flex items-center justify-center text-gs-muted shrink-0">
+        {items.map((item, i) => (
+          <div key={item.label} className="ops-stat flex items-center gap-4 px-5 py-5" style={{ animationDelay: `${i * 90}ms` }}>
+            <div className="ops-stat-icon w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
               {item.icon}
             </div>
             <div className="min-w-0">
-              <p className="text-xl font-bold text-gs-text tabular-nums leading-none">{item.value}</p>
-              <p className="text-[11px] text-gs-faint font-medium mt-1">{item.label}</p>
+              <p className="text-2xl font-black text-gs-text tabular-nums leading-none">{item.value}</p>
+              <p className="text-[10px] uppercase tracking-wider text-gs-faint font-bold mt-1.5">{item.label}</p>
             </div>
           </div>
         ))}
@@ -288,16 +288,17 @@ export function Admin() {
   const adminCount     = users.filter(u => u.role === 'admin').length;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+    <div className="ops-page max-w-7xl mx-auto px-6 py-8 space-y-7">
 
       {/* ── HEADER ── */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="ops-hero flex items-center justify-between gap-4 rounded-3xl border px-7 py-7 lg:px-9">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-gs-surface-2 border border-gs-border flex items-center justify-center text-gs-muted">
+          <div className="ops-hero-icon w-14 h-14 rounded-2xl flex items-center justify-center">
             <ShieldCheck className="size-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gs-text tracking-tight">Admin Panel</h1>
+            <p className="ops-eyebrow">Platform command center</p>
+            <h1 className="text-2xl lg:text-3xl font-black text-gs-text tracking-tight">Admin <span className="ops-gradient-text">Panel</span></h1>
             <p className="text-sm text-gs-faint mt-0.5">Manage users, support tickets, and platform health</p>
           </div>
         </div>
@@ -325,7 +326,7 @@ export function Admin() {
       )}
 
       {/* ── TABS ── */}
-      <div className="border-b border-gs-border">
+      <div className="ops-tabs rounded-2xl border border-gs-border p-1.5">
         <nav className="flex gap-1 overflow-x-auto">
           {([
             { id: 'users',    label: `Users (${users.length})`,                             icon: <Users className="size-3.5" /> },
@@ -336,10 +337,10 @@ export function Admin() {
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+              className={`ops-tab flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
                 activeTab === t.id
-                  ? 'border-gs-accent text-gs-text'
-                  : 'border-transparent text-gs-faint hover:text-gs-muted'
+                  ? 'ops-tab-active text-gs-text'
+                  : 'text-gs-faint hover:text-gs-muted'
               }`}
             >
               {t.icon}{t.label}
@@ -352,7 +353,7 @@ export function Admin() {
           USERS TAB
           ════════════════════════════════════ */}
       {activeTab === 'users' && (
-        <section className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+        <section className="ops-section-card bg-gs-surface border border-gs-border rounded-2xl overflow-hidden">
           <SectionHeader
             icon={<Users className="size-4" />}
             title="All Users"

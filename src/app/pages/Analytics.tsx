@@ -23,16 +23,16 @@ function Badge({ children }: { children: React.ReactNode }) {
 
 function StatStrip({ items }: { items: { label: string; value: string | number; icon: React.ReactNode; sub?: string }[] }) {
   return (
-    <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+    <div className="ops-stat-strip bg-gs-surface border border-gs-border rounded-2xl overflow-hidden">
       <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-gs-border">
-        {items.map((item) => (
-          <div key={item.label} className="flex items-center gap-3 px-5 py-4">
-            <div className="w-9 h-9 rounded-lg bg-gs-surface-2 flex items-center justify-center text-gs-muted shrink-0">
+        {items.map((item, i) => (
+          <div key={item.label} className="ops-stat flex items-center gap-4 px-5 py-5" style={{ animationDelay: `${i * 90}ms` }}>
+            <div className="ops-stat-icon w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
               {item.icon}
             </div>
             <div className="min-w-0">
-              <p className="text-xl font-bold text-gs-text tabular-nums leading-none">{item.value}</p>
-              <p className="text-[11px] text-gs-faint font-medium mt-1">{item.label}</p>
+              <p className="text-2xl font-black text-gs-text tabular-nums leading-none">{item.value}</p>
+              <p className="text-[10px] uppercase tracking-wider text-gs-faint font-bold mt-1.5">{item.label}</p>
               {item.sub && <p className="text-[10px] text-gs-faint mt-0.5">{item.sub}</p>}
             </div>
           </div>
@@ -47,8 +47,8 @@ function Bar({ value, max, opacity = 1 }: { value: number; max: number; opacity?
   return (
     <div className="w-full h-1.5 rounded-full overflow-hidden bg-gs-surface-2">
       <div
-        className="h-full rounded-full bg-gs-accent transition-all duration-500"
-        style={{ width: `${pct}%`, opacity }}
+        className="ops-bar-fill h-full rounded-full bg-gs-accent"
+        style={{ '--bar-width': `${pct}%`, width: `${pct}%`, opacity } as React.CSSProperties}
       />
     </div>
   );
@@ -56,7 +56,7 @@ function Bar({ value, max, opacity = 1 }: { value: number; max: number; opacity?
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-gs-border bg-gs-surface overflow-hidden">
+    <div className="ops-section-card rounded-2xl border border-gs-border bg-gs-surface overflow-hidden">
       <div className="px-5 py-4 border-b border-gs-border">
         <h2 className="text-sm font-semibold text-gs-text">{title}</h2>
       </div>
@@ -143,17 +143,17 @@ export function Analytics() {
   const maxRangeCount = Math.max(...ranges.map(r => r.count), 1);
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+    <div className="ops-page max-w-7xl mx-auto px-6 py-8 space-y-7">
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="ops-hero flex items-start justify-between gap-4 rounded-3xl border px-7 py-7 lg:px-9">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-gs-surface-2 border border-gs-border flex items-center justify-center text-gs-muted">
+          <div className="ops-hero-icon w-14 h-14 rounded-2xl flex items-center justify-center">
             <BarChart2 className="size-5" />
           </div>
           <div>
-            <p className="text-xs text-gs-faint mb-1">Data Science / Market Analytics</p>
-            <h1 className="text-2xl font-bold text-gs-text tracking-tight">Market Analytics</h1>
+            <p className="ops-eyebrow">Data Science / Live Market</p>
+            <h1 className="text-2xl lg:text-3xl font-black text-gs-text tracking-tight">Market <span className="ops-gradient-text">Analytics</span></h1>
             <p className="text-sm text-gs-faint mt-0.5">
               Live insights from listings, pricing, and trading activity — refreshes every 30s.
             </p>

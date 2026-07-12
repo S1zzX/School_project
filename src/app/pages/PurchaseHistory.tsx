@@ -30,16 +30,16 @@ function Badge({ children }: { children: React.ReactNode }) {
 
 function StatStrip({ items }: { items: { label: string; value: string | number; icon: React.ReactNode }[] }) {
   return (
-    <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+    <div className="commerce-stat-strip bg-gs-surface border border-gs-border rounded-2xl overflow-hidden">
       <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gs-border">
-        {items.map((item) => (
-          <div key={item.label} className="flex items-center gap-3 px-5 py-4">
-            <div className="w-9 h-9 rounded-lg bg-gs-surface-2 flex items-center justify-center text-gs-muted shrink-0">
+        {items.map((item, i) => (
+          <div key={item.label} className="commerce-stat flex items-center gap-4 px-6 py-5" style={{ animationDelay: `${i * 90}ms` }}>
+            <div className="commerce-stat-icon w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
               {item.icon}
             </div>
             <div className="min-w-0">
-              <p className="text-xl font-bold text-gs-text tabular-nums leading-none">{item.value}</p>
-              <p className="text-[11px] text-gs-faint font-medium mt-1">{item.label}</p>
+              <p className="text-2xl font-black text-gs-text tabular-nums leading-none">{item.value}</p>
+              <p className="text-[10px] uppercase tracking-wider text-gs-faint font-bold mt-1.5">{item.label}</p>
             </div>
           </div>
         ))}
@@ -96,7 +96,7 @@ function OrderCard({ order }: { order: PurchaseOrder }) {
   const PayIcon = PAYMENT_ICONS[order.paymentMethod] ?? CreditCard;
 
   return (
-    <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden transition-colors hover:border-gs-accent/20">
+    <div className="commerce-order-card bg-gs-surface border border-gs-border rounded-2xl overflow-hidden">
       <button
         className={`w-full flex items-center gap-4 px-5 py-4 text-left transition-colors ${
           expanded ? 'bg-gs-surface-2' : 'hover:bg-gs-surface-2/60'
@@ -259,16 +259,17 @@ export function PurchaseHistory() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8 space-y-8 min-h-[70vh]">
+    <div className="commerce-page max-w-5xl mx-auto px-6 py-8 space-y-7 min-h-[70vh]">
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="commerce-hero flex items-center justify-between gap-4 flex-wrap rounded-3xl border px-6 py-6 lg:px-8">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 rounded-xl bg-gs-surface-2 border border-gs-border flex items-center justify-center text-gs-muted">
+          <div className="commerce-hero-icon w-14 h-14 rounded-2xl flex items-center justify-center">
             <ShoppingBag className="size-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gs-text tracking-tight">Purchase History</h1>
+            <p className="commerce-eyebrow">Your game library</p>
+            <h1 className="text-2xl lg:text-3xl font-black text-gs-text tracking-tight">Purchase <span className="commerce-gradient-text">History</span></h1>
             <p className="text-sm text-gs-faint mt-0.5">
               All your game key orders · signed in as{' '}
               <span className="text-gs-text font-medium">{user.username}</span>

@@ -1,7 +1,7 @@
 // src/app/components/VisionAnalyzer.tsx — Computer Vision drag-and-drop analyzer
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, AlertCircle, CheckCircle2, RotateCcw } from 'lucide-react';
-import { apiAnalyzeScreenshot, type VisionResult } from '../lib/api';
+import { apiAnalyzeScreenshot, isVisionProviderId, VISION_PROVIDER_STORAGE_KEY, type VisionProviderId, type VisionResult } from '../lib/api';
 
 interface VisionAnalyzerProps {
   /** Called when user clicks "Use This Data" — passes the result back to parent */
@@ -10,6 +10,8 @@ interface VisionAnalyzerProps {
   onResult?: (result: VisionResult) => void;
   /** Optional hint text for the AI (e.g. "CS2 skin listing") */
   context?: string;
+  /** Vision provider — falls back to saved preference in localStorage */
+  provider?: VisionProviderId;
   /** Show the "Use This Data" button */
   showUseButton?: boolean;
   /** Compact mode for embedding inside modals */
@@ -36,6 +38,7 @@ export function VisionAnalyzer({
   onUseData,
   onResult,
   context,
+  provider,
   showUseButton = true,
   compact = false,
 }: VisionAnalyzerProps) {
@@ -67,11 +70,18 @@ export function VisionAnalyzer({
     const previewUrl = URL.createObjectURL(file);
     setPreview(previewUrl);
 
-    // Analyze with Groq Vision
+    // Analyze with Gemini or Groq vision
     setLoading(true);
     try {
       const base64 = await fileToBase64(file);
-      const analysis = await apiAnalyzeScreenshot(base64, file.type, context);
+      const saved = localStorage.getItem(VISION_PROVIDER_STORAGE_KEY);
+      const storedProvider = saved && isVisionProviderId(saved) ? saved : undefined;
+      const analysis = await apiAnalyzeScreenshot(
+        base64,
+        file.type,
+        context,
+        provider ?? storedProvider,
+      );
       setResult(analysis);
       onResult?.(analysis);
     } catch (err: unknown) {
@@ -80,7 +90,7 @@ export function VisionAnalyzer({
     } finally {
       setLoading(false);
     }
-  }, [context]);
+  }, [context, provider, onResult]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -115,18 +125,20 @@ export function VisionAnalyzer({
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className="cursor-pointer rounded-xl border-2 border-dashed transition-colors duration-200 flex flex-col items-center justify-center text-center select-none"
+          className="vision-drop-zone cursor-pointer rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center text-center select-none"
           style={{
             minHeight: compact ? 160 : 220,
             borderColor: isDragging ? 'var(--gs-accent)' : 'var(--gs-border)',
             background: isDragging ? 'rgba(26,111,212,0.05)' : 'transparent',
           }}
         >
+          <div className="vision-upload-icon flex size-14 items-center justify-center rounded-2xl mb-4">
           <Upload
-            className="size-7 mb-3 transition-colors"
+            className="size-7 transition-colors"
             style={{ color: isDragging ? 'var(--gs-accent)' : 'var(--gs-faint)' }}
           />
-          <p className="text-sm font-medium mb-1" style={{ color: 'var(--gs-muted)' }}>
+          </div>
+          <p className="text-base font-bold mb-1" style={{ color: 'var(--gs-text)' }}>
             {isDragging ? 'Drop to analyze' : 'Drop screenshot here'}
           </p>
           <p className="text-xs" style={{ color: 'var(--gs-faint)' }}>
@@ -243,8 +255,35 @@ export function VisionAnalyzer({
               result.level != null && { label: 'Level',      value: String(result.level) },
               result.hoursPlayed != null && { label: 'Hours played', value: `${result.hoursPlayed}h` },
               result.skinsOwned  != null && { label: 'Skins owned',  value: String(result.skinsOwned) },
-              result.estimatedPrice != null && { label: 'Est. price', value: `$${result.estimatedPrice.toFixed(2)}` },
-            ].filter(Boolean) as { label: string; value: string }[];
+              result.marketPrice != null && {
+                label: 'Steam Market',
+                value: `$${result.marketPrice.toFixed(2)}${result.marketVolume != null ? ` · ${result.marketVolume} sold/24h` : ''}`,
+                highlight: true,
+              },
+              result.marketPriceMedian != null && result.marketPriceMedian !== result.marketPrice && {
+                label: 'Market median',
+                value: `$${result.marketPriceMedian.toFixed(2)}`,
+              },
+              result.marketHashName && { label: 'Market listing', value: result.marketHashName },
+              result.aiEstimatedPrice != null && result.marketPrice != null && {
+                label: 'AI estimate',
+                value: `$${result.aiEstimatedPrice.toFixed(2)}`,
+              },
+              result.estimatedPrice != null && result.marketPrice == null && {
+                label: 'Est. price (AI)',
+                value: `$${result.estimatedPrice.toFixed(2)}`,
+              },
+              result.visionProvider && { label: 'AI model', value: result.visionProvider },
+              result.game === 'CS2' && result.type === 'skin' && {
+                label: 'Catalog check',
+                value: result.catalogVerified ? 'Verified CS2 skin' : 'Not verified',
+                highlight: result.catalogVerified,
+              },
+              result.firstStageItem && result.firstStageItem !== result.item && {
+                label: 'AI correction',
+                value: `${result.firstStageItem} → ${result.item}`,
+              },
+            ].filter(Boolean) as { label: string; value: string; highlight?: boolean }[];
 
             if (rows.length === 0) return null;
             return (
@@ -259,12 +298,50 @@ export function VisionAnalyzer({
                     }}
                   >
                     <span style={{ color: 'var(--gs-faint)' }}>{row.label}</span>
-                    <span className="font-medium" style={{ color: 'var(--gs-text)' }}>{row.value}</span>
+                    <span
+                      className="font-medium"
+                      style={{ color: row.highlight ? 'var(--gs-accent)' : 'var(--gs-text)' }}
+                    >
+                      {row.value}
+                    </span>
                   </div>
                 ))}
               </div>
             );
           })()}
+
+          {/* Verified Valorant inventory */}
+          {result.valorantInventory && result.valorantInventory.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold" style={{ color: 'var(--gs-text)' }}>Verified Valorant skins</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--gs-faint)' }}>{result.valorantInventory.length} weapon slots matched to catalog</p>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">Catalog verified</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+                {result.valorantInventory.map(entry => (
+                  <div key={`${entry.weapon}-${entry.skin}`} className="flex items-center gap-3 rounded-xl border p-2.5" style={{ borderColor: 'var(--gs-border)', background: 'var(--gs-surface-2)' }}>
+                    <div className="w-16 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(0,0,0,.18)' }}>
+                      {entry.icon ? <img src={entry.icon} alt="" className="w-14 h-8 object-contain" /> : <span className="text-[9px]" style={{ color: 'var(--gs-faint)' }}>{entry.weapon}</span>}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] uppercase tracking-wide font-bold" style={{ color: 'var(--gs-accent)' }}>{entry.weapon}</p>
+                      <p className="text-xs font-semibold truncate" style={{ color: 'var(--gs-text)' }}>{entry.skin}</p>
+                      <p className="text-[10px] truncate" style={{ color: 'var(--gs-faint)' }}>{entry.tier}{entry.estimatedVp ? ` · ${entry.estimatedVp.min === entry.estimatedVp.max ? entry.estimatedVp.min : `${entry.estimatedVp.min}–${entry.estimatedVp.max}`} VP` : ''}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {result.replacementValueUsd && (
+                <div className="rounded-xl border p-4 flex items-center justify-between gap-4" style={{ borderColor: 'color-mix(in oklab, var(--gs-accent) 35%, var(--gs-border))', background: 'color-mix(in oklab, var(--gs-accent) 7%, var(--gs-surface))' }}>
+                  <div><p className="text-xs font-semibold" style={{ color: 'var(--gs-muted)' }}>Estimated replacement cost</p><p className="text-[10px] mt-0.5" style={{ color: 'var(--gs-faint)' }}>Not a resale or marketplace value</p></div>
+                  <div className="text-right"><p className="text-lg font-black" style={{ color: 'var(--gs-accent)' }}>${result.replacementValueUsd.min}–${result.replacementValueUsd.max}</p><p className="text-[10px]" style={{ color: 'var(--gs-faint)' }}>{result.valorantTotalVpMin?.toLocaleString()}–{result.valorantTotalVpMax?.toLocaleString()} VP</p></div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Tags */}
           {result.tags && result.tags.length > 0 && (

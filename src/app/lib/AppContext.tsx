@@ -1,6 +1,6 @@
 // src/app/lib/AppContext.tsx — Global app settings context
 // Appearance settings (color mode, accent, language) are scoped per user account.
-// Guests always see dark mode and cannot change appearance.
+// Guests always use light mode. Signed-in users can choose light, dark, or auto.
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { getUser } from './api';
 
@@ -37,13 +37,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 // ── helpers ────────────────────────────────────────────────────────────────────
 
 function prefersDark(): boolean {
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
-}
-
-function resolveDark(mode: ColorMode): boolean {
-  if (mode === 'dark')  return true;
-  if (mode === 'light') return false;
-  return prefersDark();
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
 }
 
 /** Build a namespaced localStorage key for the current user (or 'guest'). */
@@ -74,14 +68,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<AppLanguage>(() =>
     readPref('gs_language', userId, 'en')
   );
+  const [systemDark, setSystemDark] = useState(prefersDark);
 
-  const isDark = isGuest ? false : resolveDark(colorMode);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    setSystemDark(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  const isDark = isGuest ? false : colorMode === 'auto' ? systemDark : colorMode === 'dark';
 
   // ── Re-load prefs when the logged-in user changes (login / logout) ──────────
   const reloadPrefs = useCallback((newUserId: number | undefined) => {
     setUserId(newUserId);
     if (newUserId == null) {
-      // Logged out → force light mode for guests
+      // Logged out — return to the guest light theme.
       setColorModeState('light');
     } else {
       setColorModeState(readPref('gs_color_mode', newUserId, 'light'));
@@ -121,15 +124,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem(userKey('gs_language', userId), language);
   }, [language, userId]);
-
-  // Listen for system dark-mode changes when in 'auto' mode
-  useEffect(() => {
-    if (colorMode !== 'auto' || isGuest) return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => document.documentElement.classList.toggle('dark', mq.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, [colorMode, isGuest]);
 
   // Setters — silently ignore if guest (UI should hide the controls anyway)
   const setColorMode = (m: ColorMode) => { if (!isGuest) setColorModeState(m); };

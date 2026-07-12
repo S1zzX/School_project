@@ -33,16 +33,16 @@ function Badge({
 function StatStrip({ items }: { items: { label: string; value: string | number; icon: React.ReactNode }[] }) {
   const colClass = items.length > 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-3';
   return (
-    <div className="bg-gs-surface border border-gs-border rounded-xl overflow-hidden">
+    <div className="commerce-stat-strip bg-gs-surface border border-gs-border rounded-2xl overflow-hidden">
       <div className={`grid grid-cols-1 ${colClass} divide-y sm:divide-y-0 sm:divide-x divide-gs-border`}>
-        {items.map((item) => (
-          <div key={item.label} className="flex items-center gap-3 px-5 py-4">
-            <div className="w-9 h-9 rounded-lg bg-gs-surface-2 flex items-center justify-center text-gs-muted shrink-0">
+        {items.map((item, i) => (
+          <div key={item.label} className="commerce-stat flex items-center gap-4 px-6 py-5" style={{ animationDelay: `${i * 90}ms` }}>
+            <div className="commerce-stat-icon w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
               {item.icon}
             </div>
             <div className="min-w-0">
-              <p className="text-xl font-bold text-gs-text tabular-nums leading-none">{item.value}</p>
-              <p className="text-[11px] text-gs-faint font-medium mt-1">{item.label}</p>
+              <p className="text-2xl font-black text-gs-text tabular-nums leading-none">{item.value}</p>
+              <p className="text-[10px] uppercase tracking-wider text-gs-faint font-bold mt-1.5">{item.label}</p>
             </div>
           </div>
         ))}
@@ -60,7 +60,7 @@ function InfoCard({
   footer: string;
 }) {
   return (
-    <div className="bg-gs-surface border border-gs-border rounded-xl p-5 space-y-3">
+    <div className="commerce-info-card bg-gs-surface border border-gs-border rounded-2xl p-5 space-y-3">
       <h3 className="text-sm font-semibold text-gs-text flex items-center gap-2">
         <span className="text-gs-muted">{icon}</span>
         {title}
@@ -182,6 +182,11 @@ export function ShopOwner() {
     if (result.rank)        parts.push(`Rank: ${result.rank}`);
     if (result.item)        parts.push(`Item: ${result.item}`);
     if (result.wear)        parts.push(`Wear: ${result.wear}`);
+    if (result.marketPrice != null) {
+      parts.push(`Steam: $${result.marketPrice.toFixed(2)}`);
+    } else if (result.estimatedPrice != null) {
+      parts.push(`Est. $${result.estimatedPrice.toFixed(2)}`);
+    }
     if (result.hoursPlayed) parts.push(`Hours: ${result.hoursPlayed}h`);
     if (result.skinsOwned)  parts.push(`Skins: ${result.skinsOwned}`);
     const summary = parts.join(' · ');
@@ -195,16 +200,17 @@ export function ShopOwner() {
 
   return (
     <>
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+      <div className="commerce-page max-w-6xl mx-auto px-6 py-8 space-y-7">
 
         {/* Header */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="commerce-hero flex items-center justify-between gap-4 rounded-3xl border px-6 py-6 lg:px-8">
           <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-xl bg-gs-surface-2 border border-gs-border flex items-center justify-center text-gs-muted">
+            <div className="commerce-hero-icon w-14 h-14 rounded-2xl flex items-center justify-center">
               <Store className="size-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gs-text tracking-tight">Shop Owner Dashboard</h1>
+              <p className="commerce-eyebrow">Seller workspace</p>
+              <h1 className="text-2xl lg:text-3xl font-black text-gs-text tracking-tight">Shop Owner <span className="commerce-gradient-text">Dashboard</span></h1>
               <p className="text-sm text-gs-faint mt-0.5">Manage your store listings and stock</p>
             </div>
           </div>
@@ -318,18 +324,19 @@ export function ShopOwner() {
             )}
 
             {/* Quick Actions */}
-            <div className="bg-gs-surface border border-gs-border rounded-xl p-6">
+            <div className="commerce-actions bg-gs-surface border border-gs-border rounded-2xl p-6">
               <h3 className="text-sm font-semibold text-gs-text mb-4">Quick Actions</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
                   { label: 'Post New Listing', icon: <Store className="size-5" />, onClick: () => navigate('/store') },
                   { label: 'View Stock & Listings', icon: <Eye className="size-5" />, onClick: () => switchTab('listings') },
                   { label: 'Scan with AI Vision', icon: <ScanLine className="size-5" />, onClick: () => { setShowScanModal(true); setScanFillMsg(''); } },
-                ].map((action) => (
+                ].map((action, i) => (
                   <button
                     key={action.label}
                     onClick={action.onClick}
-                    className="flex flex-col items-center gap-2 p-4 rounded-lg border border-gs-border hover:bg-gs-surface-2 hover:border-gs-accent/30 transition-colors text-gs-muted hover:text-gs-text"
+                    className="commerce-action flex flex-col items-center gap-3 p-5 rounded-2xl border border-gs-border text-gs-muted hover:text-gs-text"
+                    style={{ animationDelay: `${i * 100}ms` }}
                   >
                     {action.icon}
                     <span className="text-xs font-medium text-center">{action.label}</span>

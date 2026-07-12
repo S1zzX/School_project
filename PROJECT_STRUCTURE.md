@@ -13,6 +13,7 @@ Reference for the **GameGuide AI Assistant** codebase — a Vite + React fronten
 | `vite.config.ts` | Vite + React + Tailwind; proxies `/api` → `localhost:3001` |
 | `README.md` | Project overview, setup, demo GIF placeholders |
 | `ACCOUNTS.md` | Test account credentials and role permissions |
+| `API.md` | Complete REST API and external integration reference |
 | `PROJECT_STRUCTURE.md` | This file |
 | `docs/demo/` | Drop GIF screen recordings referenced by `README.md` |
 
@@ -208,3 +209,4 @@ npm run build
 
 - [README.md](README.md) — setup, features, demo GIF placeholders
 - [ACCOUNTS.md](ACCOUNTS.md) — credentials and permissions table
+- [API.md](API.md) — endpoints, authentication, integrations, and environment variables

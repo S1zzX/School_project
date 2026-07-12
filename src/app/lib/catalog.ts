@@ -7,8 +7,7 @@ export type CatalogId =
   | 'software'
   | 'subscriptions'
   | 'gift-cards'
-  | 'random-weekend'
-  | 'outlet';
+  | 'random-weekend';
 
 export interface CatalogOption {
   id: CatalogId;
@@ -25,7 +24,7 @@ export const CATALOG_OPTIONS: CatalogOption[] = [
     id: 'steam-game-keys',
     label: 'Steam game keys',
     homeSection: true,
-    subtitle: 'Instant Steam activations — top titles at the best prices',
+    subtitle: 'Instant Steam activations — top titles, clearance picks, and the best prices',
   },
   {
     id: 'software',
@@ -50,12 +49,6 @@ export const CATALOG_OPTIONS: CatalogOption[] = [
     label: 'Random Weekend',
     homeSection: true,
     subtitle: 'Feeling lucky? Open a pack and uncover surprise titles!',
-  },
-  {
-    id: 'outlet',
-    label: 'Outlet',
-    homeSection: true,
-    subtitle: 'Clearance picks and last-chance deals',
   },
 ];
 

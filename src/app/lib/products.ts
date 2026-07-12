@@ -1,24 +1,13 @@
 // src/app/lib/products.ts — Shared product catalogue data
 
 import type { CatalogId } from './catalog';
+import { steamHeaderImage } from './steamImages';
 import gotyImage from '../../assets/GOTY_TIER.jpg';
 import mvpImage from '../../assets/MVP_TIER.jpg';
 import premiumImage from '../../assets/premium_rdk.jpg';
 import forzaImage from '../../assets/foriza_horizon6_rdk.jpg';
 import firstlightImage from '../../assets/firstlight007_rdk.jpg';
 import gothicImage from '../../assets/gothic1_remake_rdk.jpg';
-import cyberpunkImage from '../../assets/cyberpunk2077.jpg';
-import eldenRingImage from '../../assets/elden_ring.jpg';
-import gtaVImage from '../../assets/gta_v.jpg';
-import rdr2Image from '../../assets/red_dead_redemption_2.jpg';
-import witcher3Image from '../../assets/the_witcher_3.jpg';
-import baldursGate3Image from '../../assets/baldurs_gate_3.jpg';
-import steamGiftCard from '../../assets/giftcard/steam_giftcard.jpg';
-import amazonGiftCard from '../../assets/giftcard/amazon_giftcard.jpg';
-import psGiftCard from '../../assets/giftcard/ps_giftcard.jpg';
-import googlePlayGiftCard from '../../assets/giftcard/googleplay_giftcard.jpg';
-import appleGiftCard from '../../assets/giftcard/apple_giftcard.jpg';
-import netflixGiftCard from '../../assets/giftcard/netflix_giftcard.jpg';
 import xboxUltimateImg from '../../assets/Subscriptions/xbox_ultimate.jpg';
 import psExtraImg from '../../assets/Subscriptions/ps_plus_extra_year.jpg';
 import spotifyImg from '../../assets/Subscriptions/spotify_half_year.jpg';
@@ -49,6 +38,20 @@ export interface ProductItem {
   sellerSales?: string;
   description?: string;
   screenshots?: string[];
+  /** Steam App ID for live price lookup via CheapShark */
+  steamAppId?: number;
+  /** True when price was merged from live market data */
+  livePrice?: boolean;
+  /** Players online right now (Steam API) */
+  currentPlayers?: number;
+  /** Estimated owners range (SteamSpy) */
+  ownersEstimate?: string;
+  /** True when game is on sale */
+  isOnSale?: boolean;
+  /** ISO timestamp — when deal price last changed (not exact sale start) */
+  salePriceChangedAt?: string;
+  /** ISO timestamp — sale end if known (usually null; Steam does not expose this) */
+  saleEndsAt?: string | null;
 }
 
 export const RANDOM_KEYS: ProductItem[] = [
@@ -202,6 +205,80 @@ export const RANDOM_KEYS: ProductItem[] = [
       gothicImage,
     ],
   },
+  {
+    id: 'rk-6',
+    type: 'random-key',
+    catalog: 'random-weekend',
+    title: 'AAA Blockbuster Random 1 Key PC',
+    platform: 'Steam · Key',
+    price: 5.99,
+    badge: 'SPONSORED',
+    image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&q=80',
+    game: 'Steam',
+    gameColor: '#1b2838',
+    region: 'GLOBAL',
+    activationCountry: 'Vietnam & most countries',
+    rating: 4.7,
+    reviews: 1842,
+    recommend: 94,
+    seller: 'Admin',
+    sellerRating: 99.8,
+    sellerSales: '14,220',
+    description: 'Roll the dice on a blockbuster AAA title! This premium random key pool includes chart-topping action, RPG, and open-world games from major publishers. Every key guarantees a full game — no DLC-only drops.',
+    screenshots: [
+      'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=600&q=80',
+    ],
+  },
+  {
+    id: 'rk-7',
+    type: 'random-key',
+    catalog: 'random-weekend',
+    title: 'Indie Gems Random 3 Keys Bundle',
+    platform: 'Steam · Key',
+    price: 3.99,
+    badge: '3 KEYS',
+    badgeColor: '#059669',
+    image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=400&q=80',
+    game: 'Steam',
+    gameColor: '#1b2838',
+    region: 'GLOBAL',
+    activationCountry: 'Vietnam & most countries',
+    rating: 4.5,
+    reviews: 967,
+    recommend: 91,
+    seller: 'Admin',
+    sellerRating: 99.7,
+    sellerSales: '7,104',
+    description: 'Discover hidden indie masterpieces with this 3-key bundle. Each key unlocks a critically acclaimed indie title — from pixel-art platformers to narrative adventures. Perfect for collectors who love surprises.',
+    screenshots: [
+      'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&q=80',
+    ],
+  },
+  {
+    id: 'rk-8',
+    type: 'random-key',
+    catalog: 'random-weekend',
+    title: 'Horror Survival Random 1 Key PC',
+    platform: 'Steam · Key',
+    price: 2.29,
+    badge: 'WEEKEND DEAL',
+    badgeColor: '#dc2626',
+    image: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&q=80',
+    game: 'Steam',
+    gameColor: '#1b2838',
+    region: 'GLOBAL',
+    activationCountry: 'Vietnam & most countries',
+    rating: 4.4,
+    reviews: 634,
+    recommend: 87,
+    seller: 'Admin',
+    sellerRating: 99.6,
+    sellerSales: '5,441',
+    description: 'Brave the unknown with a Horror Survival Random Key. Unlock spine-chilling titles from the survival horror genre — zombies, haunted mansions, and cosmic dread await. Lights off recommended.',
+    screenshots: [
+      'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&q=80',
+    ],
+  },
 ];
 
 export const HOT_DEALS: ProductItem[] = [
@@ -209,6 +286,7 @@ export const HOT_DEALS: ProductItem[] = [
     id: 'hd-0',
     type: 'hot-deal',
     catalog: 'steam-game-keys',
+    steamAppId: 1091500,
     title: 'Cyberpunk 2077',
     platform: 'Steam · PC',
     price: 9.99,
@@ -216,7 +294,7 @@ export const HOT_DEALS: ProductItem[] = [
     discount: 75,
     badge: '-75%',
     badgeColor: '#ef4444',
-    image: cyberpunkImage,
+    image: steamHeaderImage(1091500),
     game: 'Steam',
     gameColor: '#1b2838',
     region: 'GLOBAL',
@@ -228,14 +306,12 @@ export const HOT_DEALS: ProductItem[] = [
     sellerRating: 99.8,
     sellerSales: '58,341',
     description: 'Cyberpunk 2077 is an open-world, action-adventure RPG set in the megalopolis of Night City, where you play as a cyberpunk mercenary wrapped up in a do-or-die fight for survival. Improved and expanded with the 2.0 update and Phantom Liberty DLC.',
-    screenshots: [
-      cyberpunkImage,
-    ],
   },
   {
     id: 'hd-1',
     type: 'hot-deal',
     catalog: 'steam-game-keys',
+    steamAppId: 1245620,
     title: 'Elden Ring',
     platform: 'Steam · PC',
     price: 35.99,
@@ -243,7 +319,7 @@ export const HOT_DEALS: ProductItem[] = [
     discount: 40,
     badge: '-40%',
     badgeColor: '#ef4444',
-    image: eldenRingImage,
+    image: steamHeaderImage(1245620),
     game: 'Steam',
     gameColor: '#1b2838',
     region: 'GLOBAL',
@@ -255,14 +331,12 @@ export const HOT_DEALS: ProductItem[] = [
     sellerRating: 99.8,
     sellerSales: '104,762',
     description: 'Rise, Tarnished, and be guided by grace to brandish the power of the Elden Ring and become an Elden Lord in the Lands Between. A vast world full of excitement awaits you. FromSoftware\'s landmark open-world action RPG.',
-    screenshots: [
-      eldenRingImage,
-    ],
   },
   {
     id: 'hd-2',
     type: 'hot-deal',
     catalog: 'gaming',
+    steamAppId: 271590,
     title: 'GTA V Premium',
     platform: 'Rockstar · PC',
     price: 11.99,
@@ -270,7 +344,7 @@ export const HOT_DEALS: ProductItem[] = [
     discount: 60,
     badge: '-60%',
     badgeColor: '#ef4444',
-    image: gtaVImage,
+    image: steamHeaderImage(271590),
     game: 'Rockstar',
     gameColor: '#d4a017',
     region: 'GLOBAL',
@@ -282,14 +356,12 @@ export const HOT_DEALS: ProductItem[] = [
     sellerRating: 99.8,
     sellerSales: '87,093',
     description: 'Grand Theft Auto V Premium Edition includes the complete GTAV story experience, Grand Theft Auto Online and all existing gameplay upgrades and content. Explore the streets of Los Santos and Blaine County in style.',
-    screenshots: [
-      gtaVImage,
-    ],
   },
   {
     id: 'hd-3',
     type: 'hot-deal',
     catalog: 'steam-game-keys',
+    steamAppId: 1174180,
     title: 'Red Dead Redemption 2',
     platform: 'Steam · PC',
     price: 29.99,
@@ -297,7 +369,7 @@ export const HOT_DEALS: ProductItem[] = [
     discount: 50,
     badge: '-50%',
     badgeColor: '#ef4444',
-    image: rdr2Image,
+    image: steamHeaderImage(1174180),
     game: 'Steam',
     gameColor: '#1b2838',
     region: 'GLOBAL',
@@ -309,14 +381,12 @@ export const HOT_DEALS: ProductItem[] = [
     sellerRating: 99.8,
     sellerSales: '73,158',
     description: 'America, 1899. The end of the Wild West era has begun. After a robbery goes badly wrong in the western town of Blackwater, Arthur Morgan and the Van der Linde gang are forced to flee. An epic tale of life in America\'s unforgiving heartland.',
-    screenshots: [
-      rdr2Image,
-    ],
   },
   {
     id: 'hd-4',
     type: 'hot-deal',
     catalog: 'steam-game-keys',
+    steamAppId: 292030,
     title: 'The Witcher 3: Wild Hunt',
     platform: 'Steam · PC',
     price: 8.99,
@@ -324,7 +394,7 @@ export const HOT_DEALS: ProductItem[] = [
     discount: 70,
     badge: '-70%',
     badgeColor: '#ef4444',
-    image: witcher3Image,
+    image: steamHeaderImage(292030),
     game: 'Steam',
     gameColor: '#1b2838',
     region: 'GLOBAL',
@@ -336,14 +406,12 @@ export const HOT_DEALS: ProductItem[] = [
     sellerRating: 99.8,
     sellerSales: '134,520',
     description: 'You are Geralt of Rivia, mercenary monster slayer. Before you stands a war-torn, monster-infested continent you can explore at will. Your current contract? Tracking down the Child of Prophecy, a living weapon that can alter the shape of the world.',
-    screenshots: [
-      witcher3Image,
-    ],
   },
   {
     id: 'hd-5',
     type: 'hot-deal',
     catalog: 'steam-game-keys',
+    steamAppId: 1086940,
     title: "Baldur's Gate 3",
     platform: 'Steam · PC',
     price: 47.99,
@@ -351,7 +419,7 @@ export const HOT_DEALS: ProductItem[] = [
     discount: 20,
     badge: '-20%',
     badgeColor: '#ef4444',
-    image: baldursGate3Image,
+    image: steamHeaderImage(1086940),
     game: 'Steam',
     gameColor: '#1b2838',
     region: 'GLOBAL',
@@ -363,13 +431,109 @@ export const HOT_DEALS: ProductItem[] = [
     sellerRating: 99.8,
     sellerSales: '119,847',
     description: 'Gather your party and return to the Forgotten Realms in a tale of fellowship and betrayal, sacrifice and survival, and the lure of absolute power. An epic RPG based on the Dungeons & Dragons tabletop role-playing game.',
-    screenshots: [
-      baldursGate3Image,
-    ],
+  },
+  {
+    id: 'hd-6',
+    type: 'hot-deal',
+    catalog: 'steam-game-keys',
+    steamAppId: 990080,
+    title: 'Hogwarts Legacy',
+    platform: 'Steam · PC',
+    price: 24.99,
+    origPrice: 59.99,
+    discount: 58,
+    badge: '-58%',
+    badgeColor: '#ef4444',
+    image: steamHeaderImage(990080),
+    game: 'Steam',
+    gameColor: '#1b2838',
+    region: 'GLOBAL',
+    activationCountry: 'Vietnam & most countries',
+    rating: 4.8,
+    reviews: 38400,
+    recommend: 96,
+    seller: 'Admin',
+    sellerRating: 99.8,
+    sellerSales: '67,210',
+    description: 'Experience the wizarding world in the 1800s. Attend Hogwarts, learn spells, brew potions, and uncover a hidden truth that threatens the magical world. Your legacy is what you make of it.',
+  },
+  {
+    id: 'hd-7',
+    type: 'hot-deal',
+    catalog: 'steam-game-keys',
+    steamAppId: 2050650,
+    title: 'Resident Evil 4 Remake',
+    platform: 'Steam · PC',
+    price: 19.99,
+    origPrice: 39.99,
+    discount: 50,
+    badge: '-50%',
+    badgeColor: '#ef4444',
+    image: steamHeaderImage(2050650),
+    game: 'Steam',
+    gameColor: '#1b2838',
+    region: 'GLOBAL',
+    activationCountry: 'Vietnam & most countries',
+    rating: 4.9,
+    reviews: 42100,
+    recommend: 98,
+    seller: 'Admin',
+    sellerRating: 99.8,
+    sellerSales: '82,104',
+    description: 'Survival horror redefined. Six years after the hellish events in Raccoon City, Leon S. Kennedy tracks the president\'s kidnapped daughter to a secluded European village — where something sinister awaits.',
+  },
+  {
+    id: 'hd-8',
+    type: 'hot-deal',
+    catalog: 'steam-game-keys',
+    steamAppId: 1716740,
+    title: 'Starfield',
+    platform: 'Steam · PC',
+    price: 34.99,
+    origPrice: 69.99,
+    discount: 50,
+    badge: '-50%',
+    badgeColor: '#ef4444',
+    image: steamHeaderImage(1716740),
+    game: 'Steam',
+    gameColor: '#1b2838',
+    region: 'GLOBAL',
+    activationCountry: 'Vietnam & most countries',
+    rating: 4.5,
+    reviews: 22800,
+    recommend: 90,
+    seller: 'Admin',
+    sellerRating: 99.7,
+    sellerSales: '41,882',
+    description: 'Starfield is the first new universe in 25 years from Bethesda Game Studios. Create any character you want and explore with unparalleled freedom as you embark on an epic journey to answer humanity\'s greatest mystery.',
+  },
+  {
+    id: 'hd-9',
+    type: 'hot-deal',
+    catalog: 'steam-game-keys',
+    steamAppId: 1623730,
+    title: 'Palworld',
+    platform: 'Steam · PC',
+    price: 22.49,
+    origPrice: 29.99,
+    discount: 25,
+    badge: '-25%',
+    badgeColor: '#ef4444',
+    image: steamHeaderImage(1623730),
+    game: 'Steam',
+    gameColor: '#1b2838',
+    region: 'GLOBAL',
+    activationCountry: 'Vietnam & most countries',
+    rating: 4.6,
+    reviews: 51200,
+    recommend: 93,
+    seller: 'Admin',
+    sellerRating: 99.8,
+    sellerSales: '94,220',
+    description: 'Fight, farm, build and work alongside mysterious creatures called "Pals" in this completely new multiplayer, open world survival and crafting game! Collect Pals, craft weapons, and build bases in a vast open world.',
   },
 ];
 
-const softwareImg = 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80';
 const subImg = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&q=80';
 const giftImg = 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=400&q=80';
 const outletImg = 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=400&q=80';
@@ -378,38 +542,66 @@ export const SOFTWARE_PRODUCTS: ProductItem[] = [
   {
     id: 'sw-0', type: 'catalog', catalog: 'software', title: 'Microsoft Office 2021 Home & Business',
     platform: 'Windows · Key', price: 49.99, origPrice: 249.99, discount: 80, badge: '-80%', badgeColor: '#ef4444',
-    image: softwareImg, game: 'Microsoft', gameColor: '#0078d4', region: 'GLOBAL',
+    image: 'https://cdn.jsdelivr.net/npm/simple-icons@v8/icons/microsoftoffice.svg', game: 'Microsoft', gameColor: '#D83B01', region: 'GLOBAL',
     rating: 4.7, reviews: 8420, recommend: 95, seller: 'Admin', sellerRating: 99.8, sellerSales: '22,104',
   },
   {
     id: 'sw-1', type: 'catalog', catalog: 'software', title: 'Windows 11 Pro',
     platform: 'Windows · Key', price: 19.99, origPrice: 199.99, discount: 90, badge: '-90%', badgeColor: '#ef4444',
-    image: softwareImg, game: 'Microsoft', gameColor: '#0078d4', region: 'GLOBAL',
+    image: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/windows11.svg', game: 'Microsoft', gameColor: '#0078d4', region: 'GLOBAL',
     rating: 4.8, reviews: 12400, recommend: 97, seller: 'Admin', sellerRating: 99.8, sellerSales: '41,882',
   },
   {
     id: 'sw-2', type: 'catalog', catalog: 'software', title: 'Adobe Creative Cloud 1 Month',
     platform: 'Adobe · Account', price: 24.99, origPrice: 54.99, discount: 55, badge: '-55%', badgeColor: '#ef4444',
-    image: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&q=80', game: 'Adobe', gameColor: '#ff0000', region: 'GLOBAL',
+    image: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/adobecreativecloud.svg', game: 'Adobe', gameColor: '#DA1F26', region: 'GLOBAL',
     rating: 4.5, reviews: 2100, recommend: 91, seller: 'Admin', sellerRating: 99.5, sellerSales: '6,441',
   },
   {
     id: 'sw-3', type: 'catalog', catalog: 'software', title: 'Norton 360 Deluxe 1 Year',
     platform: 'Multi-device · Key', price: 14.99, origPrice: 49.99, discount: 70, badge: '-70%', badgeColor: '#ef4444',
-    image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400&q=80', game: 'Norton', gameColor: '#f4c430', region: 'GLOBAL',
+    image: 'https://cdn.simpleicons.org/norton/FFE01A', game: 'Norton', gameColor: '#f4c430', region: 'GLOBAL',
     rating: 4.4, reviews: 980, recommend: 89, seller: 'Admin', sellerRating: 99.2, sellerSales: '3,218',
   },
   {
     id: 'sw-4', type: 'catalog', catalog: 'software', title: 'Parallels Desktop 20',
     platform: 'Mac · Key', price: 39.99, origPrice: 99.99, discount: 60, badge: '-60%', badgeColor: '#ef4444',
-    image: softwareImg, game: 'Parallels', gameColor: '#0066cc', region: 'GLOBAL',
+    image: 'https://icon.horse/icon/parallels.com', game: 'Parallels', gameColor: '#FF2500', region: 'GLOBAL',
     rating: 4.6, reviews: 540, recommend: 92, seller: 'Admin', sellerRating: 99.6, sellerSales: '1,904',
   },
   {
     id: 'sw-5', type: 'catalog', catalog: 'software', title: 'CorelDRAW Graphics Suite 2024',
     platform: 'Windows · Key', price: 89.99, origPrice: 499.00, discount: 82, badge: '-82%', badgeColor: '#ef4444',
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80', game: 'Corel', gameColor: '#00a651', region: 'GLOBAL',
+    image: 'https://cdn.simpleicons.org/coreldraw/000000', game: 'Corel', gameColor: '#00a651', region: 'GLOBAL',
     rating: 4.5, reviews: 312, recommend: 90, seller: 'Admin', sellerRating: 99.4, sellerSales: '887',
+  },
+  {
+    id: 'sw-6', type: 'catalog', catalog: 'software', title: 'Bitdefender Total Security 1 Year',
+    platform: 'Multi-device · Key', price: 19.99, origPrice: 89.99, discount: 78, badge: '-78%', badgeColor: '#ef4444',
+    image: 'https://cdn.simpleicons.org/bitdefender/ED1C24', game: 'Bitdefender', gameColor: '#ed1c24', region: 'GLOBAL',
+    rating: 4.7, reviews: 4200, recommend: 94, seller: 'Admin', sellerRating: 99.7, sellerSales: '11,882',
+    description: 'Complete protection for Windows, Mac, Android and iOS. Includes antivirus, anti-ransomware, VPN, and parental controls for up to 5 devices.',
+  },
+  {
+    id: 'sw-7', type: 'catalog', catalog: 'software', title: 'VMware Workstation Pro 17',
+    platform: 'Windows · Key', price: 29.99, origPrice: 199.99, discount: 85, badge: '-85%', badgeColor: '#ef4444',
+    image: 'https://cdn.simpleicons.org/vmware/607078', game: 'VMware', gameColor: '#607078', region: 'GLOBAL',
+    rating: 4.6, reviews: 1840, recommend: 92, seller: 'Admin', sellerRating: 99.5, sellerSales: '4,441',
+    description: 'Industry-standard desktop hypervisor for running multiple operating systems as virtual machines on a single PC. Ideal for developers and IT professionals.',
+  },
+  {
+    id: 'sw-8', type: 'catalog', catalog: 'software', title: 'JetBrains All Products Pack 1 Year',
+    platform: 'Multi-platform · License', price: 149.99, origPrice: 649.00, discount: 77, badge: '-77%', badgeColor: '#ef4444',
+    image: 'https://cdn.simpleicons.org/jetbrains/000000', game: 'JetBrains', gameColor: '#000000', region: 'GLOBAL',
+    rating: 4.9, reviews: 6200, recommend: 98, seller: 'Admin', sellerRating: 99.8, sellerSales: '8,104',
+    description: 'Full access to IntelliJ IDEA, PyCharm, WebStorm, Rider, and all JetBrains IDEs for one year. The ultimate toolkit for professional developers.',
+  },
+  {
+    id: 'sw-9', type: 'catalog', catalog: 'software', title: 'Autodesk AutoCAD 2024',
+    platform: 'Windows · Key', price: 79.99, origPrice: 1695.00, discount: 95, badge: '-95%', badgeColor: '#ef4444',
+    image: 'https://cdn.simpleicons.org/autodesk/0696D7', game: 'Autodesk', gameColor: '#0696d7', region: 'GLOBAL',
+    rating: 4.5, reviews: 980, recommend: 90, seller: 'Admin', sellerRating: 99.3, sellerSales: '2,441',
+    description: 'Professional 2D and 3D CAD software for architects, engineers, and construction professionals. Design and annotate with industry-leading precision.',
   },
 ];
 
@@ -456,92 +648,176 @@ export const GIFT_CARD_PRODUCTS: ProductItem[] = [
   {
     id: 'gc-0', type: 'catalog', catalog: 'gift-cards', title: 'Steam Wallet $20',
     platform: 'Steam · Gift Card', price: 18.99, badge: 'INSTANT', badgeColor: '#1a6fd4',
-    image: steamGiftCard, game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
+    image: 'https://cdn.simpleicons.org/steam/FFFFFF', game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
     rating: 4.9, reviews: 28400, recommend: 99, seller: 'Admin', sellerRating: 99.9, sellerSales: '102,441',
   },
   {
     id: 'gc-1', type: 'catalog', catalog: 'gift-cards', title: 'Amazon Gift Card $50',
     platform: 'Amazon · Gift Card', price: 47.50, badge: 'POPULAR', badgeColor: '#f59e0b',
-    image: amazonGiftCard, game: 'Amazon', gameColor: '#ff9900', region: 'US',
+    image: 'https://icon.horse/icon/amazon.com', game: 'Amazon', gameColor: '#ff9900', region: 'US',
     rating: 4.8, reviews: 9200, recommend: 97, seller: 'Admin', sellerRating: 99.8, sellerSales: '38,210',
   },
   {
     id: 'gc-2', type: 'catalog', catalog: 'gift-cards', title: 'PlayStation Store $25',
     platform: 'PlayStation · Gift Card', price: 23.99, badge: 'INSTANT', badgeColor: '#1a6fd4',
-    image: psGiftCard, game: 'PlayStation', gameColor: '#003791', region: 'GLOBAL',
+    image: 'https://cdn.simpleicons.org/playstation/FFFFFF', game: 'PlayStation', gameColor: '#003791', region: 'GLOBAL',
     rating: 4.7, reviews: 6400, recommend: 96, seller: 'Admin', sellerRating: 99.7, sellerSales: '24,882',
   },
   {
     id: 'gc-3', type: 'catalog', catalog: 'gift-cards', title: 'Google Play $15',
     platform: 'Google Play · Gift Card', price: 14.25, badge: 'INSTANT', badgeColor: '#1a6fd4',
-    image: googlePlayGiftCard, game: 'Google', gameColor: '#4285f4', region: 'GLOBAL',
+    image: 'https://cdn.simpleicons.org/googleplay/FFFFFF', game: 'Google', gameColor: '#4285f4', region: 'GLOBAL',
     rating: 4.8, reviews: 5100, recommend: 95, seller: 'Admin', sellerRating: 99.6, sellerSales: '18,441',
   },
   {
     id: 'gc-4', type: 'catalog', catalog: 'gift-cards', title: 'Apple App Store & iTunes $30',
     platform: 'Apple · Gift Card', price: 28.99, badge: 'INSTANT', badgeColor: '#1a6fd4',
-    image: appleGiftCard, game: 'Apple', gameColor: '#555555', region: 'GLOBAL',
+    image: 'https://cdn.simpleicons.org/apple/FFFFFF', game: 'Apple', gameColor: '#555555', region: 'GLOBAL',
     rating: 4.7, reviews: 3800, recommend: 94, seller: 'Admin', sellerRating: 99.5, sellerSales: '12,104',
   },
   {
     id: 'gc-5', type: 'catalog', catalog: 'gift-cards', title: 'Netflix Gift Card $25',
     platform: 'Netflix · Gift Card', price: 24.50, badge: 'GIFT', badgeColor: '#e50914',
-    image: netflixGiftCard, game: 'Netflix', gameColor: '#e50914', region: 'GLOBAL',
+    image: 'https://cdn.simpleicons.org/netflix/E50914', game: 'Netflix', gameColor: '#e50914', region: 'GLOBAL',
     rating: 4.6, reviews: 2900, recommend: 92, seller: 'Admin', sellerRating: 99.4, sellerSales: '9,882',
+  },
+  {
+    id: 'gc-6', type: 'catalog', catalog: 'gift-cards', title: 'Xbox Gift Card $25',
+    platform: 'Xbox · Gift Card', price: 23.50, badge: 'INSTANT', badgeColor: '#1a6fd4',
+    image: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/xbox.svg', game: 'Xbox', gameColor: '#107c10', region: 'GLOBAL',
+    rating: 4.8, reviews: 7200, recommend: 96, seller: 'Admin', sellerRating: 99.7, sellerSales: '28,104',
+    description: 'Redeem on Xbox consoles or Microsoft Store for games, movies, apps, and more. Instant digital delivery.',
+  },
+  {
+    id: 'gc-7', type: 'catalog', catalog: 'gift-cards', title: 'Nintendo eShop $35',
+    platform: 'Nintendo · Gift Card', price: 33.25, badge: 'POPULAR', badgeColor: '#f59e0b',
+    image: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/nintendo.svg', game: 'Nintendo', gameColor: '#e60012', region: 'GLOBAL',
+    rating: 4.9, reviews: 8400, recommend: 97, seller: 'Admin', sellerRating: 99.8, sellerSales: '31,220',
+    description: 'Add funds to your Nintendo eShop account and buy games, DLC, and in-game content for Switch and 3DS.',
+  },
+  {
+    id: 'gc-8', type: 'catalog', catalog: 'gift-cards', title: 'Roblox Gift Card $10',
+    platform: 'Roblox · Gift Card', price: 9.50, badge: 'GIFT', badgeColor: '#e50914',
+    image: 'https://cdn.simpleicons.org/roblox/FFFFFF', game: 'Roblox', gameColor: '#e2231a', region: 'GLOBAL',
+    rating: 4.7, reviews: 12400, recommend: 95, seller: 'Admin', sellerRating: 99.6, sellerSales: '44,882',
+    description: 'Get Robux to customize your avatar and unlock premium experiences in Roblox. Perfect gift for young gamers.',
+  },
+  {
+    id: 'gc-9', type: 'catalog', catalog: 'gift-cards', title: 'Steam Wallet $50',
+    platform: 'Steam · Gift Card', price: 46.99, badge: 'BEST VALUE', badgeColor: '#059669',
+    image: 'https://cdn.simpleicons.org/steam/FFFFFF', game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
+    rating: 4.9, reviews: 18200, recommend: 99, seller: 'Admin', sellerRating: 99.9, sellerSales: '68,441',
+    description: 'Top up your Steam Wallet with $50 credit. Use it for games, DLC, and in-game items across the entire Steam catalog.',
   },
 ];
 
 export const OUTLET_PRODUCTS: ProductItem[] = [
   {
-    id: 'out-0', type: 'catalog', catalog: 'outlet', title: 'Assassin\'s Creed Valhalla',
+    id: 'out-0', type: 'catalog', catalog: 'steam-game-keys', steamAppId: 2208920, title: 'Assassin\'s Creed Valhalla',
     platform: 'Steam · Key', price: 7.99, origPrice: 59.99, discount: 87, badge: 'OUTLET', badgeColor: '#7c3aed',
     image: outletImg, game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
     rating: 4.5, reviews: 8400, recommend: 90, seller: 'Admin', sellerRating: 99.2, sellerSales: '14,220',
   },
   {
-    id: 'out-1', type: 'catalog', catalog: 'outlet', title: 'Far Cry 6',
+    id: 'out-1', type: 'catalog', catalog: 'steam-game-keys', steamAppId: 2369390, title: 'Far Cry 6',
     platform: 'Steam · Key', price: 5.99, origPrice: 49.99, discount: 88, badge: 'OUTLET', badgeColor: '#7c3aed',
     image: outletImg, game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
     rating: 4.3, reviews: 4200, recommend: 86, seller: 'Admin', sellerRating: 99.1, sellerSales: '8,441',
   },
   {
-    id: 'out-2', type: 'catalog', catalog: 'outlet', title: 'Watch Dogs Legion',
+    id: 'out-2', type: 'catalog', catalog: 'steam-game-keys', steamAppId: 2239550, title: 'Watch Dogs Legion',
     platform: 'Steam · Key', price: 4.49, origPrice: 39.99, discount: 89, badge: 'OUTLET', badgeColor: '#7c3aed',
     image: outletImg, game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
     rating: 4.1, reviews: 3100, recommend: 82, seller: 'Admin', sellerRating: 99.0, sellerSales: '6,104',
   },
   {
-    id: 'out-3', type: 'catalog', catalog: 'outlet', title: 'Tom Clancy\'s Ghost Recon Breakpoint',
+    id: 'out-3', type: 'catalog', catalog: 'steam-game-keys', steamAppId: 2231380, title: 'Tom Clancy\'s Ghost Recon Breakpoint',
     platform: 'Steam · Key', price: 3.99, origPrice: 29.99, discount: 87, badge: 'OUTLET', badgeColor: '#7c3aed',
     image: outletImg, game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
     rating: 4.0, reviews: 2800, recommend: 80, seller: 'Admin', sellerRating: 98.9, sellerSales: '5,882',
   },
   {
-    id: 'out-4', type: 'catalog', catalog: 'outlet', title: 'Dying Light 2',
+    id: 'out-4', type: 'catalog', catalog: 'steam-game-keys', steamAppId: 534380, title: 'Dying Light 2',
     platform: 'Steam · Key', price: 12.99, origPrice: 59.99, discount: 78, badge: 'OUTLET', badgeColor: '#7c3aed',
     image: outletImg, game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
     rating: 4.6, reviews: 9200, recommend: 91, seller: 'Admin', sellerRating: 99.3, sellerSales: '11,441',
   },
   {
-    id: 'out-5', type: 'catalog', catalog: 'outlet', title: 'Borderlands 3',
+    id: 'out-5', type: 'catalog', catalog: 'steam-game-keys', steamAppId: 397540, title: 'Borderlands 3',
     platform: 'Steam · Key', price: 6.49, origPrice: 59.99, discount: 89, badge: 'OUTLET', badgeColor: '#7c3aed',
     image: outletImg, game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
     rating: 4.4, reviews: 6100, recommend: 88, seller: 'Admin', sellerRating: 99.1, sellerSales: '7,220',
+  },
+  {
+    id: 'out-6', type: 'catalog', catalog: 'steam-game-keys', steamAppId: 517630, title: 'Just Cause 4',
+    platform: 'Steam · Key', price: 3.49, origPrice: 39.99, discount: 91, badge: 'OUTLET', badgeColor: '#7c3aed',
+    image: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=400&q=80', game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
+    rating: 4.0, reviews: 2400, recommend: 78, seller: 'Admin', sellerRating: 98.8, sellerSales: '4,882',
+    description: 'Bring the thunder to Solís. Rogue agent Rico Rodriguez journeys to a fictional South American world to take down a private military organization.',
+  },
+  {
+    id: 'out-7', type: 'catalog', catalog: 'steam-game-keys', steamAppId: 360430, title: 'Mafia III: Definitive Edition',
+    platform: 'Steam · Key', price: 4.99, origPrice: 29.99, discount: 83, badge: 'OUTLET', badgeColor: '#7c3aed',
+    image: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400&q=80', game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
+    rating: 4.2, reviews: 3800, recommend: 84, seller: 'Admin', sellerRating: 99.0, sellerSales: '5,441',
+    description: 'After years of combat in Vietnam, Lincoln Clay returns to New Bordeaux and builds a new criminal empire to take revenge on the Italian Mafia.',
+  },
+  {
+    id: 'out-8', type: 'catalog', catalog: 'steam-game-keys', steamAppId: 978300, title: 'Saints Row: The Third Remastered',
+    platform: 'Steam · Key', price: 5.49, origPrice: 39.99, discount: 86, badge: 'OUTLET', badgeColor: '#7c3aed',
+    image: 'https://images.unsplash.com/photo-1511884642898-4c92249e20b9?w=400&q=80', game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
+    rating: 4.3, reviews: 5100, recommend: 86, seller: 'Admin', sellerRating: 99.1, sellerSales: '6,882',
+    description: 'Steelport is your playground. Experience the over-the-top open-world action of Saints Row: The Third with enhanced visuals and all DLC included.',
+  },
+  {
+    id: 'out-9', type: 'catalog', catalog: 'steam-game-keys', steamAppId: 1659040, title: 'Hitman World of Assassination',
+    platform: 'Steam · Key', price: 14.99, origPrice: 69.99, discount: 79, badge: 'OUTLET', badgeColor: '#7c3aed',
+    image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=400&q=80', game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
+    rating: 4.7, reviews: 11200, recommend: 92, seller: 'Admin', sellerRating: 99.4, sellerSales: '14,104',
+    description: 'Become Agent 47 and travel the globe to take out high-profile targets in creative sandbox assassination missions across stunning locations.',
   },
 ];
 
 export const GAMING_PRODUCTS: ProductItem[] = [
   {
-    id: 'gm-0', type: 'catalog', catalog: 'gaming', title: 'Destiny 2: Lightfall',
+    id: 'gm-0', type: 'catalog', catalog: 'gaming', steamAppId: 1085660, title: 'Destiny 2: Lightfall',
     platform: 'Steam · Key', price: 19.99, origPrice: 49.99, discount: 60, badge: '-60%', badgeColor: '#ef4444',
     image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&q=80', game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
     rating: 4.5, reviews: 8200, recommend: 89, seller: 'Admin', sellerRating: 99.6, sellerSales: '18,441',
   },
   {
-    id: 'gm-1', type: 'catalog', catalog: 'gaming', title: 'LEGO Batman: The Videogame',
+    id: 'gm-1', type: 'catalog', catalog: 'gaming', steamAppId: 21000, title: 'LEGO Batman: The Videogame',
     platform: 'Steam · Key', price: 14.99, origPrice: 19.99, discount: 25, badge: '-25%', badgeColor: '#ef4444',
     image: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400&q=80', game: 'Steam', gameColor: '#1b2838', region: 'GLOBAL',
     rating: 4.7, reviews: 4100, recommend: 93, seller: 'Admin', sellerRating: 99.5, sellerSales: '9,882',
+  },
+  {
+    id: 'gm-2', type: 'catalog', catalog: 'gaming', steamAppId: 2519060, title: 'Call of Duty: Modern Warfare III',
+    platform: 'Battle.net · Key', price: 39.99, origPrice: 69.99, discount: 43, badge: '-43%', badgeColor: '#ef4444',
+    image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&q=80', game: 'Activision', gameColor: '#000000', region: 'GLOBAL',
+    rating: 4.4, reviews: 28400, recommend: 88, seller: 'Admin', sellerRating: 99.7, sellerSales: '52,104',
+    description: 'In the direct sequel to Modern Warfare II, Captain Price and Task Force 141 face the ultimate threat in a campaign spanning the globe.',
+  },
+  {
+    id: 'gm-3', type: 'catalog', catalog: 'gaming', steamAppId: 2669320, title: 'EA Sports FC 25',
+    platform: 'Origin · Key', price: 34.99, origPrice: 69.99, discount: 50, badge: '-50%', badgeColor: '#ef4444',
+    image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&q=80', game: 'EA', gameColor: '#000000', region: 'GLOBAL',
+    rating: 4.3, reviews: 18200, recommend: 87, seller: 'Admin', sellerRating: 99.6, sellerSales: '38,441',
+    description: 'The next chapter of The World\'s Game. Build your dream squad with updated player ratings, new game modes, and enhanced gameplay mechanics.',
+  },
+  {
+    id: 'gm-4', type: 'catalog', catalog: 'gaming', steamAppId: 1672970, title: 'Minecraft: Java & Bedrock Edition',
+    platform: 'Minecraft · Key', price: 19.99, origPrice: 29.99, discount: 33, badge: '-33%', badgeColor: '#ef4444',
+    image: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=400&q=80', game: 'Mojang', gameColor: '#62b47a', region: 'GLOBAL',
+    rating: 4.9, reviews: 98400, recommend: 99, seller: 'Admin', sellerRating: 99.9, sellerSales: '142,882',
+    description: 'Create, explore, and survive in infinite worlds. This bundle includes both Java and Bedrock editions for the ultimate Minecraft experience.',
+  },
+  {
+    id: 'gm-5', type: 'catalog', catalog: 'gaming', steamAppId: 1551360, title: 'Forza Horizon 5 Premium Edition',
+    platform: 'Xbox · Key', price: 29.99, origPrice: 99.99, discount: 70, badge: '-70%', badgeColor: '#ef4444',
+    image: steamHeaderImage(1551360), game: 'Xbox', gameColor: '#107c10', region: 'GLOBAL',
+    rating: 4.9, reviews: 44200, recommend: 98, seller: 'Admin', sellerRating: 99.8, sellerSales: '78,220',
+    description: 'Your Ultimate Horizon Adventure awaits! Explore the vibrant open world landscapes of Mexico with hundreds of the world\'s greatest cars. Premium Edition includes all DLC.',
   },
 ];
 

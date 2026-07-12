@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowRight, LogIn, SkipForward } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -14,6 +15,16 @@ export function IntroSplash({ onEnter }: IntroSplashProps) {
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 60);
     return () => clearTimeout(t);
+  }, []);
+
+  // Keep the page behind the intro stationary while the full-screen overlay is open.
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, []);
 
   // ESC to skip
@@ -47,10 +58,12 @@ export function IntroSplash({ onEnter }: IntroSplashProps) {
       : `opacity 650ms ease ${delay + 420}ms, transform 650ms ease ${delay + 420}ms`,
   });
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[9999] overflow-hidden"
       style={{
+        width: '100vw',
+        height: '100dvh',
         userSelect: 'none',
         fontFamily: '"Space Grotesk", system-ui, sans-serif',
       }}
@@ -255,6 +268,7 @@ export function IntroSplash({ onEnter }: IntroSplashProps) {
           ))}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

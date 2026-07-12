@@ -18,6 +18,7 @@ const tradesRoutes     = require('./routes/trades');
 const notificationsRoutes = require('./routes/notifications');
 const visionRoutes         = require('./routes/vision');
 const analyticsRoutes      = require('./routes/analytics');
+const catalogRoutes        = require('./routes/catalog');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -42,6 +43,7 @@ app.use('/api/trades',     tradesRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/vision',        visionRoutes);
 app.use('/api/analytics',     analyticsRoutes);
+app.use('/api/catalog',       catalogRoutes);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -55,7 +57,10 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => {
+  const { getAvailableProviders } = require('./lib/visionProviders');
+  const visionProviders = getAvailableProviders().map((p) => p.shortLabel);
   console.log(`[server] GameGuide API running on http://localhost:${PORT}`);
+  console.log(`[server] Vision AI: ${visionProviders.length ? visionProviders.join(' · ') : 'offline (add API keys to server/.env)'}`);
   console.log(`[server] Auth:  POST /api/auth/register | POST /api/auth/login | GET /api/auth/me`);
   console.log(`[server] Cart:  GET/POST /api/cart | DELETE /api/cart/:id`);
   console.log(`[server] Forum: GET/POST /api/forum | POST /api/forum/:id/like | DELETE /api/forum/:id`);

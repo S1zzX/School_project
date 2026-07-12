@@ -126,16 +126,18 @@ const seedDemo = () => {
     role: 'gamer',
   });
 
+  const steamHeader = (id) => `https://cdn.akamai.steamstatic.com/steam/apps/${id}/header.jpg`;
+
   const img = {
-    cyberpunk: '/src/assets/cyberpunk2077.jpg',
-    elden: '/src/assets/elden_ring.jpg',
-    gta: '/src/assets/gta_v.jpg',
-    rdr2: '/src/assets/red_dead_redemption_2.jpg',
-    witcher: '/src/assets/the_witcher_3.jpg',
-    bg3: '/src/assets/baldurs_gate_3.jpg',
-    destiny: '/src/assets/destiny2.jpg',
-    forza: '/src/assets/Forza_Horizon6.jpg',
-    gothic: '/src/assets/Gothic1_remake.jpg',
+    cyberpunk: steamHeader(1091500),
+    elden: steamHeader(1245620),
+    gta: steamHeader(271590),
+    rdr2: steamHeader(1174180),
+    witcher: steamHeader(292030),
+    bg3: steamHeader(1086940),
+    destiny: steamHeader(1085660),
+    forza: steamHeader(2483190),
+    gothic: steamHeader(1297900),
   };
 
   // ─── Store listings (S1zz — FPS / accounts) ────────────────────────────────

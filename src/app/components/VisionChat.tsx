@@ -2,10 +2,11 @@
 // AI chat panel — works as general gaming chat + image-aware mode
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot } from 'lucide-react';
-import { apiVisionChat, type VisionResult, type ChatMessage } from '../lib/api';
+import { apiVisionChat, isVisionProviderId, VISION_PROVIDER_STORAGE_KEY, type VisionProviderId, type VisionResult, type ChatMessage } from '../lib/api';
 
 interface VisionChatProps {
   visionResult: VisionResult | null;
+  provider?: VisionProviderId;
 }
 
 const GENERAL_SUGGESTIONS = [
@@ -22,7 +23,7 @@ const IMAGE_SUGGESTIONS = [
   'Tell me more about this item.',
 ];
 
-export function VisionChat({ visionResult }: VisionChatProps) {
+export function VisionChat({ visionResult, provider }: VisionChatProps) {
   const hasContext = visionResult?.detected === true;
 
   const welcomeMsg: ChatMessage = {
@@ -70,7 +71,14 @@ export function VisionChat({ visionResult }: VisionChatProps) {
     setLoading(true);
 
     try {
-      const { reply } = await apiVisionChat(trimmed, visionResult, messages);
+      const saved = localStorage.getItem(VISION_PROVIDER_STORAGE_KEY);
+      const storedProvider = saved && isVisionProviderId(saved) ? saved : undefined;
+      const { reply } = await apiVisionChat(
+        trimmed,
+        visionResult,
+        messages,
+        provider ?? storedProvider,
+      );
       setMessages([...nextHistory, { role: 'assistant', content: reply }]);
     } catch {
       setMessages([...nextHistory, {
@@ -92,11 +100,11 @@ export function VisionChat({ visionResult }: VisionChatProps) {
 
   return (
     <div
-      className="flex flex-col rounded-2xl border overflow-hidden"
+      className="vision-chat-panel flex flex-col rounded-3xl border overflow-hidden"
       style={{ borderColor: 'var(--gs-border)', background: 'var(--gs-surface)', minHeight: 480, height: '100%' }}
     >
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-4 py-3 border-b shrink-0" style={{ borderColor: 'var(--gs-border)' }}>
+      <div className="vision-chat-header flex items-center gap-3 px-5 py-4 border-b shrink-0" style={{ borderColor: 'var(--gs-border)' }}>
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
           style={{ background: 'rgba(59,130,246,0.12)' }}
