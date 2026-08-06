@@ -15,6 +15,7 @@ import { Support } from './pages/Support';
 import { ShopOwner } from './pages/ShopOwner';
 import { VisionPage } from './pages/VisionPage';
 import { Analytics } from './pages/Analytics';
+import { TopUp } from './pages/TopUp';
 
 export const router = createBrowserRouter([
   // Auth pages (no Layout shell — full-screen)
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
       { path: 'shop-owner',       Component: ShopOwner },
       { path: 'vision',            Component: VisionPage },
       { path: 'analytics',         Component: Analytics },
+      { path: 'top-up',            Component: TopUp },
     ],
   },
 ]);

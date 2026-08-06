@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import {
   ShoppingBag, Key, Copy, CheckCircle2, ChevronDown, ChevronUp,
   CreditCard, Zap, Gift, Shield, Search, LogIn, PackageOpen,
-  ExternalLink, Clock, Receipt,
+  ExternalLink, Clock, Receipt, Wallet,
 } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { getUser } from '../lib/api';
@@ -13,11 +13,13 @@ const PAYMENT_ICONS: Record<string, typeof CreditCard> = {
   card:   CreditCard,
   crypto: Zap,
   gift:   Gift,
+  wallet: Wallet,
 };
 const PAYMENT_LABELS: Record<string, string> = {
   card:   'Credit / Debit Card',
   crypto: 'Crypto (USDT/ETH)',
   gift:   'Gift Card',
+  wallet: 'GameGuide Wallet',
 };
 
 function Badge({ children }: { children: React.ReactNode }) {

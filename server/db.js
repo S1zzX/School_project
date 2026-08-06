@@ -19,6 +19,7 @@ db.exec(`
     password_hash  TEXT    NOT NULL,
     role           TEXT    NOT NULL DEFAULT 'gamer',
     shop_category  TEXT,
+    balance_usd    REAL    NOT NULL DEFAULT 0,
     created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -160,6 +161,22 @@ db.exec(`
   );
 
   CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read, created_at);
+  CREATE TABLE IF NOT EXISTS wallet_transactions (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type        TEXT    NOT NULL,
+    method      TEXT,
+    currency    TEXT    NOT NULL DEFAULT 'USD',
+    amount_usd  REAL    NOT NULL,
+    amount_vnd  REAL    NOT NULL DEFAULT 0,
+    rate        REAL    NOT NULL DEFAULT 25000,
+    status      TEXT    NOT NULL DEFAULT 'credited',
+    reference   TEXT    NOT NULL,
+    note        TEXT,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_wallet_transactions_user ON wallet_transactions(user_id, created_at);
 
   CREATE TABLE IF NOT EXISTS forum_replies (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -257,6 +274,10 @@ const userCols = db.pragma('table_info(users)').map(c => c.name);
 if (!userCols.includes('avatar_url')) {
   db.exec(`ALTER TABLE users ADD COLUMN avatar_url TEXT`);
   console.log('[db] Migration: added avatar_url to users');
+}
+if (!userCols.includes('balance_usd')) {
+  db.exec(`ALTER TABLE users ADD COLUMN balance_usd REAL NOT NULL DEFAULT 0`);
+  console.log('[db] Migration: added balance_usd to users');
 }
 
 // ─── Seed admin ───────────────────────────────────────────────────────────────

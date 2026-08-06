@@ -6,7 +6,7 @@ import {
   HeadphonesIcon, Store, BarChart3, Home, Library,
   Users, Sparkles, Wallet,
 } from 'lucide-react';
-import { getUser, apiLogout, apiGetCart, ensureSlimToken, type AuthUser, type UserRole } from '../lib/api';
+import { getUser, apiLogout, apiGetCart, apiGetWallet, ensureSlimToken, type AuthUser, type UserRole } from '../lib/api';
 import { useAppSettings } from '../lib/AppContext';
 import { useT } from '../lib/i18n';
 import { NotificationBell } from './NotificationBell';
@@ -23,6 +23,7 @@ const SIDEBAR_NAV = [
   { to: '/',          labelKey: 'nav.home' as const,      icon: Home,      end: true },
   { to: '/store',     labelKey: 'nav.store' as const,     icon: Store },
   { to: '/purchase-history', labelKey: 'nav.purchaseHistory' as const, icon: Library },
+  { to: '/top-up',    label: 'Top Up',                   icon: Wallet },
   { to: '/community', label: 'Community',                icon: Users },
   { to: '/vision',    labelKey: 'nav.vision' as const,    icon: Sparkles },
 ];
@@ -41,7 +42,7 @@ export function Layout() {
   const [showCatDropdown, setShowCatDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
-  const [cartTotal, setCartTotal] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
   const [cartPing, setCartPing] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -59,12 +60,10 @@ export function Layout() {
   const fetchCart = useCallback(async () => {
     if (!user) {
       setCartCount(0);
-      setCartTotal(0);
       return;
     }
     try {
       const items = await apiGetCart();
-      const total = items.reduce((sum, item) => sum + (item.price ?? 0), 0);
       setCartCount(prev => {
         if (items.length > prev) {
           setCartPing(true);
@@ -72,10 +71,8 @@ export function Layout() {
         }
         return items.length;
       });
-      setCartTotal(total);
     } catch {
       setCartCount(0);
-      setCartTotal(0);
     }
   }, [user]);
 
@@ -84,6 +81,25 @@ export function Layout() {
     window.addEventListener('cart_updated', fetchCart);
     return () => window.removeEventListener('cart_updated', fetchCart);
   }, [user, fetchCart]);
+
+  const fetchWallet = useCallback(async () => {
+    if (!user) {
+      setWalletBalance(0);
+      return;
+    }
+    try {
+      const data = await apiGetWallet();
+      setWalletBalance(data.balance_usd ?? 0);
+    } catch {
+      setWalletBalance(0);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) fetchWallet();
+    window.addEventListener('wallet_updated', fetchWallet);
+    return () => window.removeEventListener('wallet_updated', fetchWallet);
+  }, [user, fetchWallet]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -408,7 +424,7 @@ export function Layout() {
                       </p>
                       <p className="text-[10px] font-semibold flex items-center gap-0.5" style={{ color: 'var(--gs-accent)' }}>
                         <Wallet className="size-2.5" />
-                        ${cartTotal.toFixed(2)}
+                        ${walletBalance.toFixed(2)}
                       </p>
                     </div>
                     <ChevronDown className="size-3 hidden sm:block" style={{ color: 'var(--gs-faint)' }} />
@@ -433,6 +449,9 @@ export function Layout() {
                       </Link>
                       <Link to="/purchase-history" onClick={() => setShowUserMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-gs-surface-2" style={{ color: 'var(--gs-muted)' }}>
                         <ShoppingBag className="size-3.5" /> {t('nav.purchaseHistory')}
+                      </Link>
+                      <Link to="/top-up" onClick={() => setShowUserMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-gs-surface-2" style={{ color: 'var(--gs-muted)' }}>
+                        <Wallet className="size-3.5" /> Top Up Balance
                       </Link>
                       <Link to="/analytics" onClick={() => setShowUserMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-gs-surface-2" style={{ color: 'var(--gs-muted)' }}>
                         <BarChart3 className="size-3.5" /> {t('nav.analytics')}

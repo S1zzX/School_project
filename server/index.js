@@ -19,6 +19,7 @@ const notificationsRoutes = require('./routes/notifications');
 const visionRoutes         = require('./routes/vision');
 const analyticsRoutes      = require('./routes/analytics');
 const catalogRoutes        = require('./routes/catalog');
+const walletRoutes         = require('./routes/wallet');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -44,6 +45,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/vision',        visionRoutes);
 app.use('/api/analytics',     analyticsRoutes);
 app.use('/api/catalog',       catalogRoutes);
+app.use('/api/wallet',        walletRoutes);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {

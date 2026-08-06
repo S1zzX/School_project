@@ -3,17 +3,18 @@ import { Link, useNavigate } from 'react-router';
 import {
   ShoppingCart, Trash2, Tag, ShieldCheck, ChevronRight,
   Gamepad2, Gift, CreditCard, Zap, X, CheckCircle2, Copy, LogIn, Key,
-  ArrowLeftRight, Clock, AlertCircle,
+  ArrowLeftRight, Clock, AlertCircle, Wallet,
 } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import {
   apiGetCart, apiRemoveFromCart, apiClearCart,
-  apiPurchaseItems, PurchaseItem,
+  apiPurchaseItems, apiGetWallet, apiDebitWallet, PurchaseItem,
   CartItemAPI, getUser,
 } from '../lib/api';
 import { savePurchaseOrder, generateOrderId } from '../lib/purchaseHistory';
 
 const PAYMENT_METHODS = [
+  { id: 'wallet', label: 'GameGuide Wallet',      icon: Wallet },
   { id: 'card',   label: 'Credit / Debit Card',  icon: CreditCard },
   { id: 'crypto', label: 'Crypto (USDT/ETH)',     icon: Zap },
   { id: 'gift',   label: 'Gift Card',             icon: Gift },
@@ -324,11 +325,13 @@ export function Cart() {
   const [promoCode, setPromoCode]       = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoError, setPromoError]     = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [purchasing, setPurchasing]       = useState(false);
   const [purchasedKeys, setPurchasedKeys] = useState<PurchasedKey[] | null>(null);
   const [purchasedOrderId, setPurchasedOrderId] = useState<string>('');
   const [tradePending, setTradePending]   = useState<TradePendingItem[] | null>(null);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [checkoutError, setCheckoutError] = useState('');
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -336,8 +339,22 @@ export function Cart() {
       .then(setItems)
       .catch(console.error)
       .finally(() => setLoading(false));
+    apiGetWallet()
+      .then(wallet => setWalletBalance(wallet.balance_usd ?? 0))
+      .catch(() => setWalletBalance(0));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const refreshWallet = () => {
+      if (!user) return;
+      apiGetWallet()
+        .then(wallet => setWalletBalance(wallet.balance_usd ?? 0))
+        .catch(() => setWalletBalance(0));
+    };
+    window.addEventListener('wallet_updated', refreshWallet);
+    return () => window.removeEventListener('wallet_updated', refreshWallet);
+  }, [user]);
 
   const removeItem = async (id: number) => {
     await apiRemoveFromCart(id).catch(console.error);
@@ -348,6 +365,7 @@ export function Cart() {
   const discount = promoApplied ? subtotal * 0.1 : 0;
   const total    = subtotal - discount;
   const savings  = items.reduce((s, i) => i.original_price ? s + (i.original_price - i.price) : s, 0) + discount;
+  const walletCanPay = paymentMethod !== 'wallet' || walletBalance + 0.0001 >= total;
 
   const applyPromo = () => {
     setPromoError('');
@@ -357,6 +375,11 @@ export function Cart() {
 
   const handleCheckout = async () => {
     if (!items.length) return;
+    setCheckoutError('');
+    if (paymentMethod === 'wallet' && walletBalance + 0.0001 < total) {
+      setCheckoutError('Your wallet balance is too low. Top up first, then try checkout again.');
+      return;
+    }
     setPurchasing(true);
     try {
       const orderId = generateOrderId();
@@ -385,6 +408,11 @@ export function Cart() {
       if (storeItems.length > 0) {
         await apiPurchaseItems(storeItems).catch(console.error);
         window.dispatchEvent(new Event('notifications_updated'));
+      }
+
+      if (paymentMethod === 'wallet') {
+        const nextWallet = await apiDebitWallet(total, `Order ${orderId}`);
+        setWalletBalance(nextWallet.balance_usd ?? 0);
       }
 
       await apiClearCart();
@@ -431,6 +459,7 @@ export function Cart() {
       setPurchasedKeys(keys);
     } catch (e) {
       console.error(e);
+      setCheckoutError(e instanceof Error ? e.message : 'Checkout failed. Please try again.');
     } finally {
       setPurchasing(false);
     }
@@ -637,35 +666,51 @@ export function Cart() {
               <CreditCard className="size-4 text-gs-accent" /> Payment Method
             </p>
             <div className="space-y-2">
-              {PAYMENT_METHODS.map(({ id, label, icon: Icon }) => (
-                <label
-                  key={id}
-                  htmlFor={`payment-${id}`}
-                  className="flex items-center gap-3 cursor-pointer rounded-lg px-3 py-2.5 border transition-all"
-                  style={{
-                    background: paymentMethod === id ? 'color-mix(in oklab, var(--gs-accent) 8%, transparent)' : 'var(--gs-surface-2)',
-                    borderColor: paymentMethod === id ? 'color-mix(in oklab, var(--gs-accent) 45%, transparent)' : 'var(--gs-border)',
-                  }}
-                >
-                  <input
-                    id={`payment-${id}`}
-                    type="radio"
-                    name="payment"
-                    value={id}
-                    checked={paymentMethod === id}
-                    onChange={() => setPaymentMethod(id)}
-                    className="sr-only"
-                  />
-                  <div
-                    className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
-                    style={{ borderColor: paymentMethod === id ? 'var(--gs-accent)' : 'var(--gs-border)' }}
+              {PAYMENT_METHODS.map(({ id, label, icon: Icon }) => {
+                const isWallet = id === 'wallet';
+                const isActive = paymentMethod === id;
+                return (
+                  <label
+                    key={id}
+                    htmlFor={`payment-${id}`}
+                    className="flex items-center gap-3 cursor-pointer rounded-lg px-3 py-2.5 border transition-all"
+                    style={{
+                      background: isActive ? 'color-mix(in oklab, var(--gs-accent) 8%, transparent)' : 'var(--gs-surface-2)',
+                      borderColor: isActive ? 'color-mix(in oklab, var(--gs-accent) 45%, transparent)' : 'var(--gs-border)',
+                    }}
                   >
-                    {paymentMethod === id && <div className="w-2 h-2 rounded-full" style={{ background: 'var(--gs-accent)' }} />}
-                  </div>
-                  <Icon className="size-4 text-gs-muted shrink-0" />
-                  <span className="text-gs-text text-sm" style={{ fontWeight: 500 }}>{label}</span>
-                </label>
-              ))}
+                    <input
+                      id={`payment-${id}`}
+                      type="radio"
+                      name="payment"
+                      value={id}
+                      checked={isActive}
+                      onChange={() => setPaymentMethod(id)}
+                      className="sr-only"
+                    />
+                    <div
+                      className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                      style={{ borderColor: isActive ? 'var(--gs-accent)' : 'var(--gs-border)' }}
+                    >
+                      {isActive && <div className="w-2 h-2 rounded-full" style={{ background: 'var(--gs-accent)' }} />}
+                    </div>
+                    <Icon className="size-4 text-gs-muted shrink-0" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-gs-text text-sm" style={{ fontWeight: 600 }}>{label}</span>
+                      {isWallet && (
+                        <span className={`block text-xs ${walletCanPay ? 'text-gs-faint' : 'text-red-400'}`}>
+                          Balance ${walletBalance.toFixed(2)} {walletCanPay ? 'available' : 'is not enough'}
+                        </span>
+                      )}
+                    </span>
+                    {isWallet && !walletCanPay && (
+                      <Link to="/top-up" className="shrink-0 text-xs font-bold text-gs-accent hover:underline">
+                        Top Up
+                      </Link>
+                    )}
+                  </label>
+                );
+              })}
             </div>
           </div>
 
@@ -698,23 +743,30 @@ export function Cart() {
               )}
             </div>
 
+            {checkoutError && (
+              <div className="flex items-start gap-2 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-400">
+                <AlertCircle className="size-3.5 mt-0.5 shrink-0" />
+                <span>{checkoutError}</span>
+              </div>
+            )}
+
             {/* Checkout button */}
             <button
               id="checkout-btn"
               onClick={handleCheckout}
-              disabled={purchasing || items.length === 0}
+              disabled={purchasing || items.length === 0 || !walletCanPay}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm transition-all accent-glow"
               style={{
                 background: 'linear-gradient(135deg, var(--gs-accent), color-mix(in oklab, var(--gs-accent) 70%, #e879f9))',
                 color: 'var(--gs-accent-fg)',
                 fontWeight: 700,
-                opacity: (purchasing || items.length === 0) ? 0.7 : 1,
-                cursor: (purchasing || items.length === 0) ? 'not-allowed' : 'pointer',
+                opacity: (purchasing || items.length === 0 || !walletCanPay) ? 0.7 : 1,
+                cursor: (purchasing || items.length === 0 || !walletCanPay) ? 'not-allowed' : 'pointer',
               }}
             >
               {purchasing
                 ? <><span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" style={{ display: 'inline-block' }} />Processing…</>
-                : <><Key className="size-4" />Pay ${total.toFixed(2)} &amp; Checkout</>
+                : <><Key className="size-4" />{paymentMethod === 'wallet' ? 'Pay from Wallet' : `Pay $${total.toFixed(2)} & Checkout`}</>
               }
             </button>
             <div className="flex items-center justify-center gap-1.5 text-gs-faint text-xs">

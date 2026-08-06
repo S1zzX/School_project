@@ -1,4 +1,4 @@
-// routes/catalog.js — Live catalog pricing + Steam stats
+// routes/catalog.js ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Live catalog pricing + Steam stats
 const express = require('express');
 
 const router = express.Router();
@@ -30,6 +30,40 @@ function getCached(key) {
 
 function setCache(key, data) {
   cache.set(key, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
+async function fetchSteamProfiles(steamIds = []) {
+  const apiKey = process.env.STEAM_API_KEY;
+  const ids = [...new Set(steamIds.filter(Boolean).map(String))].slice(0, 100);
+  if (!apiKey || ids.length === 0) return new Map();
+
+  const cacheKey = `steam-profiles:${ids.sort().join(',')}`;
+  const hit = getCached(cacheKey);
+  if (hit) return new Map(Object.entries(hit));
+
+  try {
+    const search = new URLSearchParams({
+      key: apiKey,
+      steamids: ids.join(','),
+    });
+    const url = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?${search.toString()}`;
+    const res = await fetchWithTimeout(url);
+    if (!res.ok) return new Map();
+
+    const json = await res.json();
+    const players = Array.isArray(json?.response?.players) ? json.response.players : [];
+    const entries = players.map(player => [String(player.steamid), {
+      personaName: player.personaname ?? null,
+      avatarUrl: player.avatarfull || player.avatarmedium || player.avatar || null,
+      profileUrl: player.profileurl ?? null,
+    }]);
+    const data = Object.fromEntries(entries);
+    setCache(cacheKey, data);
+    return new Map(entries);
+  } catch (err) {
+    console.error('[catalog] Steam profile fetch failed:', err.message);
+    return new Map();
+  }
 }
 
 function unixToIso(sec) {
@@ -166,6 +200,143 @@ async function fetchSteamStats(steamAppId) {
     ...(store ?? {}),
   };
 }
+function compactText(value, max = 420) {
+  if (typeof value !== 'string') return '';
+  const cleaned = value.replace(/\s+/g, ' ').trim();
+  return cleaned.length > max ? `${cleaned.slice(0, max - 1)}...` : cleaned;
+}
+
+async function fetchSteamAppMedia(steamAppId) {
+  const cacheKey = `media:${steamAppId}`;
+  const hit = getCached(cacheKey);
+  if (hit) return hit;
+
+  try {
+    const url = `https://store.steampowered.com/api/appdetails?appids=${steamAppId}&cc=us&l=english&filters=basic,movies,screenshots`;
+    const res = await fetchWithTimeout(url);
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const entry = json?.[String(steamAppId)];
+    if (!entry?.success || !entry.data) return null;
+
+    const data = {
+      appid: steamAppId,
+      name: entry.data.name ?? null,
+      steamUrl: `https://store.steampowered.com/app/${steamAppId}`,
+      trailers: Array.isArray(entry.data.movies)
+        ? entry.data.movies.slice(0, 3).map(movie => ({
+            id: movie.id,
+            name: movie.name ?? 'Steam trailer',
+            thumbnail: movie.thumbnail ?? null,
+            webm: movie.webm?.max ?? movie.webm?.['480'] ?? null,
+            mp4: movie.mp4?.max ?? movie.mp4?.['480'] ?? null,
+            highlight: !!movie.highlight,
+          })).filter(movie => movie.webm || movie.mp4)
+        : [],
+      screenshots: Array.isArray(entry.data.screenshots)
+        ? entry.data.screenshots.slice(0, 8).map(ss => ({
+            id: ss.id,
+            thumbnail: ss.path_thumbnail,
+            full: ss.path_full,
+          })).filter(ss => ss.thumbnail || ss.full)
+        : [],
+    };
+
+    setCache(cacheKey, data);
+    return data;
+  } catch (err) {
+    console.error(`[catalog] Steam media fetch failed for ${steamAppId}:`, err.message);
+    return null;
+  }
+}
+
+function normalizeSteamReviewParams(query = {}) {
+  const allowedFilters = new Set(['recent', 'updated', 'all']);
+  const allowedReviewTypes = new Set(['all', 'positive', 'negative']);
+  const allowedPurchaseTypes = new Set(['all', 'steam', 'non_steam_purchase']);
+
+  const filter = allowedFilters.has(String(query.filter)) ? String(query.filter) : 'recent';
+  const reviewType = allowedReviewTypes.has(String(query.review_type)) ? String(query.review_type) : 'all';
+  const purchaseType = allowedPurchaseTypes.has(String(query.purchase_type)) ? String(query.purchase_type) : 'all';
+  const language = typeof query.language === 'string' && query.language.trim() ? query.language.trim() : 'all';
+  const cursor = typeof query.cursor === 'string' && query.cursor.length ? query.cursor : '*';
+  const pageSizeRaw = parseInt(query.num_per_page ?? query.page_size ?? '20', 10);
+  const pageSize = Math.max(1, Math.min(Number.isFinite(pageSizeRaw) ? pageSizeRaw : 20, 100));
+
+  return { filter, reviewType, purchaseType, language, cursor, pageSize };
+}
+
+async function fetchSteamReviews(steamAppId, options = {}) {
+  const params = normalizeSteamReviewParams(options);
+
+  try {
+    const search = new URLSearchParams({
+      json: '1',
+      filter: params.filter,
+      language: params.language,
+      review_type: params.reviewType,
+      purchase_type: params.purchaseType,
+      num_per_page: String(params.pageSize),
+      cursor: params.cursor,
+    });
+
+    if (params.filter === 'all') search.set('day_range', '365');
+
+    const url = `https://store.steampowered.com/appreviews/${steamAppId}?${search.toString()}`;
+    const res = await fetchWithTimeout(url);
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    if (!json || json.success === 0) return null;
+
+    const summary = json.query_summary ?? {};
+    const reviews = Array.isArray(json.reviews)
+      ? json.reviews.map(review => ({
+          id: review.recommendationid,
+          votedUp: !!review.voted_up,
+          language: review.language ?? null,
+          review: compactText(review.review, 1200),
+          votesUp: review.votes_up ?? 0,
+          votesFunny: review.votes_funny ?? 0,
+          weightedVoteScore: review.weighted_vote_score != null ? Number(review.weighted_vote_score) : null,
+          createdAt: review.timestamp_created ? new Date(review.timestamp_created * 1000).toISOString() : null,
+          updatedAt: review.timestamp_updated ? new Date(review.timestamp_updated * 1000).toISOString() : null,
+          playtimeHours: review.author?.playtime_forever ? Math.round(review.author.playtime_forever / 60) : null,
+          playtimeAtReviewHours: review.author?.playtime_at_review ? Math.round(review.author.playtime_at_review / 60) : null,
+          authorSteamId: review.author?.steamid ?? null,
+        })).filter(review => review.review)
+      : [];
+    const profiles = await fetchSteamProfiles(reviews.map(review => review.authorSteamId));
+    const enrichedReviews = reviews.map(review => {
+      const profile = review.authorSteamId ? profiles.get(String(review.authorSteamId)) : null;
+      return {
+        ...review,
+        authorPersonaName: profile?.personaName ?? null,
+        authorAvatarUrl: profile?.avatarUrl ?? null,
+        authorProfileUrl: profile?.profileUrl ?? null,
+      };
+    });
+
+    return {
+      summary: {
+        reviewScore: summary.review_score ?? null,
+        reviewScoreDesc: summary.review_score_desc ?? null,
+        totalPositive: summary.total_positive ?? 0,
+        totalNegative: summary.total_negative ?? 0,
+        totalReviews: summary.total_reviews ?? 0,
+        returnedReviews: summary.num_reviews ?? reviews.length,
+      },
+      reviews: enrichedReviews,
+      cursor: json.cursor ?? null,
+      hasMore: reviews.length > 0 && !!json.cursor && json.cursor !== params.cursor,
+      params,
+    };
+  } catch (err) {
+    console.error(`[catalog] Steam reviews fetch failed for ${steamAppId}:`, err.message);
+    return null;
+  }
+}
 
 // GET /api/catalog/live-prices?ids=1091500,1245620
 router.get('/live-prices', async (req, res) => {
@@ -221,6 +392,58 @@ router.get('/live-prices', async (req, res) => {
     source: 'cheapshark+steam+steamspy',
     ttlSeconds: CACHE_TTL_MS / 1000,
     note: 'Steam does not publish exact sale end dates; salePriceChangedAt is when the deal price last changed.',
+  });
+});
+
+// GET /api/catalog/steam-reviews/:appid - live Steam reviews with cursor pagination
+router.get('/steam-reviews/:appid', async (req, res) => {
+  const steamAppId = parseInt(req.params.appid, 10);
+  if (!Number.isFinite(steamAppId) || steamAppId <= 0) {
+    return res.status(400).json({ error: 'Valid Steam App ID is required.' });
+  }
+
+  const reviews = await fetchSteamReviews(steamAppId, req.query);
+  if (!reviews) {
+    return res.status(404).json({ error: 'Steam reviews not available for this app.' });
+  }
+
+  return res.json({
+    appid: steamAppId,
+    steamUrl: `https://store.steampowered.com/app/${steamAppId}`,
+    reviewSummary: reviews.summary,
+    reviews: reviews.reviews,
+    nextCursor: reviews.cursor,
+    hasMore: reviews.hasMore,
+    params: reviews.params,
+    fetchedAt: new Date().toISOString(),
+    source: 'steam-appreviews-live',
+  });
+});
+
+// GET /api/catalog/steam-media/:appid - Steam trailer and screenshots
+router.get('/steam-media/:appid', async (req, res) => {
+  const steamAppId = parseInt(req.params.appid, 10);
+  if (!Number.isFinite(steamAppId) || steamAppId <= 0) {
+    return res.status(400).json({ error: 'Valid Steam App ID is required.' });
+  }
+
+  const media = await fetchSteamAppMedia(steamAppId);
+
+  if (!media) {
+    return res.status(404).json({ error: 'Steam media not available for this app.' });
+  }
+
+  return res.json({
+    appid: steamAppId,
+    steamUrl: media?.steamUrl ?? `https://store.steampowered.com/app/${steamAppId}`,
+    trailers: media?.trailers ?? [],
+    screenshots: media?.screenshots ?? [],
+    reviewSummary: null,
+    reviews: [],
+    nextCursor: null,
+    hasMoreReviews: false,
+    fetchedAt: new Date().toISOString(),
+    source: 'steam-store-appdetails',
   });
 });
 
