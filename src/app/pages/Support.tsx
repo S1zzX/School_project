@@ -269,7 +269,7 @@ export function Support() {
   const openTopic = (id: string) => { setActiveTopicId(id); setPageView('topic'); };
 
   return (
-    <div className="min-h-screen bg-gs-bg">
+    <div className="support-page min-h-screen bg-gs-bg">
 
       {/* ── Help center bar (no logo/sign-in — already in site header) ── */}
       <div className="bg-gs-surface border-b border-gs-border">
@@ -306,9 +306,9 @@ export function Support() {
         <>
           {/* Hero */}
           <section
-            className="px-5 py-14"
+            className="support-hero px-5 py-14"
             style={{
-              background: 'linear-gradient(90deg, #ffb347 0%, #ff6b9d 35%, #c084fc 55%, #38bdf8 100%)',
+              background: 'linear-gradient(135deg, rgba(255,90,31,.22), rgba(246,196,83,.10) 45%, rgba(8,10,15,.92))',
             }}
           >
             <div className="max-w-2xl mx-auto text-center">

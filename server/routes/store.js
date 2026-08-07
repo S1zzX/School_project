@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const notifications = require('../lib/notifications');
+const { lookupSkinVisual, weaponFromName } = require('../lib/cs2Catalog');
 
 const router = express.Router();
 
@@ -18,6 +19,53 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
+function parseJsonArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function serializeJsonArray(value) {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    try {
+      JSON.parse(trimmed);
+      return trimmed;
+    } catch {
+      // Comma-separated names → [{ name }]
+      return JSON.stringify(
+        trimmed.split(',').map(s => s.trim()).filter(Boolean).map(name => ({ name }))
+      );
+    }
+  }
+  if (Array.isArray(value)) return JSON.stringify(value);
+  return null;
+}
+
+function mapListing(row) {
+  return {
+    ...row,
+    seller: row.seller_username || row.seller,
+    price: parseFloat(row.price),
+    float: row.float ?? null,
+    pattern: row.pattern ?? null,
+    stattrak: Boolean(row.stattrak),
+    nametag: row.nametag || null,
+    stickers: parseJsonArray(row.stickers),
+    charms: parseJsonArray(row.charms),
+    gloves_item: row.gloves_item || null,
+    gloves_float: row.gloves_float || null,
+    gloves_pattern: row.gloves_pattern || null,
+  };
+}
+
 // GET /api/store
 router.get('/', (req, res) => {
   const listings = db.prepare(`
@@ -26,12 +74,68 @@ router.get('/', (req, res) => {
     LEFT JOIN users u ON u.id = l.user_id
     ORDER BY l.id DESC
   `).all();
-  const mapped = listings.map(l => ({
-    ...l,
-    seller: l.seller_username || l.seller,
-    price: parseFloat(l.price),
-  }));
-  res.json(mapped);
+  res.json(listings.map(mapListing));
+});
+
+// GET /api/store/:id/inspect — listing-accurate Test Mode payload (+ Steam catalogue image)
+router.get('/:id/inspect', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id) || id <= 0) {
+    return res.status(400).json({ error: 'Invalid listing id.' });
+  }
+
+  const row = db.prepare(`
+    SELECT l.*, u.role AS seller_role, u.username AS seller_username
+    FROM store_listings l
+    LEFT JOIN users u ON u.id = l.user_id
+    WHERE l.id = ?
+  `).get(id);
+
+  if (!row) return res.status(404).json({ error: 'Listing not found.' });
+
+  const listing = mapListing(row);
+  const isSkin = (listing.type || '').toLowerCase().includes('skin');
+  if (!isSkin || !listing.float) {
+    return res.status(400).json({ error: 'This listing cannot be inspected in Test Mode.' });
+  }
+
+  let catalogue = null;
+  try {
+    catalogue = await lookupSkinVisual(listing.item);
+  } catch (err) {
+    console.warn('[store/inspect] catalogue lookup failed:', err.message);
+  }
+
+  const weapon = catalogue?.weapon || weaponFromName(listing.item || '');
+  const inspectImage = catalogue?.image || listing.image || null;
+
+  return res.json({
+    listing,
+    inspect: {
+      mode: 'test',
+      weapon,
+      skin: listing.item,
+      float: listing.float,
+      pattern: listing.pattern || '0',
+      wear: listing.wear || null,
+      stattrak: listing.stattrak,
+      nametag: listing.nametag,
+      stickers: listing.stickers,
+      charms: listing.charms,
+      gloves: listing.gloves_item
+        ? {
+            item: listing.gloves_item,
+            float: listing.gloves_float || '0.0000',
+            pattern: listing.gloves_pattern || '1',
+          }
+        : null,
+      image: inspectImage,
+      catalogueImage: catalogue?.image || null,
+      rarity: catalogue?.rarity || null,
+      paint_index: catalogue?.paint_index ?? null,
+      readonly: { float: true, pattern: true, weapon: true, skin: true },
+    },
+  });
 });
 
 // POST /api/store/:id/view — increment listing view count (real-time analytics)
@@ -50,12 +154,17 @@ router.post('/:id/view', (req, res) => {
 
 // POST /api/store
 router.post('/', authMiddleware, (req, res) => {
-  const { type, game, item, category, wear, float, rank, hoursPlayed, skinsOwned, highlight, price, image } = req.body;
-  
+  const {
+    type, game, item, category, wear, float, rank, hoursPlayed, skinsOwned, highlight, price, image,
+    pattern, stattrak, nametag, stickers, charms, gloves_item, gloves_float, gloves_pattern,
+  } = req.body;
+
   const stmt = db.prepare(`
     INSERT INTO store_listings (
-      user_id, type, game, item, category, wear, float, rank, hoursPlayed, skinsOwned, highlight, price, seller, sellerRating, image, views
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      user_id, type, game, item, category, wear, float, pattern, stattrak, nametag,
+      stickers, charms, gloves_item, gloves_float, gloves_pattern,
+      rank, hoursPlayed, skinsOwned, highlight, price, seller, sellerRating, image, views
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const info = stmt.run(
@@ -66,19 +175,27 @@ router.post('/', authMiddleware, (req, res) => {
     category || null,
     wear || null,
     float || null,
+    pattern != null && String(pattern).trim() !== '' ? String(pattern).trim() : null,
+    stattrak ? 1 : 0,
+    nametag || null,
+    serializeJsonArray(stickers),
+    serializeJsonArray(charms),
+    gloves_item || null,
+    gloves_float || null,
+    gloves_pattern || null,
     rank || null,
     hoursPlayed || 0,
     skinsOwned || 0,
     highlight || null,
     price || 0,
     req.user.username,
-    5.0, // Default seller rating
+    5.0,
     image || null,
-    0    // Default views
+    0
   );
 
   const newListing = db.prepare('SELECT * FROM store_listings WHERE id = ?').get(info.lastInsertRowid);
-  res.json(newListing);
+  res.json(mapListing(newListing));
 });
 
 // POST /api/store/purchase — Decrement stock & increment order_count for store listings.

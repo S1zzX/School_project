@@ -8,7 +8,7 @@ export type TranslationKey = keyof typeof en;
 const en = {
   // ── Nav / Header ────────────────────────────────────────────────
   'nav.home':             'Home',
-  'nav.store':            'Store',
+  'nav.store':            'Game Store',
   'nav.community':        'Community',
   'nav.cart':             'Cart',
   'nav.wishlist':         'Wishlist',
@@ -19,11 +19,11 @@ const en = {
   'nav.search':           'What are you looking for?',
   'nav.signOut':          'Sign Out',
   'nav.settings':         'Settings',
-  'nav.purchaseHistory':  'Purchase History',
-  'nav.adminPanel':       'Admin Panel',
+  'nav.purchaseHistory':  'My Orders',
+  'nav.adminPanel':       'Admin',
   'nav.currency':         'EN / USD',
   'nav.support':          'Support',
-  'nav.vision':           'Vision AI',
+  'nav.vision':           'AI Assistant',
   'nav.analytics':        'Analytics',
 
   // ── Common ──────────────────────────────────────────────────────
@@ -235,7 +235,7 @@ const en = {
 const vi: Record<TranslationKey, string> = {
   // ── Nav ──────────────────────────────────────────────────────────
   'nav.home':             'Trang chủ',
-  'nav.store':            'Cửa hàng',
+  'nav.store':            'Cửa hàng Game',
   'nav.community':        'Cộng đồng',
   'nav.cart':             'Giỏ hàng',
   'nav.wishlist':         'Yêu thích',
@@ -246,11 +246,11 @@ const vi: Record<TranslationKey, string> = {
   'nav.search':           'Bạn đang tìm gì?',
   'nav.signOut':          'Đăng xuất',
   'nav.settings':         'Cài đặt',
-  'nav.purchaseHistory':  'Lịch sử mua hàng',
-  'nav.adminPanel':       'Quản trị viên',
+  'nav.purchaseHistory':  'Đơn hàng của tôi',
+  'nav.adminPanel':       'Admin',
   'nav.currency':         'VI / VND',
   'nav.support':          'Hỗ trợ',
-  'nav.vision':           '🔍 Vision AI',
+  'nav.vision':           'AI Assistant',
 
   // ── Common ───────────────────────────────────────────────────────
   'common.loading':       'Đang tải…',

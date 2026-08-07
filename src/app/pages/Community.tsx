@@ -307,7 +307,7 @@ export function Community() {
     }
   };
 
-  /* ── Thread detail view ─────────────────────────────────────────────── */
+  /* â”€â”€ Thread detail view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const threadParam = searchParams.get('thread');
   if (threadParam || selectedPost) {
     if (!selectedPost) {
@@ -320,7 +320,7 @@ export function Community() {
 
     const isOwn = user != null && Number(selectedPost.user_id) === Number(user.id);
     return (
-      <div className="max-w-3xl mx-auto px-4 py-6 pb-32">
+      <div className="community-page max-w-5xl mx-auto px-4 sm:px-6 py-8 pb-32">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-xs mb-5 flex-wrap">
           <button onClick={closeThread} className="text-gs-faint hover:text-gs-accent transition-colors">
@@ -421,7 +421,7 @@ export function Community() {
                   rows={4}
                   value={replyDraft}
                   onChange={e => setReplyDraft(e.target.value)}
-                  placeholder="Enter your message here…"
+                  placeholder="Enter your message hereâ€¦"
                   className="w-full bg-gs-surface border border-gs-border rounded-lg px-3 py-2.5 text-sm text-gs-text placeholder-gs-faint resize-none focus:outline-none focus:border-gs-accent/50"
                 />
                 {replyError && <p className="text-xs text-red-400 mt-2">{replyError}</p>}
@@ -430,10 +430,10 @@ export function Community() {
                   onClick={handleSubmitReply}
                   disabled={replySubmitting || !replyDraft.trim()}
                   className="mt-3 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50 hover:opacity-90"
-                  style={{ background: 'var(--gs-accent)', color: '#fff' }}
+                  style={{ background: 'var(--gs-accent)', color: 'var(--gs-accent-fg, #071008)'  }}
                 >
                   {replySubmitting ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-                  {replySubmitting ? 'Posting…' : 'Post reply'}
+                  {replySubmitting ? 'Postingâ€¦' : 'Post reply'}
                 </button>
               </div>
             ) : (
@@ -447,9 +447,9 @@ export function Community() {
     );
   }
 
-  /* ── Thread list view ───────────────────────────────────────────────── */
+  /* â”€â”€ Thread list view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 pb-28 space-y-5">
+    <div className="community-page max-w-5xl mx-auto px-4 sm:px-6 py-8 pb-28 space-y-6">
 
       <div className="flex items-center justify-between">
         <div>
@@ -460,7 +460,7 @@ export function Community() {
           id="new-post-btn"
           onClick={handleOpenNew}
           className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
-          style={{ background: 'var(--gs-accent)', color: '#fff' }}
+          style={{ background: 'var(--gs-accent)', color: 'var(--gs-accent-fg, #071008)'  }}
         >
           <Plus className="size-4" /> New thread
         </button>
@@ -519,13 +519,13 @@ export function Community() {
                       <Crown className="size-2" strokeWidth={2.5} />
                     </span>
                   )}
-                  <span>·</span>
+                  <span>Â·</span>
                   <span>{(post.author_post_count ?? 1).toLocaleString()} posts</span>
-                  <span>·</span>
+                  <span>Â·</span>
                   <span>{(post.reply_count ?? 0).toLocaleString()} replies</span>
-                  <span>·</span>
+                  <span>Â·</span>
                   <span>{(post.views ?? 0).toLocaleString()} views</span>
-                  <span>·</span>
+                  <span>Â·</span>
                   <span>{timeAgo(post.created_at)}</span>
                 </p>
               </div>
@@ -583,13 +583,13 @@ export function Community() {
               </div>
               <div>
                 <label className="text-xs text-gs-muted font-semibold uppercase tracking-wide mb-1.5 block">Message</label>
-                <textarea rows={4} value={newBody} onChange={e => setNewBody(e.target.value)} placeholder="Write your post…" className="w-full bg-gs-surface-2 border border-gs-border rounded-lg px-3 py-2 text-sm text-gs-text resize-none focus:outline-none" />
+                <textarea rows={4} value={newBody} onChange={e => setNewBody(e.target.value)} placeholder="Write your postâ€¦" className="w-full bg-gs-surface-2 border border-gs-border rounded-lg px-3 py-2 text-sm text-gs-text resize-none focus:outline-none" />
               </div>
               {formError && <p className="text-xs text-red-400">{formError}</p>}
               <div className="flex gap-2 pt-1">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 border border-gs-border text-gs-muted py-2.5 rounded-lg text-sm">Cancel</button>
                 <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-60" style={{ background: 'var(--gs-accent)' }}>
-                  {submitting ? 'Saving…' : editingId ? 'Save' : 'Post'}
+                  {submitting ? 'Savingâ€¦' : editingId ? 'Save' : 'Post'}
                 </button>
               </div>
             </form>

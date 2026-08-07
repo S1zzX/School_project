@@ -1,5 +1,5 @@
 // src/app/components/VisionChat.tsx
-// AI chat panel — works as general gaming chat + image-aware mode
+// AI chat panel Ã¢â‚¬â€ works as general gaming chat + image-aware mode
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot } from 'lucide-react';
 import { apiVisionChat, isVisionProviderId, VISION_PROVIDER_STORAGE_KEY, type VisionProviderId, type VisionResult, type ChatMessage } from '../lib/api';
@@ -29,7 +29,7 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
   const welcomeMsg: ChatMessage = {
     role: 'assistant',
     content: hasContext
-      ? `I've analyzed your screenshot — it looks like a **${visionResult!.game}** ${visionResult!.type ?? 'screenshot'}${visionResult!.item ? ` (${visionResult!.item})` : ''}. Ask me anything about it!`
+      ? `I've analyzed your screenshot Ã¢â‚¬â€ it looks like a **${visionResult!.game}** ${visionResult!.type ?? 'screenshot'}${visionResult!.item ? ` (${visionResult!.item})` : ''}. Ask me anything about it!`
       : "Hi! I'm your gaming assistant. Upload a screenshot for image analysis, or just ask me anything about games, skins, trading, or pricing.",
   };
 
@@ -53,7 +53,7 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
     const intro: ChatMessage = {
       role: 'assistant',
       content: visionResult.detected
-        ? `I've analyzed your screenshot — **${visionResult.game}** ${visionResult.type ?? ''}${visionResult.item ? ` · ${visionResult.item}` : ''}. What would you like to know?`
+        ? `I've analyzed your screenshot Ã¢â‚¬â€ **${visionResult.game}** ${visionResult.type ?? ''}${visionResult.item ? ` Ã‚Â· ${visionResult.item}` : ''}. What would you like to know?`
         : `I couldn't detect a game in that screenshot. ${visionResult.description} Ask me anything!`,
     };
     setMessages(prev => [...prev, intro]);
@@ -115,13 +115,13 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
           <p className="text-sm font-semibold" style={{ color: 'var(--gs-text)' }}>AI Gaming Assistant</p>
           <p className="text-[11px] truncate" style={{ color: 'var(--gs-faint)' }}>
             {hasContext
-              ? `Context: ${visionResult!.game} · ${visionResult!.type}`
-              : 'General chat · upload a screenshot to add image context'}
+              ? `Context: ${visionResult!.game} Ã‚Â· ${visionResult!.type}`
+              : 'General chat Ã‚Â· upload a screenshot to add image context'}
           </p>
         </div>
         {hasContext && (
           <span className="flex items-center gap-1.5 shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
             <span className="text-[11px]" style={{ color: 'var(--gs-faint)' }}>Image loaded</span>
           </span>
         )}
@@ -143,7 +143,7 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
               className="max-w-[82%] text-sm px-3.5 py-2.5 rounded-2xl leading-relaxed"
               style={
                 msg.role === 'user'
-                  ? { background: 'var(--gs-accent)', color: '#fff', borderBottomRightRadius: 6 }
+                  ? { background: 'var(--gs-accent)', color: 'var(--gs-accent-fg, #071008)' , borderBottomRightRadius: 6 }
                   : { background: 'var(--gs-surface-2, #eef3fb)', color: 'var(--gs-text)', borderBottomLeftRadius: 6 }
               }
             >
@@ -172,7 +172,7 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
               {[0, 1, 2].map(d => (
                 <span
                   key={d}
-                  className="w-1.5 h-1.5 rounded-full animate-bounce"
+                  className="w-1.5 h-1.5 rounded-full gg-thinking-dot"
                   style={{ background: 'var(--gs-faint)', animationDelay: `${d * 150}ms` }}
                 />
               ))}
@@ -213,7 +213,7 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={hasContext ? 'Ask about this screenshot…' : 'Ask me anything about gaming…'}
+            placeholder={hasContext ? 'Ask about this screenshotÃ¢â‚¬Â¦' : 'Ask me anything about gamingÃ¢â‚¬Â¦'}
             disabled={loading}
             className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-sm"
             style={{ color: 'var(--gs-text)', maxHeight: 120, lineHeight: '1.5' }}
@@ -227,13 +227,13 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
             onClick={() => sendMessage(input)}
             disabled={!input.trim() || loading}
             className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-30"
-            style={{ background: 'var(--gs-accent)', color: '#fff' }}
+            style={{ background: 'var(--gs-accent)', color: 'var(--gs-accent-fg, #071008)'  }}
           >
             <Send className="size-3.5" />
           </button>
         </div>
         <p className="text-[10px] mt-1.5 text-center" style={{ color: 'var(--gs-faint)' }}>
-          Enter to send · Shift+Enter for new line
+          Enter to send Ã‚Â· Shift+Enter for new line
         </p>
       </div>
     </div>

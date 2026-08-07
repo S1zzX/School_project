@@ -57,6 +57,7 @@ Reference for the **GameGuide AI Assistant** codebase — a Vite + React fronten
 | `chat.js` | `/api/chat` | AI chat proxy (Groq) |
 | `vision.js` | `/api/vision` | Screenshot analysis (Groq vision) |
 | `analytics.js` | `/api/analytics` | Market summary, charts, top listings, price prediction |
+| `catalog.js` | `/api/catalog` | Live prices, Steam top sellers, Steam media, reviews, and Steam profiles |
 
 ---
 
@@ -112,6 +113,7 @@ Reference for the **GameGuide AI Assistant** codebase — a Vite + React fronten
 | `i18n.ts` | English / Vietnamese translation strings |
 | `products.ts` | Static catalog products (keys, software, gift cards) |
 | `catalog.ts` | Category definitions for header and home sections |
+| `useSteamTopGames.ts` | React hook for fetching live top-selling Steam games |
 | `purchaseHistory.ts` | Client-side purchase history helpers |
 | `cropImage.ts` | Canvas helper for avatar crop export |
 

@@ -5,7 +5,9 @@ GameGuide AI Assistant is a full-stack gaming marketplace built with React, Expr
 ## Features
 
 - Storefront for game keys, digital products, and community listings
-- Product detail pages with Steam trailers, screenshots, prices, player counts, and live Steam reviews
+- Live Steam Top Sellers chart (`IStoreTopSellers/GetWeeklyTopSellers`) with real-time price & image synchronization
+- Dynamic product detail pages for any Steam App ID (`/product/steam-top-[appid]`) with live Steam trailers, screenshots, prices, player counts, and reviews
+- Real Steam reviewer names & avatars fetched via official Steam Web API (`ISteamUser/GetPlayerSummaries`)
 - Cart, checkout, purchase history, and product-key delivery
 - Wallet top-up by MoMo or MB Bank with USD/VND conversion
 - Shop owner dashboard for listings, stock, orders, and AI-assisted scans
@@ -50,6 +52,7 @@ JWT_SECRET=replace_with_a_long_random_secret
 VISION_PROVIDER=auto
 GROQ_API_KEY=your_groq_api_key_here
 GEMINI_API_KEY=your_gemini_api_key_here
+STEAM_API_KEY=your_steam_web_api_key_here # Optional: enables real Steam reviewer persona names and weekly top sellers chart
 ```
 
 For local Ollama, use:

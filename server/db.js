@@ -67,6 +67,14 @@ db.exec(`
     category       TEXT,
     wear           TEXT,
     float          TEXT,
+    pattern        TEXT,
+    stattrak       INTEGER DEFAULT 0,
+    nametag        TEXT,
+    stickers       TEXT,
+    charms         TEXT,
+    gloves_item    TEXT,
+    gloves_float   TEXT,
+    gloves_pattern TEXT,
     rank           TEXT,
     hoursPlayed    INTEGER,
     skinsOwned     INTEGER,
@@ -238,6 +246,22 @@ if (!existingStoreCols.includes('description')) {
   db.exec(`ALTER TABLE store_listings ADD COLUMN description TEXT`);
   console.log('[db] Migration: added description column to store_listings');
 }
+const inspectCols = [
+  ['pattern', 'TEXT'],
+  ['stattrak', 'INTEGER DEFAULT 0'],
+  ['nametag', 'TEXT'],
+  ['stickers', 'TEXT'],
+  ['charms', 'TEXT'],
+  ['gloves_item', 'TEXT'],
+  ['gloves_float', 'TEXT'],
+  ['gloves_pattern', 'TEXT'],
+];
+for (const [col, def] of inspectCols) {
+  if (!existingStoreCols.includes(col)) {
+    db.exec(`ALTER TABLE store_listings ADD COLUMN ${col} ${def}`);
+    console.log(`[db] Migration: added ${col} column to store_listings`);
+  }
+}
 
 // ─── Trade requests migrations ───────────────────────────────────────────────
 try {
@@ -267,6 +291,76 @@ if (!viewsMigration) {
   db.exec(`UPDATE store_listings SET views = 0`);
   db.prepare(`INSERT INTO app_migrations (key) VALUES ('listing_views_live_v1')`).run();
   console.log('[db] Migration: reset listing views — now tracked live when users open listings');
+}
+
+const patternBackfill = db.prepare(`SELECT 1 AS ok FROM app_migrations WHERE key = 'skin_pattern_backfill_v1'`).get();
+if (!patternBackfill) {
+  try {
+    const skins = db.prepare(`
+      SELECT id, float FROM store_listings
+      WHERE LOWER(type) LIKE '%skin%' AND float IS NOT NULL AND float != ''
+        AND (pattern IS NULL OR pattern = '')
+    `).all();
+    const upd = db.prepare(`UPDATE store_listings SET pattern = ? WHERE id = ?`);
+    for (const row of skins) {
+      const seed = String(((Number(row.id) * 7919) + Math.floor(parseFloat(row.float) * 1e6 || 0)) % 1000);
+      upd.run(seed, row.id);
+    }
+    db.prepare(`INSERT INTO app_migrations (key) VALUES ('skin_pattern_backfill_v1')`).run();
+    console.log(`[db] Migration: backfilled pattern for ${skins.length} skin listings`);
+  } catch (err) {
+    console.warn('[db] pattern backfill skipped:', err.message);
+  }
+}
+
+// Enrich known demo skins with inspect extras (idempotent by migration key)
+const inspectDemo = db.prepare(`SELECT 1 AS ok FROM app_migrations WHERE key = 'skin_inspect_demo_v1'`).get();
+if (!inspectDemo) {
+  try {
+    const demos = [
+      {
+        item: 'AK-47 | Redline',
+        pattern: '661',
+        stickers: JSON.stringify([{ name: 'Team Liquid (Holo) | Katowice 2019' }, { name: 'Navi (Holo) | Stockholm 2021' }]),
+        gloves_item: 'Hand Wraps | Arboreal',
+        gloves_float: '0.0821',
+        gloves_pattern: '214',
+      },
+      { item: 'AWP | Dragon Lore', pattern: '17', nametag: 'SOUVENIR' },
+      { item: 'Karambit | Fade', pattern: '412', charms: JSON.stringify([{ name: 'Charm | Hot Howl' }]) },
+      { item: 'M4A4 | Howl', pattern: '88', stattrak: 1, stickers: JSON.stringify([{ name: 'Howl' }]) },
+      { item: 'Glock-18 | Fade', pattern: '763', gloves_item: "Sport Gloves | Pandora's Box", gloves_float: '0.0612', gloves_pattern: '91' },
+      { item: 'USP-S | Kill Confirmed', pattern: '255' },
+    ];
+    for (const d of demos) {
+      db.prepare(`
+        UPDATE store_listings SET
+          pattern = COALESCE(NULLIF(pattern, ''), @pattern),
+          stattrak = COALESCE(@stattrak, stattrak),
+          nametag = COALESCE(@nametag, nametag),
+          stickers = COALESCE(@stickers, stickers),
+          charms = COALESCE(@charms, charms),
+          gloves_item = COALESCE(@gloves_item, gloves_item),
+          gloves_float = COALESCE(@gloves_float, gloves_float),
+          gloves_pattern = COALESCE(@gloves_pattern, gloves_pattern)
+        WHERE type = 'skin' AND item = @item
+      `).run({
+        item: d.item,
+        pattern: d.pattern,
+        stattrak: d.stattrak ?? null,
+        nametag: d.nametag ?? null,
+        stickers: d.stickers ?? null,
+        charms: d.charms ?? null,
+        gloves_item: d.gloves_item ?? null,
+        gloves_float: d.gloves_float ?? null,
+        gloves_pattern: d.gloves_pattern ?? null,
+      });
+    }
+    db.prepare(`INSERT INTO app_migrations (key) VALUES ('skin_inspect_demo_v1')`).run();
+    console.log('[db] Migration: enriched demo skins for Test Mode');
+  } catch (err) {
+    console.warn('[db] inspect demo enrich skipped:', err.message);
+  }
 }
 
 // ─── Users migrations ────────────────────────────────────────────────────────

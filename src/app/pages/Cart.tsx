@@ -20,14 +20,14 @@ const PAYMENT_METHODS = [
   { id: 'gift',   label: 'Gift Card',             icon: Gift },
 ];
 
-// ── Steam-format key generator ───────────────────────────────────────────────
+// Steam-format key generator
 function generateSteamKey(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Steam avoids 0/O/1/I
   const seg = () => Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   return `${seg()}-${seg()}-${seg()}`;
 }
 
-// ── Account credentials generator ────────────────────────────────────────────
+// Account credentials generator
 function generateAccountCredentials(): string {
   const adjectives = ['Shadow', 'Mystic', 'Iron', 'Golden', 'Silent', 'Dark', 'Light', 'Epic', 'Pro'];
   const nouns = ['Player', 'Hunter', 'Wolf', 'Dragon', 'Knight', 'Mage', 'Sniper', 'Ninja'];
@@ -37,7 +37,7 @@ function generateAccountCredentials(): string {
   return `${randomUser}:${randomPass}`;
 }
 
-// ── Purchased key entry ──────────────────────────────────────────────────────
+// Purchased key entry
 interface PurchasedKey {
   name: string;
   platform: string;
@@ -46,7 +46,7 @@ interface PurchasedKey {
   type?: string;
 }
 
-// ── Steam-style keys reveal modal ────────────────────────────────────────────
+// Steam-style keys reveal modal
 function KeysRevealModal({ keys, orderId, onClose }: { keys: PurchasedKey[]; orderId: string; onClose: () => void }) {
   const [copied, setCopied] = useState<Record<number, boolean>>({});
 
@@ -94,7 +94,7 @@ function KeysRevealModal({ keys, orderId, onClose }: { keys: PurchasedKey[]; ord
                 Purchase Complete!
               </h2>
               <p className="text-xs" style={{ color: 'var(--gs-faint)' }}>
-                Order <span className="font-mono" style={{ color: 'var(--gs-accent)' }}>{orderId}</span> · {keys.length} key{keys.length !== 1 ? 's' : ''} ready
+                Order <span className="font-mono" style={{ color: 'var(--gs-accent)' }}>{orderId}</span> - {keys.length} key{keys.length !== 1 ? 's' : ''} ready
               </p>
             </div>
           </div>
@@ -119,7 +119,7 @@ function KeysRevealModal({ keys, orderId, onClose }: { keys: PurchasedKey[]; ord
                 How to redeem on Steam
               </p>
               <ol className="space-y-1 text-xs" style={{ color: 'var(--gs-faint)' }}>
-                <li>1. Open <span style={{ color: 'var(--gs-text)' }}>Steam</span> → click your username → <span style={{ color: 'var(--gs-text)' }}>Activate a Product on Steam</span></li>
+                <li>1. Open <span style={{ color: 'var(--gs-text)' }}>Steam</span>, then click your username, then <span style={{ color: 'var(--gs-text)' }}>Activate a Product on Steam</span></li>
                 <li>2. Enter your product key below and click <span style={{ color: 'var(--gs-text)' }}>Confirm</span></li>
                 <li>3. The game will be added to your library instantly</li>
               </ol>
@@ -212,12 +212,12 @@ function KeysRevealModal({ keys, orderId, onClose }: { keys: PurchasedKey[]; ord
             <ShoppingCart className="size-4" /> View Purchase History
           </Link>
           <p className="text-center text-xs" style={{ color: 'var(--gs-faint)' }}>
-            🔒 Keys are unique and single-use. Keep them safe and do not share them.
+            Locked: Keys are unique and single-use. Keep them safe and do not share them.
           </p>
           <button
             onClick={onClose}
             className="w-full py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90"
-            style={{ background: 'var(--gs-accent)', color: '#fff' }}
+            style={{ background: 'var(--gs-accent)', color: 'var(--gs-accent-fg, #071008)'  }}
           >
             Done
           </button>
@@ -227,7 +227,7 @@ function KeysRevealModal({ keys, orderId, onClose }: { keys: PurchasedKey[]; ord
   );
 }
 
-// ── Trade pending modal ──────────────────────────────────────────────────────
+// Trade pending modal
 interface TradePendingItem { name: string; game: string; price: number; image: string; }
 function TradePendingModal({ trades, orderId, onClose }: { trades: TradePendingItem[]; orderId: string; onClose: () => void }) {
   return (
@@ -254,7 +254,7 @@ function TradePendingModal({ trades, orderId, onClose }: { trades: TradePendingI
             </div>
             <div>
               <h2 className="font-bold text-base" style={{ color: 'var(--gs-text)' }}>Trade Request Submitted</h2>
-              <p className="text-xs" style={{ color: 'var(--gs-faint)' }}>Order <span className="font-mono" style={{ color: 'var(--gs-accent)' }}>{orderId}</span> · pending verification</p>
+              <p className="text-xs" style={{ color: 'var(--gs-faint)' }}>Order <span className="font-mono" style={{ color: 'var(--gs-accent)' }}>{orderId}</span> - pending verification</p>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gs-surface-2 transition-colors" style={{ color: 'var(--gs-faint)' }}>
@@ -279,7 +279,7 @@ function TradePendingModal({ trades, orderId, onClose }: { trades: TradePendingI
           <AlertCircle className="size-4 mt-0.5 shrink-0 text-red-400" />
           <p className="text-xs" style={{ color: 'var(--gs-faint)' }}>
             <span className="font-semibold text-red-400">Do not send payment</span> until the admin marks your trade as "Verified".
-            Never trade outside the platform — use the Support page to report issues.
+            Never trade outside the platform - use the Support page to report issues.
           </p>
         </div>
 
@@ -306,7 +306,7 @@ function TradePendingModal({ trades, orderId, onClose }: { trades: TradePendingI
           <Link to="/support?tab=trades" onClick={onClose} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border transition-all hover:opacity-90" style={{ borderColor: 'var(--gs-border)', color: 'var(--gs-muted)' }}>
             <ArrowLeftRight className="size-4" /> Track My Trade Status
           </Link>
-          <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90" style={{ background: 'var(--gs-accent)', color: '#fff' }}>
+          <button onClick={onClose} className="w-full py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90" style={{ background: 'var(--gs-accent)', color: 'var(--gs-accent-fg, #071008)'  }}>
             Got it
           </button>
         </div>
@@ -315,7 +315,7 @@ function TradePendingModal({ trades, orderId, onClose }: { trades: TradePendingI
   );
 }
 
-// ── Main Cart component ──────────────────────────────────────────────────────
+// Main Cart component
 export function Cart() {
   const navigate = useNavigate();
   const user = getUser();
@@ -417,7 +417,7 @@ export function Cart() {
 
       await apiClearCart();
 
-      // If any skin items → show trade pending modal (no key reveal)
+      // If any skin items -> show trade pending modal (no key reveal)
       if (skinItems.length > 0) {
         setTradePending(skinItems.map(i => ({
           name: i.name, game: i.game, price: i.price, image: i.image,
@@ -428,7 +428,7 @@ export function Cart() {
         return;
       }
 
-      // Instant items — generate keys as before
+      // Instant items - generate keys as before
       const keys: PurchasedKey[] = instantItems.map(item => ({
         name:     item.name,
         platform: item.platform,
@@ -465,10 +465,10 @@ export function Cart() {
     }
   };
 
-  // ── Not logged in ─────────────────────────────────────────────────────────
+  // Not logged in
   if (!user) {
     return (
-      <div className="max-w-7xl mx-auto px-5 py-20 flex flex-col items-center gap-5 text-center">
+      <div className="cart-page max-w-7xl mx-auto px-5 py-20 flex flex-col items-center gap-5 text-center">
         <div
           className="w-20 h-20 rounded-2xl flex items-center justify-center"
           style={{ background: 'color-mix(in oklab, var(--gs-accent) 12%, transparent)', border: '1px solid color-mix(in oklab, var(--gs-accent) 20%, transparent)' }}
@@ -481,7 +481,7 @@ export function Cart() {
           onClick={() => navigate('/login')}
           id="cart-login-btn"
           className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm accent-glow"
-          style={{ background: 'linear-gradient(135deg, var(--gs-accent), color-mix(in oklab, var(--gs-accent) 70%, #e879f9))', color: 'var(--gs-accent-fg)', fontWeight: 700 }}
+          style={{ background: 'linear-gradient(135deg, var(--gs-accent, #1a6fd4), var(--gs-accent2, #1557b0))', color: 'var(--gs-accent-fg, #fff)', fontWeight: 700 }}
         >
           <LogIn className="size-4" /> Sign In
         </button>
@@ -489,20 +489,20 @@ export function Cart() {
     );
   }
 
-  // ── Loading ───────────────────────────────────────────────────────────────
+  // Loading
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-5 py-20 flex flex-col items-center gap-4">
+      <div className="cart-page max-w-7xl mx-auto px-5 py-20 flex flex-col items-center gap-4">
         <div className="w-8 h-8 rounded-full border-2 border-gs-accent/30 border-t-gs-accent animate-spin" />
-        <p className="text-gs-faint text-sm">Loading your cart…</p>
+        <p className="text-gs-faint text-sm">Loading your cart...</p>
       </div>
     );
   }
 
-  // ── Empty cart ────────────────────────────────────────────────────────────
+  // Empty cart
   if (items.length === 0 && !purchasedKeys) {
     return (
-      <div className="max-w-7xl mx-auto px-5 py-16 flex flex-col items-center gap-5">
+      <div className="cart-page max-w-7xl mx-auto px-5 py-16 flex flex-col items-center gap-5">
         <div
           className="w-20 h-20 rounded-2xl flex items-center justify-center"
           style={{ background: 'color-mix(in oklab, var(--gs-accent) 12%, transparent)', border: '1px solid color-mix(in oklab, var(--gs-accent) 20%, transparent)' }}
@@ -517,7 +517,7 @@ export function Cart() {
           to="/"
           id="go-to-store-empty"
           className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm transition-all accent-glow"
-          style={{ background: 'linear-gradient(135deg, var(--gs-accent), color-mix(in oklab, var(--gs-accent) 70%, #e879f9))', color: 'var(--gs-accent-fg)', fontWeight: 700 }}
+          style={{ background: 'linear-gradient(135deg, var(--gs-accent, #1a6fd4), var(--gs-accent2, #1557b0))', color: 'var(--gs-accent-fg, #fff)', fontWeight: 700 }}
         >
           Browse Games <ChevronRight className="size-4" />
         </Link>
@@ -525,9 +525,9 @@ export function Cart() {
     );
   }
 
-  // ── Cart with items ───────────────────────────────────────────────────────
+  // Cart with items
   return (
-    <div className="max-w-7xl mx-auto px-5 py-8">
+    <div className="cart-page max-w-7xl mx-auto px-5 py-8">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div
@@ -539,7 +539,7 @@ export function Cart() {
         <div>
           <h1 className="text-gs-text" style={{ fontWeight: 700, fontSize: '1.25rem' }}>Your Cart</h1>
           <p className="text-gs-faint text-xs mt-0.5">
-            {items.length} item{items.length !== 1 ? 's' : ''} · signed in as{' '}
+            {items.length} item{items.length !== 1 ? 's' : ''} - signed in as{' '}
             <span className="text-gs-accent">{user.username}</span>
           </p>
         </div>
@@ -616,7 +616,7 @@ export function Cart() {
                       )}
                     </div>
                     <div className="flex items-center gap-1 text-gs-faint text-[10px]">
-                      <Key className="size-3" /> Steam Key · <ShieldCheck className="size-3" /> Verified
+                      <Key className="size-3" /> Steam Key - <ShieldCheck className="size-3" /> Verified
                     </div>
                   </div>
                 </div>
@@ -635,7 +635,7 @@ export function Cart() {
             {promoApplied ? (
               <div className="flex items-center gap-2 text-emerald-400 text-sm bg-emerald-400/10 border border-emerald-400/20 rounded-lg px-3 py-2.5">
                 <CheckCircle2 className="size-4 shrink-0" />
-                <span style={{ fontWeight: 600 }}>GAME10 applied — 10% off!</span>
+                <span style={{ fontWeight: 600 }}>GAME10 applied - 10% off!</span>
               </div>
             ) : (
               <div className="flex gap-2">
@@ -651,7 +651,7 @@ export function Cart() {
                   id="apply-promo-btn"
                   onClick={applyPromo}
                   className="shrink-0 px-3 py-2 rounded-lg text-xs"
-                  style={{ background: 'var(--gs-accent)', color: 'var(--gs-accent-fg)', fontWeight: 600 }}
+                  style={{ background: 'var(--gs-accent)', color: 'var(--gs-accent-fg, #fff)', fontWeight: 600 }}
                 >
                   Apply
                 </button>
@@ -724,12 +724,12 @@ export function Cart() {
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-emerald-400">
-                  <span>Promo (10%)</span><span>−${discount.toFixed(2)}</span>
+                  <span>Promo (10%)</span><span>-${discount.toFixed(2)}</span>
                 </div>
               )}
               {savings > 0 && (
                 <div className="flex justify-between text-emerald-400">
-                  <span>Sale savings</span><span>−${(savings - discount).toFixed(2)}</span>
+                  <span>Sale savings</span><span>-${(savings - discount).toFixed(2)}</span>
                 </div>
               )}
               <div className="h-px bg-gs-border" />
@@ -738,7 +738,7 @@ export function Cart() {
               </div>
               {savings > 0 && (
                 <p className="text-emerald-400 text-xs text-center bg-emerald-400/8 border border-emerald-400/20 rounded-lg py-1.5" style={{ fontWeight: 600 }}>
-                  You save ${savings.toFixed(2)} 🎉
+                  You save ${savings.toFixed(2)}!
                 </p>
               )}
             </div>
@@ -757,20 +757,20 @@ export function Cart() {
               disabled={purchasing || items.length === 0 || !walletCanPay}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm transition-all accent-glow"
               style={{
-                background: 'linear-gradient(135deg, var(--gs-accent), color-mix(in oklab, var(--gs-accent) 70%, #e879f9))',
-                color: 'var(--gs-accent-fg)',
+                background: 'linear-gradient(135deg, var(--gs-accent, #1a6fd4), var(--gs-accent2, #1557b0))',
+                color: 'var(--gs-accent-fg, #fff)',
                 fontWeight: 700,
                 opacity: (purchasing || items.length === 0 || !walletCanPay) ? 0.7 : 1,
                 cursor: (purchasing || items.length === 0 || !walletCanPay) ? 'not-allowed' : 'pointer',
               }}
             >
               {purchasing
-                ? <><span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" style={{ display: 'inline-block' }} />Processing…</>
+                ? <><span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" style={{ display: 'inline-block' }} />Processing...</>
                 : <><Key className="size-4" />{paymentMethod === 'wallet' ? 'Pay from Wallet' : `Pay $${total.toFixed(2)} & Checkout`}</>
               }
             </button>
             <div className="flex items-center justify-center gap-1.5 text-gs-faint text-xs">
-              <ShieldCheck className="size-3.5" /> Secure checkout · Instant delivery
+              <ShieldCheck className="size-3.5" /> Secure checkout - Instant delivery
             </div>
           </div>
 

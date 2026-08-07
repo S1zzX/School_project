@@ -1,7 +1,7 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 const AUTH_HERO_IMAGE =
-  'https://images.unsplash.com/photo-1767800766429-7179fd80948f?auto=format&fit=crop&w=1600&q=85';
+  'https://images.unsplash.com/photo-1542751110-97427bbecf20?auto=format&fit=crop&w=1600&q=85';
 
 export function AuthLogo() {
   return (
@@ -86,7 +86,7 @@ export function AuthPrimaryButton({
       {loading ? (
         <span className="inline-flex items-center gap-2">
           <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-          {loadingText ?? 'Please wait…'}
+          {loadingText ?? 'Please wait...'}
         </span>
       ) : (
         children
@@ -140,15 +140,6 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
   return (
     <div
       className="auth-page min-h-screen flex items-center justify-center p-4 sm:p-6 text-gs-text"
-      style={{
-        '--gs-bg': '#eef5ff',
-        '--gs-surface': '#ffffff',
-        '--gs-surface-2': '#f3f7fc',
-        '--gs-text': '#152238',
-        '--gs-muted': '#52657f',
-        '--gs-faint': '#8798ae',
-        '--gs-border': '#d8e3f0',
-      } as CSSProperties}
     >
       <div className="auth-ambient auth-ambient-one" />
       <div className="auth-ambient auth-ambient-two" />
@@ -160,7 +151,7 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
           borderRadius: 24,
         }}
       >
-        {/* Left — form */}
+        {/* Left form */}
         <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 py-10 sm:py-12 overflow-y-auto bg-gs-surface min-w-0">
           <AuthLogo />
 
@@ -182,7 +173,7 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
           <div className="mt-6 text-center text-sm text-gs-faint">{footer}</div>
         </div>
 
-        {/* Right — hero art */}
+        {/* Right hero art */}
         <div className="hidden md:block relative flex-1 bg-gs-surface-2" style={{ minWidth: 380 }}>
           <img
             src={AUTH_HERO_IMAGE}
@@ -198,10 +189,10 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
           />
           <div className="absolute left-8 right-8 bottom-8 text-white">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] backdrop-blur-md">
-              Your quiet gaming corner
+              Arena access
             </span>
-            <h2 className="mt-4 text-3xl font-black tracking-tight">Pause. Play.<br />Explore.</h2>
-            <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/75">Settle in, discover something new, and let GameGuide handle the details.</p>
+            <h2 className="mt-4 text-3xl font-black tracking-tight">Enter the<br />player deck.</h2>
+            <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/75">Sign in to trade, scan, top up, and control your gaming catalog.</p>
           </div>
         </div>
       </div>

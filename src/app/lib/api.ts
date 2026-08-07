@@ -409,6 +409,11 @@ export async function apiUpdateProfile(data: ProfileUpdate): Promise<AuthUser> {
 
 // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Store helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
+export interface StoreListingAttachment {
+  name: string;
+  image?: string | null;
+}
+
 export interface StoreListingAPI {
   id: string;
   user_id: number;
@@ -418,6 +423,14 @@ export interface StoreListingAPI {
   category?: string;
   wear?: string;
   float?: string;
+  pattern?: string | null;
+  stattrak?: boolean;
+  nametag?: string | null;
+  stickers?: StoreListingAttachment[];
+  charms?: StoreListingAttachment[];
+  gloves_item?: string | null;
+  gloves_float?: string | null;
+  gloves_pattern?: string | null;
   rank?: string;
   hoursPlayed?: number;
   skinsOwned?: number;
@@ -437,8 +450,34 @@ export interface StoreListingAPI {
   created_at: string;
 }
 
+export interface SkinInspectPayload {
+  listing: StoreListingAPI;
+  inspect: {
+    mode: 'test';
+    weapon: string;
+    skin: string;
+    float: string;
+    pattern: string;
+    wear: string | null;
+    stattrak: boolean;
+    nametag: string | null;
+    stickers: StoreListingAttachment[];
+    charms: StoreListingAttachment[];
+    gloves: { item: string; float: string; pattern: string } | null;
+    image: string | null;
+    catalogueImage: string | null;
+    rarity: string | null;
+    paint_index: string | number | null;
+    readonly: { float: boolean; pattern: boolean; weapon: boolean; skin: boolean };
+  };
+}
+
 export function apiGetStoreListings() {
   return apiFetch<StoreListingAPI[]>('/store');
+}
+
+export function apiGetSkinInspect(id: string | number) {
+  return apiFetch<SkinInspectPayload>(`/store/${id}/inspect`);
 }
 
 export function apiIncrementListingView(id: string | number) {
@@ -447,6 +486,72 @@ export function apiIncrementListingView(id: string | number) {
 
 export function apiCreateStoreListing(listing: Partial<StoreListingAPI>) {
   return apiFetch<StoreListingAPI>('/store', { method: 'POST', body: listing });
+}
+
+/** True when a listing can open listing-accurate Test Mode. */
+export function canTestSkin(listing: Pick<StoreListingAPI, 'type' | 'float' | 'pattern'>) {
+  if (listing.type !== 'skin' || !listing.float || String(listing.float).trim() === '') return false;
+  // Pattern is required for trustworthy Test Mode; treat "0" as valid seed.
+  return listing.pattern != null && String(listing.pattern).trim() !== '';
+}
+
+export interface Cs2SkinVisual {
+  name: string;
+  image: string | null;
+  weapon: string;
+  rarity?: string | null;
+  paint_index?: string | number | null;
+}
+
+export function apiSearchCs2Skins(params: { q?: string; weapon?: string; limit?: number } = {}) {
+  const qs = new URLSearchParams();
+  if (params.q) qs.set('q', params.q);
+  if (params.weapon) qs.set('weapon', params.weapon);
+  if (params.limit) qs.set('limit', String(params.limit));
+  const suffix = qs.toString() ? `?${qs}` : '';
+  return apiFetch<{ skins: Cs2SkinVisual[] }>(`/catalog/cs2-skins${suffix}`, { auth: false });
+}
+
+export function apiSearchCs2Gloves(params: { q?: string; limit?: number } = {}) {
+  const qs = new URLSearchParams();
+  if (params.q) qs.set('q', params.q);
+  if (params.limit) qs.set('limit', String(params.limit));
+  const suffix = qs.toString() ? `?${qs}` : '';
+  return apiFetch<{ gloves: Cs2SkinVisual[] }>(`/catalog/cs2-gloves${suffix}`, { auth: false });
+}
+
+export interface Cs2AttachItem {
+  name: string;
+  image: string | null;
+  category?: string | null;
+  rarity?: string | null;
+}
+
+export function apiSearchCs2Charms(params: { q?: string; category?: string; limit?: number } = {}) {
+  const qs = new URLSearchParams();
+  if (params.q) qs.set('q', params.q);
+  if (params.category) qs.set('category', params.category);
+  if (params.limit) qs.set('limit', String(params.limit));
+  const suffix = qs.toString() ? `?${qs}` : '';
+  return apiFetch<{ charms: Cs2AttachItem[]; categories: string[] }>(`/catalog/cs2-charms${suffix}`, { auth: false });
+}
+
+export function apiSearchCs2Stickers(params: { q?: string; category?: string; limit?: number } = {}) {
+  const qs = new URLSearchParams();
+  if (params.q) qs.set('q', params.q);
+  if (params.category) qs.set('category', params.category);
+  if (params.limit) qs.set('limit', String(params.limit));
+  const suffix = qs.toString() ? `?${qs}` : '';
+  return apiFetch<{ stickers: Cs2AttachItem[]; categories: string[] }>(`/catalog/cs2-stickers${suffix}`, { auth: false });
+}
+
+export function apiListCs2Weapons() {
+  return apiFetch<{ weapons: string[] }>('/catalog/cs2-weapons', { auth: false });
+}
+
+export function apiGetCs2SkinVisual(name: string) {
+  const qs = new URLSearchParams({ name });
+  return apiFetch<Cs2SkinVisual>(`/catalog/cs2-skin-visual?${qs}`, { auth: false });
 }
 
 // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Chatbot helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
@@ -983,6 +1088,21 @@ export interface SteamMediaAPI {
 
 export function apiGetSteamMedia(appid: number) {
   return apiFetch<SteamMediaAPI>(`/catalog/steam-media/${appid}`, { auth: false });
+}
+
+export interface SteamAppAPI {
+  appid: number;
+  name: string;
+  headerImage: string;
+  price: number;
+  origPrice: number | null;
+  discount: number;
+  isFree: boolean;
+  fetchedAt: string;
+}
+
+export function apiGetSteamApp(appid: number) {
+  return apiFetch<SteamAppAPI>(`/catalog/steam-app/${appid}`, { auth: false });
 }
 
 export type SteamReviewSortAPI = 'recent' | 'updated' | 'all';

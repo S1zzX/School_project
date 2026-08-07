@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router';
 import {
   SlidersHorizontal, User, Bell,
   ChevronRight, Check, Monitor, Sun, Moon,
-  Eye, EyeOff, Loader2, CheckCircle2, AlertCircle, Camera,
+  Eye, EyeOff, Loader2, CheckCircle2, AlertCircle, Camera, LockKeyhole,
 } from 'lucide-react';
 import { useAppSettings, ACCENT_MAP, type AccentKey, type ColorMode, type AppLanguage } from '../lib/AppContext';
 import { getUser, apiUpdateProfile, apiGetNotificationPrefs, apiUpdateNotificationPrefs, type NotificationPrefs } from '../lib/api';
@@ -21,7 +21,7 @@ const COLOR_MODE_LIST: { mode: ColorMode; modeKey: 'light'|'auto'|'dark'; Icon: 
   { mode: 'dark',  modeKey: 'dark',  Icon: Moon    },
 ];
 
-/* ── Colour-mode preview mini-mockups ─────────────────────────────────── */
+/* Colour-mode preview mini-mockups */
 function LightPreview() {
   return (
     <div className="w-full h-full bg-[#f5f5f7] flex flex-col p-1.5 gap-1">
@@ -70,7 +70,7 @@ const PREVIEWS: Record<ColorMode, FC> = {
   dark:  DarkPreview,
 };
 
-/* ── Toggle switch ────────────────────────────────────────────────────── */
+/* Toggle switch */
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
     <button
@@ -91,7 +91,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
   );
 }
 
-/* ── Password input with show/hide ───────────────────────────────────── */
+/* Password input with show/hide */
 function PasswordInput({ value, onChange, placeholder }: {
   value: string; onChange: (v: string) => void; placeholder: string;
 }) {
@@ -124,7 +124,7 @@ function PasswordInput({ value, onChange, placeholder }: {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════════ */
+/* Settings page */
 export function Settings() {
   const { colorMode, setColorMode, accentKey, setAccentKey, language, setLanguage, isGuest } = useAppSettings();
   const t = useT();
@@ -278,7 +278,7 @@ export function Settings() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--gs-bg)' }}>
+    <div className="settings-page min-h-screen" style={{ background: 'var(--gs-bg)' }}>
       {/* Page header */}
       <div className="px-8 pt-8 pb-6">
         <h1 className="text-2xl" style={{ color: 'var(--gs-text)', fontWeight: 700 }}>{t('settings.title')}</h1>
@@ -288,7 +288,7 @@ export function Settings() {
       </div>
 
       <div className="flex px-8 pb-12 gap-6">
-        {/* ── Left nav ────────────────────────────────────────────────── */}
+        {/* Left nav */}
         <nav className="w-48 shrink-0 space-y-0.5">
           {sideGroups.map(g => (
             <div key={g.key}>
@@ -335,10 +335,10 @@ export function Settings() {
           ))}
         </nav>
 
-        {/* ── Right content ────────────────────────────────────────────── */}
+        {/* Right content */}
         <div className="flex-1 max-w-3xl space-y-4">
 
-          {/* ── APPEARANCE ── */}
+          {/* APPEARANCE */}
           {section === 'appearance' && (
             <div className="rounded-2xl border p-8" style={{ background: 'var(--gs-surface)', borderColor: 'var(--gs-border)' }}>
               {/* Guest notice */}
@@ -351,7 +351,7 @@ export function Settings() {
                     color: 'var(--gs-muted)',
                   }}
                 >
-                  <span style={{ fontSize: 18 }}>🔒</span>
+                  <LockKeyhole className="size-4 shrink-0" style={{ color: 'var(--gs-accent)' }} />
                   <span>
                     <strong style={{ color: 'var(--gs-text)' }}>Sign in</strong> to customise your appearance. Guests always use light mode.
                   </span>
@@ -438,7 +438,7 @@ export function Settings() {
             </div>
           )}
 
-          {/* ── LANGUAGE ── */}
+          {/* LANGUAGE */}
           {section === 'language' && (
             <div className="rounded-2xl border p-8" style={{ background: 'var(--gs-surface)', borderColor: 'var(--gs-border)' }}>
               <div className="flex gap-8">
@@ -483,7 +483,7 @@ export function Settings() {
             </div>
           )}
 
-          {/* ── PREFERENCES ── */}
+          {/* PREFERENCES */}
           {section === 'preferences' && (
             <div className="rounded-2xl border p-8" style={{ background: 'var(--gs-surface)', borderColor: 'var(--gs-border)' }}>
               <div className="flex gap-8">
@@ -513,7 +513,7 @@ export function Settings() {
             </div>
           )}
 
-          {/* ── ACCOUNT ── */}
+          {/* ACCOUNT */}
           {section === 'account' && (
             <div className="rounded-2xl border p-8 space-y-6" style={{ background: 'var(--gs-surface)', borderColor: 'var(--gs-border)' }}>
               {/* Avatar */}
@@ -681,7 +681,7 @@ export function Settings() {
             </div>
           )}
 
-          {/* ── NOTIFICATIONS ── */}
+          {/* NOTIFICATIONS */}
           {section === 'notifications' && (
             <div className="rounded-2xl border p-8" style={{ background: 'var(--gs-surface)', borderColor: 'var(--gs-border)' }}>
               <div className="flex gap-8">

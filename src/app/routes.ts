@@ -16,11 +16,13 @@ import { ShopOwner } from './pages/ShopOwner';
 import { VisionPage } from './pages/VisionPage';
 import { Analytics } from './pages/Analytics';
 import { TopUp } from './pages/TopUp';
+import { SkinTester } from './pages/SkinTester';
 
 export const router = createBrowserRouter([
-  // Auth pages (no Layout shell — full-screen)
+  // Auth + fullscreen tools (no Layout shell)
   { path: '/login', Component: Login },
   { path: '/register', Component: Register },
+  { path: '/skin-tester', Component: SkinTester },
   // Main app shell
   {
     path: '/',

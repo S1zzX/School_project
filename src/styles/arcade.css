@@ -1,0 +1,689 @@
+/* GameGuide Arena redesign: light-first launcher UI with cyan action color. */
+:root {
+  --gg-ink: #eef6fb;
+  --gg-deck: #f7fbfe;
+  --gg-panel: #ffffff;
+  --gg-panel-2: #e7f2f8;
+  --gg-panel-alpha: rgba(255, 255, 255, 0.92);
+  --gg-shell-alpha: rgba(255, 255, 255, 0.86);
+  --gg-shell-strong: rgba(255, 255, 255, 0.96);
+  --gg-line: rgba(12, 74, 110, 0.16);
+  --gg-line-strong: rgba(14, 165, 233, 0.38);
+  --gg-text: #0b1720;
+  --gg-muted: #466170;
+  --gg-faint: #78909d;
+  --gg-action: #0284c7;
+  --gg-action-fg: #ffffff;
+  --gg-info: #06b6d4;
+  --gg-danger: #e11d48;
+  --gg-shadow: 0 24px 70px rgba(10, 37, 64, 0.13);
+  --gg-radius: 18px;
+  --gs-bg: var(--gg-ink);
+  --gs-surface: var(--gg-panel);
+  --gs-surface-2: var(--gg-panel-2);
+  --gs-surface-dark: #d5e8f1;
+  --gs-border: var(--gg-line);
+  --gs-text: var(--gg-text);
+  --gs-muted: var(--gg-muted);
+  --gs-faint: var(--gg-faint);
+  --gs-accent: var(--gg-action);
+  --gs-accent-fg: var(--gg-action-fg);
+  --gs-accent2: var(--gg-info);
+  --gs-glow: rgba(14, 165, 233, 0.2);
+  --gs-sale: var(--gg-danger);
+  --gs-sidebar-width: 292px;
+  --gs-sidebar-bg: rgba(255, 255, 255, 0.86);
+  --gs-sidebar-border: rgba(12, 74, 110, 0.16);
+  --background: var(--gg-ink);
+  --foreground: var(--gg-text);
+  --card: var(--gg-panel);
+  --card-foreground: var(--gg-text);
+  --popover: var(--gg-panel);
+  --popover-foreground: var(--gg-text);
+  --primary: var(--gg-action);
+  --primary-foreground: var(--gg-action-fg);
+  --secondary: var(--gg-panel-2);
+  --secondary-foreground: var(--gg-text);
+  --muted: var(--gg-panel-2);
+  --muted-foreground: var(--gg-muted);
+  --accent: rgba(14, 165, 233, 0.11);
+  --accent-foreground: var(--gg-action);
+  --border: var(--gg-line);
+  --input: rgba(12, 74, 110, 0.08);
+  --ring: rgba(14, 165, 233, 0.34);
+}
+
+.dark {
+  --gg-ink: #060b10;
+  --gg-deck: #0b1118;
+  --gg-panel: #101923;
+  --gg-panel-2: #162331;
+  --gg-panel-alpha: rgba(16, 25, 35, 0.9);
+  --gg-shell-alpha: rgba(8, 13, 19, 0.9);
+  --gg-shell-strong: rgba(8, 13, 19, 0.96);
+  --gg-line: rgba(232, 249, 255, 0.14);
+  --gg-line-strong: rgba(56, 189, 248, 0.42);
+  --gg-text: #f1f8fc;
+  --gg-muted: #a9bdc9;
+  --gg-faint: #667b87;
+  --gg-action: #38bdf8;
+  --gg-action-fg: #03131d;
+  --gg-info: #67e8f9;
+  --gg-danger: #fb7185;
+  --gg-shadow: 0 28px 80px rgba(0, 0, 0, 0.44);
+  --gs-bg: var(--gg-ink);
+  --gs-surface: var(--gg-panel);
+  --gs-surface-2: var(--gg-panel-2);
+  --gs-surface-dark: #05080c;
+  --gs-border: var(--gg-line);
+  --gs-text: var(--gg-text);
+  --gs-muted: var(--gg-muted);
+  --gs-faint: var(--gg-faint);
+  --gs-accent: var(--gg-action);
+  --gs-accent-fg: var(--gg-action-fg);
+  --gs-accent2: var(--gg-info);
+  --gs-glow: rgba(56, 189, 248, 0.2);
+  --gs-sale: var(--gg-danger);
+  --gs-sidebar-bg: rgba(8, 13, 19, 0.9);
+  --gs-sidebar-border: rgba(56, 189, 248, 0.2);
+  --background: var(--gg-ink);
+  --foreground: var(--gg-text);
+  --card: var(--gg-panel);
+  --card-foreground: var(--gg-text);
+  --popover: #0d141d;
+  --popover-foreground: var(--gg-text);
+  --primary: var(--gg-action);
+  --primary-foreground: var(--gg-action-fg);
+  --secondary: var(--gg-panel-2);
+  --secondary-foreground: var(--gg-text);
+  --muted: var(--gg-panel-2);
+  --muted-foreground: var(--gg-muted);
+  --accent: rgba(56, 189, 248, 0.12);
+  --accent-foreground: var(--gg-action);
+  --border: var(--gg-line);
+  --input: rgba(255, 255, 255, 0.07);
+  --ring: rgba(56, 189, 248, 0.42);
+}
+html,
+body {
+  background: var(--gg-ink) !important;
+  color: var(--gg-text) !important;
+}
+
+body { min-height: 100dvh; }
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(118deg, rgba(14, 165, 233, 0.14) 0 8%, transparent 8% 58%, rgba(6, 182, 212, 0.1) 58% 66%, transparent 66%),
+    radial-gradient(ellipse at 72% 18%, rgba(14, 165, 233, 0.14), transparent 34rem),
+    linear-gradient(180deg, #f8fcff 0%, #eef6fb 48%, #e4f1f8 100%);
+}
+
+.dark body::before {
+  background:
+    linear-gradient(118deg, rgba(56, 189, 248, 0.16) 0 8%, transparent 8% 58%, rgba(103, 232, 249, 0.1) 58% 66%, transparent 66%),
+    radial-gradient(ellipse at 72% 18%, rgba(56, 189, 248, 0.18), transparent 36rem),
+    linear-gradient(180deg, #090f15 0%, #060b10 46%, #0c141d 100%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.18;
+  background:
+    repeating-linear-gradient(0deg, rgba(12, 74, 110, 0.035) 0 1px, transparent 1px 6px),
+    linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.08), transparent);
+}
+
+.dark body::after {
+  opacity: 0.22;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 6px),
+    linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.08), transparent);
+  mix-blend-mode: screen;
+}
+
+::selection { background: var(--gg-action); color: var(--gg-action-fg); }
+a, button { text-decoration: none; }
+button, input, textarea, select { color: inherit; }
+
+input,
+textarea,
+select,
+.auth-input {
+  color-scheme: light !important;
+  border-color: var(--gg-line) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: var(--gg-text) !important;
+}
+
+
+.dark input,
+.dark textarea,
+.dark select,
+.dark .auth-input {
+  color-scheme: dark !important;
+}
+input::placeholder,
+textarea::placeholder { color: rgba(170, 181, 173, 0.72) !important; }
+
+input:focus,
+textarea:focus,
+select:focus,
+.auth-input:focus {
+  border-color: var(--gg-action) !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16) !important;
+}
+
+.gg-app-shell { min-height: 100dvh; background: transparent !important; }
+
+.gg-app-shell::before {
+  content: "GG";
+  position: fixed;
+  right: clamp(1rem, 3vw, 3rem);
+  bottom: clamp(1rem, 3vw, 3rem);
+  z-index: -1;
+  color: rgba(255, 255, 255, 0.025);
+  font-size: clamp(8rem, 18vw, 21rem);
+  font-weight: 900;
+  line-height: 0.75;
+  letter-spacing: -0.08em;
+  pointer-events: none;
+}
+
+.gg-command-shell { padding: 16px; }
+
+.gg-dock,
+.gg-mobile-dock,
+.gg-topbar,
+.gg-user-menu,
+.gg-catalog-menu {
+  border: 1px solid rgba(14, 165, 233, 0.18) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), transparent 38%),
+    var(--gg-shell-alpha) !important;
+  box-shadow: var(--gg-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+  backdrop-filter: blur(24px) saturate(1.15);
+  -webkit-backdrop-filter: blur(24px) saturate(1.15);
+}
+
+.gg-dock,
+.gg-mobile-dock { border-radius: 28px 16px 28px 16px !important; }
+.gg-dock { height: calc(100dvh - 32px); }
+
+.gg-brand-block {
+  min-height: 72px;
+  border: 1px solid rgba(14, 165, 233, 0.18);
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.16), transparent 56%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.gg-brand-block img {
+  border-radius: 16px !important;
+  box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.32), 0 18px 40px rgba(14, 165, 233, 0.12);
+}
+
+.gg-status-tile {
+  border-color: rgba(14, 165, 233, 0.24) !important;
+  background:
+    linear-gradient(145deg, rgba(14, 165, 233, 0.14), transparent 48%),
+    rgba(255, 255, 255, 0.045) !important;
+}
+
+.gg-status-tile::after { display: none !important; }
+
+.gg-dock-link,
+.gg-catalog-trigger,
+.gg-catalog-option,
+.gg-user-menu-item { border-radius: 14px 8px 14px 8px !important; }
+
+.gg-dock-link {
+  border: 1px solid transparent !important;
+  color: var(--gg-muted) !important;
+}
+
+.gg-dock-link:hover,
+.gg-dock-link.is-active {
+  color: var(--gg-action) !important;
+  border-color: rgba(14, 165, 233, 0.34) !important;
+  background: rgba(14, 165, 233, 0.1) !important;
+  box-shadow: inset 3px 0 0 var(--gg-action);
+}
+
+.gg-catalog-trigger,
+.gg-command-search,
+.gg-icon-button,
+.gg-user-chip,
+.gg-signin-button {
+  border-color: var(--gg-line) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: var(--gg-text) !important;
+}
+
+.gg-command-search { border-radius: 18px 10px 18px 10px !important; }
+
+.gg-command-search:focus-within {
+  border-color: var(--gg-action) !important;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12) !important;
+}
+
+.gg-topbar { border-radius: 24px 14px 24px 14px !important; }
+.gg-icon-button { border-radius: 14px 8px 14px 8px !important; }
+
+.gg-icon-button:hover,
+.gg-user-chip:hover,
+.gg-catalog-trigger:hover {
+  border-color: rgba(14, 165, 233, 0.4) !important;
+  color: var(--gg-action) !important;
+}
+
+.gg-signin-button,
+.gg-action-primary,
+.accent-glow,
+button.bg-gs-accent,
+a.bg-gs-accent {
+  background: var(--gg-action) !important;
+  color: var(--gg-action-fg) !important;
+  box-shadow: 0 16px 44px rgba(14, 165, 233, 0.16) !important;
+}
+
+.gg-action-primary:hover,
+.gg-signin-button:hover,
+button.bg-gs-accent:hover,
+a.bg-gs-accent:hover { filter: brightness(1.06) saturate(1.08); }
+
+.gg-action-secondary {
+  border-color: var(--gg-line) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: var(--gg-text) !important;
+}
+
+.gg-cart-badge { background: var(--gg-danger) !important; color: white !important; }
+.gg-footer { border-color: var(--gg-line) !important; color: var(--gg-faint) !important; }
+
+.gg-page-shell,
+.store-marketplace,
+.commerce-page,
+.vision-page,
+.ops-page,
+.settings-page,
+.community-page,
+.support-page,
+.cart-page,
+.purchase-history-page,
+.wallet-page,
+.shop-owner-page {
+  width: min(100%, 1540px) !important;
+  max-width: 1540px !important;
+  margin-inline: auto !important;
+  padding: clamp(1rem, 2vw, 2rem) clamp(1rem, 2.3vw, 2.4rem) 3rem !important;
+}
+
+.gg-panel,
+.gg-game-tile,
+.gs-product-card,
+.gg-feature-card,
+.commerce-order-card,
+.commerce-info-card,
+.ops-section-card,
+.vision-work-card,
+.vision-chat-panel,
+.vision-steps,
+.settings-page .rounded-2xl.border,
+.cart-page .rounded-xl,
+.cart-page .rounded-2xl,
+.store-marketplace section,
+.support-page .bg-gs-surface,
+.community-page .bg-gs-surface,
+.auth-card {
+  border: 1px solid var(--gg-line) !important;
+  border-radius: var(--gg-radius) 10px var(--gg-radius) 10px !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), transparent 42%),
+    var(--gg-panel-alpha) !important;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+.gg-panel:hover,
+.gg-game-tile:hover,
+.gs-product-card:hover,
+.gg-feature-card:hover,
+.commerce-order-card:hover,
+.commerce-info-card:hover,
+.ops-section-card:hover {
+  border-color: rgba(14, 165, 233, 0.34) !important;
+  box-shadow: 0 28px 86px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(14, 165, 233, 0.08) !important;
+}
+
+.gg-section-title,
+.store-marketplace h1,
+.commerce-page h1,
+.vision-page h1,
+.ops-page h1,
+.settings-page h1,
+.community-page h1,
+.support-page h1,
+.cart-page h1 {
+  color: var(--gg-text) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.text-gs-text { color: var(--gg-text) !important; }
+.text-gs-muted { color: var(--gg-muted) !important; }
+.text-gs-faint { color: var(--gg-faint) !important; }
+.text-gs-accent { color: var(--gg-action) !important; }
+.bg-gs-bg { background-color: var(--gg-ink) !important; }
+.bg-gs-surface { background-color: var(--gg-panel) !important; }
+.bg-gs-surface-2 { background-color: var(--gg-panel-2) !important; }
+.bg-gs-accent { background-color: var(--gg-action) !important; }
+.border-gs-border { border-color: var(--gg-line) !important; }
+
+.rounded-3xl,
+.rounded-2xl,
+.rounded-xl,
+.rounded-lg { border-radius: var(--gg-radius) 10px var(--gg-radius) 10px; }
+
+.store-marketplace > section:first-of-type,
+.commerce-hero,
+.vision-hero,
+.ops-hero,
+.cart-page > .flex.items-center.gap-3.mb-8 {
+  border-radius: 28px 12px 28px 12px !important;
+  background:
+    linear-gradient(118deg, rgba(14, 165, 233, 0.16) 0 12%, transparent 12% 64%, rgba(69, 215, 255, 0.12) 64% 72%, transparent 72%),
+    var(--gg-panel-alpha) !important;
+  border-color: rgba(14, 165, 233, 0.24) !important;
+}
+
+.commerce-hero::before,
+.vision-hero::before,
+.ops-hero::before,
+.store-marketplace > section:first-of-type::before,
+.cart-page > .flex.items-center.gap-3.mb-8::before,
+.commerce-info-card::before { display: none !important; }
+
+.commerce-gradient-text,
+.ops-gradient-text,
+.vision-gradient-text {
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: var(--gg-text) !important;
+}
+
+.commerce-eyebrow,
+.ops-eyebrow {
+  color: var(--gg-action) !important;
+  letter-spacing: 0.06em !important;
+  text-transform: none !important;
+}
+
+.commerce-hero-icon,
+.commerce-stat-icon,
+.ops-hero-icon,
+.ops-stat-icon,
+.vision-spark,
+.vision-step-icon,
+.vision-upload-icon {
+  color: var(--gg-action) !important;
+  background: rgba(14, 165, 233, 0.11) !important;
+  border-color: rgba(14, 165, 233, 0.2) !important;
+  box-shadow: none !important;
+}
+
+.ops-tab-active,
+.commerce-stat:hover,
+.ops-stat:hover,
+.vision-step-card:hover,
+.gg-catalog-option:hover,
+.gg-catalog-option.is-active,
+.gg-user-menu-item:hover {
+  background: rgba(14, 165, 233, 0.1) !important;
+  color: var(--gg-action) !important;
+}
+
+.store-marketplace table,
+.store-marketplace tbody,
+.store-marketplace tr,
+.store-marketplace td,
+.store-marketplace th { border-color: var(--gg-line) !important; }
+.store-marketplace table { background: var(--gg-panel-alpha) !important; }
+
+.store-marketplace button,
+.store-marketplace a,
+.cart-page button,
+.cart-page a,
+.product-detail-page button,
+.product-detail-page a,
+.commerce-page button,
+.commerce-page a,
+.ops-page button,
+.ops-page a,
+.settings-page button,
+.support-page button,
+.community-page button {
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease, opacity 180ms ease;
+}
+
+.store-marketplace button:active,
+.store-marketplace a:active,
+.cart-page button:active,
+.cart-page a:active,
+.product-detail-page button:active,
+.product-detail-page a:active,
+.commerce-page button:active,
+.commerce-page a:active,
+.ops-page button:active,
+.ops-page a:active,
+.settings-page button:active,
+.support-page button:active,
+.community-page button:active { transform: translateY(1px) scale(0.99); }
+
+.product-detail-page > section:first-child { min-height: min(820px, calc(100dvh - var(--gs-topbar-height))) !important; }
+.product-detail-page > section:first-child::after { background: linear-gradient(to top, var(--gg-ink), transparent) !important; }
+
+.product-detail-page .text-white\/40,
+.product-detail-page .text-white\/45,
+.product-detail-page .text-white\/50,
+.product-detail-page .text-white\/60,
+.product-detail-page .text-white\/70 { color: rgba(244, 247, 238, 0.74) !important; }
+
+.auth-page {
+  background:
+    linear-gradient(118deg, rgba(14, 165, 233, 0.18) 0 10%, transparent 10% 62%, rgba(69, 215, 255, 0.14) 62% 70%, transparent 70%),
+    #06070b !important;
+}
+
+
+.dark .auth-page {
+  background:
+    linear-gradient(118deg, rgba(56, 189, 248, 0.18) 0 10%, transparent 10% 62%, rgba(103, 232, 249, 0.12) 62% 70%, transparent 70%),
+    #060b10 !important;
+}
+.auth-card { max-width: 1120px !important; min-height: 660px !important; }
+.auth-card > div:first-child { background: var(--gg-shell-alpha) !important; }
+.auth-card > div:last-child { background: var(--gg-panel-2) !important; }
+.auth-page .auth-ambient { display: none !important; }
+
+.auth-page h1 {
+  color: var(--gg-text) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.auth-page button[type="submit"],
+.auth-page .auth-card button[type="submit"] {
+  background: var(--gg-action) !important;
+  color: var(--gg-action-fg) !important;
+  box-shadow: 0 18px 48px rgba(14, 165, 233, 0.18) !important;
+}
+
+.fixed.bottom-6.right-6.bg-gs-surface,
+.fixed.z-50.flex.flex-col.items-end { color: var(--gg-text); }
+
+.fixed.bottom-6.right-6.bg-gs-surface {
+  border-color: rgba(14, 165, 233, 0.22) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), transparent 42%),
+    var(--gg-shell-strong) !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gg-panel,
+  .gg-game-tile,
+  .store-marketplace section,
+  .commerce-order-card,
+  .ops-section-card,
+  .vision-work-card,
+  .auth-card { animation: gg-arena-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+}
+
+@keyframes gg-arena-enter {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  :root, .dark { --gs-sidebar-width: 0px; }
+  .gg-command-shell { display: none; }
+  .gg-topbar { border-radius: 20px 12px 20px 12px !important; }
+}
+
+@media (max-width: 640px) {
+  .gg-page-shell,
+  .store-marketplace,
+  .commerce-page,
+  .vision-page,
+  .ops-page,
+  .settings-page,
+  .community-page,
+  .support-page,
+  .cart-page { padding-inline: 0.85rem !important; }
+  .gg-app-shell::before { display: none; }
+}
+.gg-thinking-dot {
+  animation: gg-thinking 900ms ease-in-out infinite;
+}
+
+@keyframes gg-thinking {
+  0%, 100% { opacity: 0.35; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+/* Contrast hardening for generated Tailwind token classes and button-like controls. */
+.text-gs-bg { color: var(--gg-ink) !important; }
+.bg-gs-text { background-color: var(--gg-text) !important; }
+.text-gs-accent-fg { color: var(--gg-action-fg) !important; }
+
+button.bg-gs-text,
+a.bg-gs-text,
+.bg-gs-text.text-gs-bg,
+button[class*="bg-gs-text"],
+a[class*="bg-gs-text"] {
+  background: var(--gg-text) !important;
+  color: var(--gg-ink) !important;
+  -webkit-text-fill-color: var(--gg-ink) !important;
+}
+
+button.bg-gs-accent,
+a.bg-gs-accent,
+button[class*="bg-gs-accent"],
+a[class*="bg-gs-accent"],
+button[style*="var(--gs-accent)"],
+a[style*="var(--gs-accent)"] {
+  color: var(--gg-action-fg) !important;
+  -webkit-text-fill-color: var(--gg-action-fg) !important;
+}
+
+.gg-action-primary,
+.gg-action-primary *,
+.gg-signin-button,
+.gg-signin-button *,
+button.bg-gs-text *,
+a.bg-gs-text *,
+button.bg-gs-accent *,
+a.bg-gs-accent * {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+.product-detail-page button,
+.product-detail-page a[role="button"],
+.product-detail-page .gg-action-primary {
+  background-clip: padding-box !important;
+}
+
+#product-add-cart-btn {
+  background: linear-gradient(135deg, var(--gg-action), var(--gg-info)) !important;
+  color: var(--gg-action-fg) !important;
+  -webkit-text-fill-color: var(--gg-action-fg) !important;
+}
+
+#product-add-cart-btn *,
+#checkout-btn *,
+#wallet-topup-submit *,
+#cart-login-btn *,
+#go-to-store-empty * {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+.product-detail-page button:not(#product-add-cart-btn):not(.gg-action-primary) {
+  color: var(--gg-text);
+}
+
+.product-detail-page button[style*="rgba(255,255,255,0.08)"] {
+  background: rgba(255, 255, 255, 0.82) !important;
+  color: var(--gg-text) !important;
+  -webkit-text-fill-color: var(--gg-text) !important;
+}
+
+.dark .product-detail-page button[style*="rgba(255,255,255,0.08)"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--gg-text) !important;
+  -webkit-text-fill-color: var(--gg-text) !important;
+}
+
+.store-marketplace button[class*="bg-gs-text"],
+.store-marketplace button[class*="bg-gs-text"] svg,
+.store-marketplace .bg-gs-text,
+.store-marketplace .bg-gs-text * {
+  color: var(--gg-ink) !important;
+  -webkit-text-fill-color: var(--gg-ink) !important;
+}
+#product-favorite-btn {
+  border-color: rgba(12, 74, 110, 0.22) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: var(--gg-text) !important;
+  -webkit-text-fill-color: var(--gg-text) !important;
+  box-shadow: 0 14px 34px rgba(10, 37, 64, 0.1) !important;
+}
+
+#product-favorite-btn *,
+#product-favorite-btn svg {
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+.dark #product-favorite-btn {
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  background: rgba(7, 19, 29, 0.72) !important;
+  color: var(--gg-text) !important;
+  -webkit-text-fill-color: var(--gg-text) !important;
+}

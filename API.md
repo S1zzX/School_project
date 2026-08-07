@@ -260,7 +260,10 @@ These APIs power the product catalog, live game stats, trailer/screenshot sectio
 | Method | Endpoint | Access | Used For |
 |---|---|---|---|
 | GET | `/api/catalog/live-prices?ids=1091500,1245620` | Public | CheapShark price data + Steam current players + SteamSpy ownership/playtime stats |
-| GET | `/api/catalog/steam-media/:appid` | Public | Steam trailer videos, screenshots, Steam review summary, and recent public reviews |
+| GET | `/api/catalog/steam-top?limit=40` | Public | Fetch top weekly selling Steam games from `IStoreTopSellers` with live prices and images |
+| GET | `/api/catalog/steam-app/:appid` | Public | Fetch basic info (name, price, discount, header image) for a single Steam game |
+| GET | `/api/catalog/steam-media/:appid` | Public | Steam trailer videos (WebM/MP4), screenshots, Steam review summary, and recent reviews |
+| GET | `/api/catalog/steam-reviews/:appid` | Public | Live Steam reviews with cursor-based pagination and real Steam persona names/avatars |
 
 `/api/catalog/live-prices` limits:
 
@@ -313,7 +316,9 @@ All admin endpoints require `admin` role.
 | Groq Cloud | Groq API | Cloud Vision model + chat responses | `GROQ_API_KEY` | Provider selectable |
 | Google Gemini | Gemini API | Cloud Vision model + chat responses | `GEMINI_API_KEY` | Provider selectable |
 | Ollama | Local `OLLAMA_BASE_URL` | Local Vision/chat model | Local runtime | Optional provider |
-| Steam Store AppDetails | `https://store.steampowered.com/api/appdetails` | Game trailer movies, screenshots, Steam store sale metadata | None | 45-minute memory cache through backend |
+| Steam Web API | `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/` | Real Steam reviewer names and avatar pictures | `STEAM_API_KEY` | 45-minute memory cache |
+| Steam Store Top Sellers | `https://api.steampowered.com/IStoreTopSellers/GetWeeklyTopSellers/v1/` | Live top selling Steam games | `STEAM_API_KEY` | 1-hour memory cache |
+| Steam Store AppDetails | `https://store.steampowered.com/api/appdetails` | Game trailer movies, screenshots, Steam store sale metadata, game prices | None | 45-minute memory cache through backend |
 | Steam App Reviews | `https://store.steampowered.com/appreviews/:appid` | Steam review summary and recent public reviews | None | 45-minute memory cache through backend |
 | Steam Web API | `https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/` | Current player count | None for this endpoint | 45-minute memory cache |
 | SteamSpy | `https://steamspy.com/api.php` | Owners estimate, median playtime, CCU estimate | None | 45-minute memory cache |
@@ -367,6 +372,7 @@ Create `server/.env` from `server/.env.example`.
 | `JWT_SECRET` | Strongly recommended | JWT signing key |
 | `GROQ_API_KEY` | If using Groq | Groq Vision/chat provider |
 | `GEMINI_API_KEY` | If using Gemini | Gemini Vision/chat provider |
+| `STEAM_API_KEY` | No (Recommended) | Steam Web API key for real reviewer personas & top sellers |
 | `VISION_PROVIDER` | No | `auto`, `ollama`, `gemini`, or `groq` |
 | `GROQ_VISION_MODEL` | No | Override Groq Vision model |
 | `GEMINI_VISION_MODEL` | No | Override Gemini Vision model |

@@ -152,10 +152,10 @@ export function Analytics() {
             <BarChart2 className="size-5" />
           </div>
           <div>
-            <p className="ops-eyebrow">Data Science / Live Market</p>
+            <p className="ops-eyebrow">Market intelligence</p>
             <h1 className="text-2xl lg:text-3xl font-black text-gs-text tracking-tight">Market <span className="ops-gradient-text">Analytics</span></h1>
             <p className="text-sm text-gs-faint mt-0.5">
-              Live insights from listings, pricing, and trading activity — refreshes every 30s.
+              Insights from listings, pricing, and trading activity. Refreshes every 30s.
             </p>
             {lastUpdated && (
               <p className="text-[11px] text-gs-faint mt-1">

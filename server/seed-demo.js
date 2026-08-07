@@ -27,12 +27,14 @@ function insertListing(userId, seller, listing) {
 
   const result = db.prepare(`
     INSERT INTO store_listings (
-      user_id, type, game, item, category, wear, float, rank,
-      hoursPlayed, skinsOwned, championsOwned, level, highlight, description,
+      user_id, type, game, item, category, wear, float, pattern, stattrak, nametag,
+      stickers, charms, gloves_item, gloves_float, gloves_pattern,
+      rank, hoursPlayed, skinsOwned, championsOwned, level, highlight, description,
       price, seller, sellerRating, image, views, stock, status, order_count
     ) VALUES (
-      @user_id, @type, @game, @item, @category, @wear, @float, @rank,
-      @hoursPlayed, @skinsOwned, @championsOwned, @level, @highlight, @description,
+      @user_id, @type, @game, @item, @category, @wear, @float, @pattern, @stattrak, @nametag,
+      @stickers, @charms, @gloves_item, @gloves_float, @gloves_pattern,
+      @rank, @hoursPlayed, @skinsOwned, @championsOwned, @level, @highlight, @description,
       @price, @seller, @sellerRating, @image, @views, @stock, @status, @order_count
     )
   `).run({
@@ -42,6 +44,18 @@ function insertListing(userId, seller, listing) {
     category: listing.category ?? null,
     wear: listing.wear ?? null,
     float: listing.float ?? null,
+    pattern: listing.pattern != null ? String(listing.pattern) : null,
+    stattrak: listing.stattrak ? 1 : 0,
+    nametag: listing.nametag ?? null,
+    stickers: listing.stickers
+      ? (typeof listing.stickers === 'string' ? listing.stickers : JSON.stringify(listing.stickers))
+      : null,
+    charms: listing.charms
+      ? (typeof listing.charms === 'string' ? listing.charms : JSON.stringify(listing.charms))
+      : null,
+    gloves_item: listing.gloves_item ?? null,
+    gloves_float: listing.gloves_float ?? null,
+    gloves_pattern: listing.gloves_pattern != null ? String(listing.gloves_pattern) : null,
     rank: listing.rank ?? null,
     hoursPlayed: listing.hoursPlayed ?? 0,
     skinsOwned: listing.skinsOwned ?? 0,
@@ -54,7 +68,10 @@ function insertListing(userId, seller, listing) {
     stock: listing.stock ?? 1,
     status: listing.status ?? 'available',
     order_count: listing.order_count ?? 0,
-    ...listing,
+    type: listing.type,
+    game: listing.game,
+    price: listing.price,
+    image: listing.image ?? null,
   });
   return result.lastInsertRowid;
 }
@@ -149,14 +166,14 @@ const seedDemo = () => {
     { type: 'account', game: 'Red Dead Redemption 2', hoursPlayed: 500, skinsOwned: 20, highlight: '100% Completion', price: 80, image: img.rdr2, stock: 3, views: 8 },
     { type: 'account', game: 'The Witcher 3', hoursPlayed: 400, skinsOwned: 15, highlight: 'GotY Edition', price: 40, image: img.witcher, stock: 2, views: 19 },
     { type: 'account', game: 'Baldurs Gate 3', hoursPlayed: 250, highlight: 'Tactician Beaten', price: 65, image: img.bg3, stock: 1, views: 33 },
-    { type: 'skin', game: 'CS2', item: 'AK-47 | Redline', category: 'Skin', wear: 'Field-Tested', float: '0.2145', price: 42.5, image: img.destiny, stock: 1, views: 61 },
-    { type: 'skin', game: 'CS2', item: 'AWP | Dragon Lore', category: 'Skin', wear: 'Factory New', float: '0.0082', price: 2899, image: img.destiny, stock: 1, views: 142 },
-    { type: 'skin', game: 'CS2', item: 'Karambit | Fade', category: 'Skin', wear: 'Factory New', float: '0.0198', price: 1850, image: img.destiny, stock: 1, views: 97 },
-    { type: 'skin', game: 'CS2', item: 'M4A4 | Howl', category: 'Skin', wear: 'Minimal Wear', float: '0.0871', price: 4200, image: img.destiny, stock: 1, views: 203 },
+    { type: 'skin', game: 'CS2', item: 'AK-47 | Redline', category: 'Skin', wear: 'Field-Tested', float: '0.2145', pattern: '661', stickers: [{ name: 'Team Liquid (Holo) | Katowice 2019' }, { name: 'Navi (Holo) | Stockholm 2021' }], gloves_item: 'Hand Wraps | Arboreal', gloves_float: '0.0821', gloves_pattern: '214', price: 42.5, image: img.destiny, stock: 1, views: 61 },
+    { type: 'skin', game: 'CS2', item: 'AWP | Dragon Lore', category: 'Skin', wear: 'Factory New', float: '0.0082', pattern: '17', nametag: 'SOUVENIR', price: 2899, image: img.destiny, stock: 1, views: 142 },
+    { type: 'skin', game: 'CS2', item: 'Karambit | Fade', category: 'Skin', wear: 'Factory New', float: '0.0198', pattern: '412', charms: [{ name: 'Charm | Hot Howl' }], price: 1850, image: img.destiny, stock: 1, views: 97 },
+    { type: 'skin', game: 'CS2', item: 'M4A4 | Howl', category: 'Skin', wear: 'Minimal Wear', float: '0.0871', pattern: '88', stattrak: true, stickers: [{ name: 'Howl' }], price: 4200, image: img.destiny, stock: 1, views: 203 },
     { type: 'account', game: 'Valorant', rank: 'Immortal 2', hoursPlayed: 890, skinsOwned: 45, level: 156, highlight: 'Immortal Smurf — 45 Skins', price: 120, image: img.forza, stock: 1, views: 54 },
     { type: 'account', game: 'LoL', rank: 'Diamond II', hoursPlayed: 1200, skinsOwned: 120, championsOwned: 165, level: 312, highlight: 'Diamond ADC Main', price: 95, image: img.gothic, stock: 2, views: 37 },
     { type: 'account', game: 'Elden Ring', hoursPlayed: 80, highlight: 'Fresh NG+ Run', price: 35, image: img.elden, stock: 0, status: 'sold', order_count: 1, views: 22 },
-    { type: 'skin', game: 'CS2', item: 'USP-S | Kill Confirmed', category: 'Skin', wear: 'Factory New', float: '0.0312', price: 88, image: img.destiny, stock: 0, status: 'sold', order_count: 1, views: 15 },
+    { type: 'skin', game: 'CS2', item: 'USP-S | Kill Confirmed', category: 'Skin', wear: 'Factory New', float: '0.0312', pattern: '255', price: 88, image: img.destiny, stock: 0, status: 'sold', order_count: 1, views: 15 },
   ];
 
   let listingCount = 0;
@@ -171,7 +188,7 @@ const seedDemo = () => {
     { type: 'account', game: 'LoL', rank: 'Master', hoursPlayed: 2400, skinsOwned: 280, championsOwned: 168, level: 450, highlight: 'Master Mid — 280 Skins', price: 210, image: img.gothic, stock: 1, views: 71 },
     { type: 'account', game: 'Valorant', rank: 'Radiant', hoursPlayed: 1500, skinsOwned: 62, level: 198, highlight: 'Radiant Account (EU)', price: 350, image: img.forza, stock: 1, views: 118 },
     { type: 'account', game: 'LoL', rank: 'Platinum IV', hoursPlayed: 600, skinsOwned: 45, championsOwned: 140, level: 180, highlight: 'Starter Ranked Account', price: 55, image: img.gothic, stock: 3, views: 26 },
-    { type: 'skin', game: 'CS2', item: 'Glock-18 | Fade', category: 'Skin', wear: 'Factory New', float: '0.0044', price: 520, image: img.destiny, stock: 1, views: 44 },
+    { type: 'skin', game: 'CS2', item: 'Glock-18 | Fade', category: 'Skin', wear: 'Factory New', float: '0.0044', pattern: '763', gloves_item: 'Sport Gloves | Pandora\'s Box', gloves_float: '0.0612', gloves_pattern: '91', price: 520, image: img.destiny, stock: 1, views: 44 },
   ];
 
   let pixelCount = 0;

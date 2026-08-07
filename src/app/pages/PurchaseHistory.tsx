@@ -261,7 +261,7 @@ export function PurchaseHistory() {
   }
 
   return (
-    <div className="commerce-page max-w-5xl mx-auto px-6 py-8 space-y-7 min-h-[70vh]">
+    <div className="commerce-page purchase-history-page max-w-6xl mx-auto px-6 py-8 space-y-7 min-h-[70vh]">
 
       {/* Header */}
       <div className="commerce-hero flex items-center justify-between gap-4 flex-wrap rounded-3xl border px-6 py-6 lg:px-8">

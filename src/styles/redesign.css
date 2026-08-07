@@ -1,0 +1,1095 @@
+/* GameGuide full-layout redesign: light-first gaming marketplace system */
+:root {
+  --gs-bg: #f5f7fb;
+  --gs-surface: #ffffff;
+  --gs-surface-2: #eef3f8;
+  --gs-surface-dark: #dce6f0;
+  --gs-border: rgba(15, 23, 42, 0.12);
+  --gs-text: #111827;
+  --gs-muted: #4b5b70;
+  --gs-faint: #8290a3;
+  --gs-accent: #ff5a1f;
+  --gs-accent-fg: #ffffff;
+  --gs-accent2: #1a6fd4;
+  --gs-glow: rgba(255, 90, 31, 0.16);
+  --gs-sale: #e11d48;
+  --gs-sidebar-width: 244px;
+  --gs-sidebar-bg: rgba(255, 255, 255, 0.88);
+  --gs-sidebar-border: rgba(15, 23, 42, 0.1);
+  --gs-topbar-height: 66px;
+  --gs-topbar-radius: 18px;
+  --gs-footer-height: 52px;
+  --background: #f5f7fb;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --popover: #ffffff;
+  --popover-foreground: #111827;
+  --primary: #ff5a1f;
+  --primary-foreground: #ffffff;
+  --secondary: #eef3f8;
+  --secondary-foreground: #111827;
+  --muted: #eef3f8;
+  --muted-foreground: #4b5b70;
+  --accent: #fff0e8;
+  --accent-foreground: #9a3412;
+  --border: rgba(15, 23, 42, 0.12);
+  --input: rgba(15, 23, 42, 0.06);
+  --ring: rgba(255, 90, 31, 0.36);
+}
+
+.dark {
+  --gs-bg: #080a0f;
+  --gs-surface: #10151d;
+  --gs-surface-2: #151d28;
+  --gs-surface-dark: #07090d;
+  --gs-border: rgba(148, 163, 184, 0.18);
+  --gs-text: #f5f7fb;
+  --gs-muted: #aab4c3;
+  --gs-faint: #687586;
+  --gs-accent: #ff5a1f;
+  --gs-accent-fg: #fff7ed;
+  --gs-accent2: #f6c453;
+  --gs-glow: rgba(255, 90, 31, 0.2);
+  --gs-sale: #ff2f6d;
+  --gs-sidebar-bg: rgba(13, 17, 23, 0.82);
+  --gs-sidebar-border: rgba(255, 255, 255, 0.12);
+  --background: #080a0f;
+  --foreground: #f5f7fb;
+  --card: #10151d;
+  --card-foreground: #f5f7fb;
+  --popover: #10151d;
+  --popover-foreground: #f5f7fb;
+  --primary: #ff5a1f;
+  --primary-foreground: #fff7ed;
+  --secondary: #151d28;
+  --secondary-foreground: #f5f7fb;
+  --muted: #151d28;
+  --muted-foreground: #aab4c3;
+  --accent: #241713;
+  --accent-foreground: #ffb78f;
+  --border: rgba(148, 163, 184, 0.18);
+  --input: rgba(255, 255, 255, 0.07);
+  --ring: rgba(255, 90, 31, 0.45);
+}
+
+html, body {
+  background: var(--gs-bg);
+  color: var(--gs-text);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 4%, rgba(255, 90, 31, 0.13), transparent 26rem),
+    radial-gradient(circle at 88% 10%, rgba(26, 111, 212, 0.12), transparent 24rem),
+    linear-gradient(135deg, #f8fafc 0%, #eef3f8 54%, #fff7ed 100%);
+}
+
+.dark body::before {
+  background:
+    radial-gradient(circle at 15% 5%, rgba(255, 90, 31, 0.16), transparent 26rem),
+    radial-gradient(circle at 90% 12%, rgba(246, 196, 83, 0.08), transparent 22rem),
+    linear-gradient(135deg, #080a0f 0%, #0b1119 52%, #07090d 100%);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image:
+    linear-gradient(rgba(15,23,42,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,23,42,.05) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 82%);
+}
+
+.dark body::after {
+  opacity: 0.24;
+  background-image:
+    linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+}
+
+.gs-sidebar-panel,
+.gs-topbar,
+.bg-gs-surface,
+.store-marketplace .rounded-2xl,
+.commerce-page .rounded-2xl,
+.commerce-page .rounded-3xl,
+.vision-page .rounded-3xl,
+.vision-page .rounded-2xl,
+.settings-page .rounded-2xl,
+.support-redesign-card,
+.community-redesign-card {
+  box-shadow: 0 18px 48px rgba(15,23,42,.1), inset 0 1px 0 rgba(255,255,255,.72);
+}
+
+.dark .gs-sidebar-panel,
+.dark .gs-topbar,
+.dark .bg-gs-surface,
+.dark .store-marketplace .rounded-2xl,
+.dark .commerce-page .rounded-2xl,
+.dark .commerce-page .rounded-3xl,
+.dark .vision-page .rounded-3xl,
+.dark .vision-page .rounded-2xl,
+.dark .settings-page .rounded-2xl,
+.dark .support-redesign-card,
+.dark .community-redesign-card {
+  box-shadow: 0 24px 70px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.gs-sidebar-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.gs-sidebar-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255,90,31,.08), transparent 34%),
+    radial-gradient(circle at 30% 0%, rgba(26,111,212,.12), transparent 18rem);
+}
+
+.dark .gs-sidebar-panel::before {
+  background:
+    linear-gradient(180deg, rgba(255,90,31,.10), transparent 34%),
+    radial-gradient(circle at 30% 0%, rgba(246,196,83,.16), transparent 18rem);
+}
+
+.gs-sidebar-panel > * {
+  position: relative;
+}
+
+.gs-nav-link {
+  border: 1px solid transparent;
+}
+
+.gs-nav-link:hover {
+  border-color: color-mix(in oklab, var(--gs-accent) 26%, transparent);
+  background: color-mix(in oklab, var(--gs-accent) 9%, transparent) !important;
+}
+
+.gs-topbar {
+  border-color: rgba(15,23,42,.1) !important;
+}
+
+.dark .gs-topbar {
+  border-color: rgba(255,255,255,.10) !important;
+}
+
+.gs-icon-btn:hover,
+.gg-quick-link:hover,
+.commerce-action:hover,
+.store-marketplace button:hover,
+.store-marketplace a:hover {
+  filter: saturate(1.08);
+}
+
+input, textarea, select, .auth-input {
+  color-scheme: light;
+}
+
+.dark input,
+.dark textarea,
+.dark select,
+.dark .auth-input {
+  color-scheme: dark;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--gs-faint) !important;
+}
+
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active, a:active {
+  transform: translateY(1px) scale(.99);
+}
+
+.gg-page-shell {
+  width: min(100%, 1480px);
+  margin: 0 auto;
+  padding: 1.5rem clamp(1rem, 2vw, 2rem) 3rem;
+}
+
+.gg-section-title {
+  color: var(--gs-text);
+  font-size: clamp(1.35rem, 1.8vw, 2.2rem);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.gg-panel {
+  border: 1px solid var(--gs-border);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.76), transparent 48%),
+    var(--gs-surface);
+  box-shadow: 0 18px 48px rgba(15,23,42,.1), inset 0 1px 0 rgba(255,255,255,.72);
+}
+
+.dark .gg-panel {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.065), transparent 48%),
+    var(--gs-surface);
+  box-shadow: 0 24px 70px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.gg-action-primary {
+  background-color: var(--gs-accent, #1a6fd4);
+  background-image: linear-gradient(135deg, var(--gs-accent, #1a6fd4), var(--gs-accent2, #1557b0));
+  color: var(--gs-accent-fg, #ffffff) !important;
+  box-shadow: 0 16px 42px rgba(26,111,212,.24);
+}
+
+.gg-action-primary:hover,
+.gg-action-primary:focus-visible {
+  color: var(--gs-accent-fg, #ffffff) !important;
+}
+
+.gg-action-primary svg {
+  color: currentColor;
+}
+
+.gg-action-secondary {
+  border: 1px solid var(--gs-border);
+  background: rgba(255,255,255,.72);
+  color: var(--gs-text);
+}
+
+.dark .gg-action-secondary {
+  border-color: rgba(255,255,255,.16);
+  background: rgba(255,255,255,.07);
+}
+
+.gg-game-tile,
+.gs-product-card,
+.gg-feature-card,
+.commerce-order-card,
+.commerce-info-card,
+.ops-section-card {
+  border-radius: 18px !important;
+  background: var(--gs-surface) !important;
+  border-color: var(--gs-border) !important;
+}
+
+.dark .gg-game-tile,
+.dark .gs-product-card,
+.dark .gg-feature-card,
+.dark .commerce-order-card,
+.dark .commerce-info-card,
+.dark .ops-section-card {
+  background: var(--gs-surface) !important;
+}
+
+.gs-product-card:hover,
+.gg-game-tile:hover,
+.gg-feature-card:hover,
+.commerce-order-card:hover,
+.ops-section-card:hover {
+  transform: translateY(-12px);
+  border-color: color-mix(in oklab, var(--gs-accent) 60%, transparent) !important;
+  box-shadow: 0 32px 72px rgba(15,23,42,.22), 0 0 0 1.5px color-mix(in oklab, var(--gs-accent) 30%, transparent);
+  z-index: 10;
+  position: relative;
+}
+
+.dark .gs-product-card:hover,
+.dark .gg-game-tile:hover,
+.dark .gg-feature-card:hover,
+.dark .commerce-order-card:hover,
+.dark .ops-section-card:hover {
+  box-shadow: 0 32px 72px rgba(0,0,0,.55), 0 0 0 1.5px rgba(255,90,31,.18);
+}
+
+.store-marketplace,
+.commerce-page,
+.vision-page,
+.ops-page,
+.settings-page {
+  width: min(100%, 1480px) !important;
+  max-width: 1480px !important;
+}
+
+.store-marketplace > section:first-of-type,
+.commerce-hero,
+.vision-hero,
+.ops-hero {
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--gs-accent) 14%, transparent), transparent 48%),
+    linear-gradient(90deg, rgba(26,111,212,.09), transparent 56%),
+    var(--gs-surface) !important;
+  border-color: var(--gs-border) !important;
+}
+
+.dark .store-marketplace > section:first-of-type,
+.dark .commerce-hero,
+.dark .vision-hero,
+.dark .ops-hero {
+  background:
+    linear-gradient(135deg, rgba(255,90,31,.16), transparent 48%),
+    linear-gradient(90deg, rgba(246,196,83,.08), transparent 56%),
+    var(--gs-surface) !important;
+  border-color: rgba(255,255,255,.12) !important;
+}
+
+.commerce-eyebrow,
+.ops-eyebrow {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: .8rem !important;
+}
+
+.commerce-gradient-text,
+.ops-gradient-text,
+.vision-gradient-text {
+  background: linear-gradient(90deg, var(--gs-text), var(--gs-accent) 72%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.dark .commerce-gradient-text,
+.dark .ops-gradient-text,
+.dark .vision-gradient-text {
+  background: linear-gradient(90deg, #f5f7fb, #ffb78f 72%) !important;
+}
+
+.vision-grid {
+  opacity: .14 !important;
+  background-size: 44px 44px !important;
+}
+
+.dark .vision-grid {
+  opacity: .18 !important;
+}
+
+.vision-hero-orb,
+.commerce-hero::after,
+.ops-hero::after {
+  display: none !important;
+}
+
+.auth-page {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255,90,31,.14), transparent 22rem),
+    radial-gradient(circle at 86% 75%, rgba(26,111,212,.13), transparent 24rem),
+    linear-gradient(135deg, #f8fafc 0%, #eef3f8 56%, #fff7ed 100%) !important;
+}
+
+.dark .auth-page {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255,90,31,.20), transparent 22rem),
+    radial-gradient(circle at 86% 75%, rgba(246,196,83,.14), transparent 24rem),
+    #080a0f !important;
+}
+
+.auth-card {
+  border-radius: 18px !important;
+  background: var(--gs-surface) !important;
+  box-shadow: 0 28px 80px rgba(48, 83, 132, 0.16) !important;
+}
+
+.dark .auth-card {
+  box-shadow: 0 32px 90px rgba(0,0,0,.42) !important;
+}
+
+.auth-ambient { display: none !important; }
+
+.settings-page {
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 2vw, 2rem) 3rem;
+}
+
+.settings-page > .px-8 {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.settings-page > .flex {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.settings-page nav {
+  position: sticky;
+  top: calc(var(--gs-topbar-height) + 1rem);
+  align-self: flex-start;
+  border: 1px solid var(--gs-border);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.56)),
+    var(--gs-surface);
+  padding: .65rem;
+  box-shadow: 0 18px 48px rgba(15,23,42,.08);
+}
+
+.dark .settings-page nav {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.055), transparent),
+    var(--gs-surface);
+  box-shadow: 0 24px 70px rgba(0,0,0,.24);
+}
+
+.settings-page .flex-1.max-w-3xl {
+  max-width: 980px !important;
+}
+
+.settings-page .rounded-2xl.border {
+  border-radius: 20px !important;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.75), transparent 48%),
+    var(--gs-surface) !important;
+  border-color: var(--gs-border) !important;
+}
+
+.dark .settings-page .rounded-2xl.border {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.055), transparent 48%),
+    var(--gs-surface) !important;
+}
+
+.settings-page button,
+.settings-page input {
+  border-radius: 14px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .gg-game-tile,
+  .gg-panel,
+  .gs-product-card,
+  .commerce-order-card,
+  .store-marketplace section,
+  .vision-work-card,
+  .vision-chat-panel,
+  .settings-page .rounded-2xl.border {
+    animation: gg-rise .55s cubic-bezier(.22,1,.36,1) both;
+  }
+}
+
+@keyframes gg-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .gg-page-shell { padding-inline: 1rem; }
+  .gg-section-title { font-size: 1.45rem; }
+  .settings-page > .flex { flex-direction: column; gap: 1rem; }
+  .settings-page nav { position: relative; top: auto; width: 100%; }
+  .settings-page .flex.gap-8 { flex-direction: column; gap: 1.25rem; }
+  .settings-page .w-44 { width: 100%; }
+  .settings-page .grid.grid-cols-2 { grid-template-columns: 1fr; }
+}
+
+/* Secondary page layout binding */
+.support-page,
+.community-page,
+.cart-page,
+.product-detail-page,
+.purchase-history-page,
+.wallet-page,
+.shop-owner-page {
+  position: relative;
+}
+
+.support-page .bg-gs-surface,
+.community-page .bg-gs-surface,
+.cart-page .rounded-xl,
+.cart-page .rounded-2xl,
+.product-detail-page .rounded-xl,
+.product-detail-page .rounded-2xl {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.7), transparent 48%),
+    var(--gs-surface) !important;
+  border-color: var(--gs-border) !important;
+}
+
+.dark .support-page .bg-gs-surface,
+.dark .community-page .bg-gs-surface,
+.dark .cart-page .rounded-xl,
+.dark .cart-page .rounded-2xl,
+.dark .product-detail-page .rounded-xl,
+.dark .product-detail-page .rounded-2xl {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.055), transparent 48%),
+    var(--gs-surface) !important;
+}
+
+.support-page > .bg-gs-surface:first-child {
+  background: rgba(255, 255, 255, .72) !important;
+  backdrop-filter: blur(18px);
+}
+
+.dark .support-page > .bg-gs-surface:first-child {
+  background: rgba(8, 10, 15, .72) !important;
+}
+
+.support-hero {
+  border-bottom: 1px solid var(--gs-border);
+  box-shadow: inset 0 -1px 0 rgba(15,23,42,.06);
+}
+
+.dark .support-hero {
+  box-shadow: inset 0 -1px 0 rgba(255,255,255,.04);
+}
+
+.support-page input,
+.support-page textarea,
+.support-page select,
+.community-page input,
+.community-page textarea,
+.community-page select,
+.cart-page input,
+.cart-page textarea,
+.cart-page select {
+  border-radius: 14px !important;
+  background: rgba(255,255,255,.72) !important;
+  border-color: var(--gs-border) !important;
+}
+
+.dark .support-page input,
+.dark .support-page textarea,
+.dark .support-page select,
+.dark .community-page input,
+.dark .community-page textarea,
+.dark .community-page select,
+.dark .cart-page input,
+.dark .cart-page textarea,
+.dark .cart-page select {
+  background: rgba(255,255,255,.065) !important;
+}
+
+.support-page button,
+.community-page button,
+.cart-page button,
+.product-detail-page button {
+  border-radius: 14px;
+}
+
+.community-page > .flex:first-child,
+.cart-page > .flex:first-child,
+.cart-page > .grid,
+.support-page .max-w-5xl,
+.support-page .max-w-3xl {
+  border-radius: 20px;
+}
+
+.community-page .rounded-xl,
+.community-page .rounded-lg,
+.support-page .rounded-lg,
+.support-page .rounded-xl {
+  border-radius: 18px !important;
+}
+
+.community-page .divide-y > *,
+.support-page .divide-y > * {
+  border-color: rgba(148, 163, 184, .14) !important;
+}
+
+.product-detail-page > section:first-child {
+  min-height: min(760px, calc(100dvh - var(--gs-topbar-height))) !important;
+}
+
+.product-detail-page > section:first-child::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 34%;
+  pointer-events: none;
+  background: linear-gradient(to top, var(--gs-bg), transparent);
+}
+
+.product-detail-page .border-neutral-200,
+.product-detail-page .bg-neutral-50,
+.product-detail-page .bg-white,
+.product-detail-page .bg-neutral-200,
+.product-detail-page .bg-neutral-900,
+.product-detail-page .text-neutral-900,
+.product-detail-page .text-neutral-600,
+.product-detail-page .text-neutral-500,
+.product-detail-page .text-neutral-400 {
+  border-color: var(--gs-border) !important;
+}
+
+.product-detail-page .bg-neutral-50,
+.product-detail-page .bg-white {
+  background: var(--gs-surface) !important;
+}
+
+.product-detail-page .bg-neutral-200 {
+  background: var(--gs-surface-2) !important;
+}
+
+.product-detail-page .bg-neutral-900 {
+  background: var(--gs-accent) !important;
+}
+
+.product-detail-page .text-neutral-900 { color: var(--gs-text) !important; }
+.product-detail-page .text-neutral-600,
+.product-detail-page .text-neutral-500 { color: var(--gs-muted) !important; }
+.product-detail-page .text-neutral-400 { color: var(--gs-faint) !important; }
+
+.cart-page > .flex.items-center.gap-3.mb-8 {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--gs-border);
+  border-radius: 20px;
+  background: linear-gradient(135deg, color-mix(in oklab, var(--gs-accent) 13%, transparent), transparent 52%), var(--gs-surface);
+}
+
+.cart-page .grid.grid-cols-1.lg\:grid-cols-3 > div:last-child > div,
+.cart-page .lg\:col-span-2 > div {
+  border-radius: 18px !important;
+}
+
+.ops-hero,
+.commerce-hero,
+.vision-hero {
+  border-radius: 20px !important;
+}
+
+.ops-stat-strip,
+.commerce-stat-strip,
+.commerce-actions,
+.ops-tabs,
+.ops-section-card,
+.vision-control-bar,
+.vision-work-card,
+.vision-chat-panel,
+.vision-steps {
+  border-radius: 18px !important;
+  background: var(--gs-surface) !important;
+  border-color: var(--gs-border) !important;
+}
+
+@media (min-width: 1024px) {
+  .support-page .max-w-5xl { max-width: 1180px; }
+  .community-page { max-width: 1180px !important; }
+}
+
+/* Command rail app shell remake */
+:root {
+  --gs-sidebar-width: 280px;
+  --gs-topbar-height: 74px;
+}
+
+.gg-app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.gg-command-shell {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 40;
+  width: var(--gs-sidebar-width);
+  padding: 12px;
+}
+
+.gg-dock,
+.gg-mobile-dock,
+.gg-topbar {
+  border: 1px solid var(--gs-sidebar-border);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.58)),
+    var(--gs-sidebar-bg);
+  backdrop-filter: blur(22px) saturate(1.08);
+  -webkit-backdrop-filter: blur(22px) saturate(1.08);
+  box-shadow: 0 22px 58px rgba(15,23,42,.11), inset 0 1px 0 rgba(255,255,255,.76);
+}
+
+.dark .gg-dock,
+.dark .gg-mobile-dock,
+.dark .gg-topbar {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025)),
+    var(--gs-sidebar-bg);
+  box-shadow: 0 28px 72px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+
+
+
+
+
+
+
+
+
+.gg-dock,
+.gg-mobile-dock {
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.gg-dock {
+  height: calc(100dvh - 24px);
+}
+
+.gg-mobile-dock {
+  max-height: calc(100dvh - 24px);
+}
+
+.gg-dock-content {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 18px;
+  padding: 16px;
+}
+
+.gg-brand-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 18px;
+  color: inherit;
+}
+
+.gg-status-tile {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--gs-border);
+  border-radius: 20px;
+  padding: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--gs-accent) 14%, transparent), transparent 56%),
+    var(--gs-surface);
+}
+
+.gg-status-tile::after {
+  content: '';
+  position: absolute;
+  right: -28px;
+  bottom: -36px;
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  border: 22px solid color-mix(in oklab, var(--gs-accent) 12%, transparent);
+}
+
+.gg-dock-link,
+.gg-catalog-trigger,
+.gg-catalog-option,
+.gg-user-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  border-radius: 14px;
+  color: var(--gs-muted);
+  transition: background .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.gg-dock-link {
+  border: 1px solid transparent;
+  padding: 10px 11px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.gg-dock-link:hover,
+.gg-dock-link.is-active {
+  color: var(--gs-text);
+  border-color: color-mix(in oklab, var(--gs-accent) 26%, transparent);
+  background: color-mix(in oklab, var(--gs-accent) 9%, var(--gs-surface));
+}
+
+.gg-catalog-trigger {
+  border: 1px solid var(--gs-border);
+  background: var(--gs-surface);
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--gs-text);
+}
+
+.gg-catalog-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 60;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--gs-border);
+  border-radius: 18px;
+  background: var(--gs-surface);
+  padding: 6px;
+  box-shadow: 0 24px 64px rgba(15,23,42,.16);
+}
+
+.gg-catalog-option {
+  border: 0;
+  background: transparent;
+  padding: 9px 10px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.gg-catalog-option:hover,
+.gg-catalog-option.is-active {
+  color: var(--gs-text);
+  background: var(--gs-surface-2);
+}
+
+.gg-topbar {
+  display: flex;
+  min-height: var(--gs-topbar-height);
+  align-items: center;
+  gap: 14px;
+  border-radius: 24px;
+  padding: 10px 12px;
+}
+
+.gg-command-search {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--gs-border);
+  border-radius: 18px;
+  background: var(--gs-surface);
+  padding: 0 12px 0 14px;
+}
+
+.gg-command-search:focus-within {
+  border-color: color-mix(in oklab, var(--gs-accent) 54%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--gs-accent) 12%, transparent);
+}
+
+.gg-icon-button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--gs-border);
+  border-radius: 15px;
+  background: var(--gs-surface);
+  color: var(--gs-muted);
+  transition: color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.gg-icon-button:hover {
+  color: var(--gs-text);
+  border-color: color-mix(in oklab, var(--gs-accent) 34%, transparent);
+}
+
+.gg-cart-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  display: grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--gs-accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.gg-user-chip,
+.gg-signin-button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 46px;
+  border-radius: 17px;
+  border: 1px solid var(--gs-border);
+  background: var(--gs-surface);
+  padding: 4px 10px 4px 5px;
+  color: var(--gs-text);
+}
+
+.gg-signin-button {
+  padding: 0 14px;
+  background: var(--gs-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.gg-user-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 70;
+  width: 224px;
+  overflow: hidden;
+  border: 1px solid var(--gs-border);
+  border-radius: 18px;
+  background: var(--gs-surface);
+  box-shadow: 0 26px 70px rgba(15,23,42,.18);
+}
+
+.gg-user-menu-item {
+  justify-content: flex-start;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.gg-user-menu-item:hover {
+  background: var(--gs-surface-2);
+  color: var(--gs-text);
+}
+
+.gg-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 24px 0;
+  border-top: 1px solid var(--gs-border);
+  padding: 18px 0;
+  color: var(--gs-faint);
+  font-size: 11px;
+}
+
+/* Make inner pages feel like redesigned workbench screens */
+.commerce-page,
+.vision-page,
+.ops-page,
+.settings-page,
+.store-marketplace,
+.gg-page-shell,
+.community-page,
+.support-page,
+.cart-page,
+.product-detail-page {
+  padding-top: clamp(1rem, 2vw, 1.75rem) !important;
+}
+
+.commerce-hero,
+.vision-hero,
+.ops-hero,
+.store-marketplace > section:first-of-type,
+.cart-page > .flex.items-center.gap-3.mb-8 {
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px !important;
+  padding: clamp(1.35rem, 2.5vw, 2.4rem) !important;
+}
+
+.commerce-hero::before,
+.vision-hero::before,
+.ops-hero::before,
+.store-marketplace > section:first-of-type::before,
+.cart-page > .flex.items-center.gap-3.mb-8::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 8px;
+  background: linear-gradient(180deg, var(--gs-accent), var(--gs-accent2));
+}
+
+.commerce-hero > *,
+.vision-hero > *,
+.ops-hero > *,
+.store-marketplace > section:first-of-type > *,
+.cart-page > .flex.items-center.gap-3.mb-8 > * {
+  position: relative;
+  z-index: 1;
+}
+
+.commerce-stat-strip,
+.ops-stat-strip {
+  border-radius: 24px !important;
+}
+
+.commerce-order-card,
+.ops-section-card,
+.vision-work-card,
+.vision-chat-panel,
+.vision-steps,
+.settings-page .rounded-2xl.border,
+.cart-page .rounded-xl,
+.cart-page .rounded-2xl {
+  border-radius: 22px !important;
+}
+
+@media (max-width: 1023px) {
+  :root { --gs-sidebar-width: 0px; }
+  .gg-mobile-dock .gg-dock-content { padding: 18px; }
+  .gg-topbar { border-radius: 20px; }
+  .gg-footer { margin-inline: 16px; }
+}
+
+@media (max-width: 640px) {
+  .gg-topbar { gap: 8px; padding: 8px; }
+  .gg-command-search { min-height: 42px; border-radius: 15px; }
+  .gg-icon-button { width: 40px; height: 40px; }
+  .commerce-hero,
+  .vision-hero,
+  .ops-hero { border-radius: 22px !important; }
+}
+/* Explicit token utility fallbacks for Tailwind v4 dynamic theme output */
+.text-gs-text { color: var(--gs-text) !important; }
+.text-gs-muted { color: var(--gs-muted) !important; }
+.text-gs-faint { color: var(--gs-faint) !important; }
+.text-gs-accent { color: var(--gs-accent) !important; }
+.text-gs-accent-fg { color: var(--gs-accent-fg) !important; }
+.bg-gs-bg { background-color: var(--gs-bg) !important; }
+.bg-gs-surface { background-color: var(--gs-surface) !important; }
+.bg-gs-surface-2 { background-color: var(--gs-surface-2) !important; }
+.bg-gs-accent { background-color: var(--gs-accent) !important; }
+.border-gs-border { border-color: var(--gs-border) !important; }
+.placeholder-gs-faint::placeholder,
+.placeholder\:text-gs-faint::placeholder { color: var(--gs-faint) !important; }
+
+.gg-app-shell,
+.gg-dock,
+.gg-mobile-dock,
+.gg-topbar,
+.gg-command-search,
+.gg-user-menu,
+.gg-status-tile,
+.gg-catalog-trigger,
+.gg-catalog-menu {
+  color: var(--gs-text);
+}
+
+.gg-dock p,
+.gg-dock span,
+.gg-dock a,
+.gg-dock button,
+.gg-topbar p,
+.gg-topbar span,
+.gg-topbar a,
+.gg-topbar button,
+.gg-topbar input,
+.gg-mobile-dock p,
+.gg-mobile-dock span,
+.gg-mobile-dock a,
+.gg-mobile-dock button {
+  -webkit-text-fill-color: currentColor;
+}

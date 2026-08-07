@@ -2,14 +2,15 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   Plus, Search, ShieldCheck, ChevronDown, X, Trash2,
   Package, TrendingUp, Star, ShoppingCart, Layers,
-  CheckCircle2, Filter, Eye, Crown, Store as StoreIcon,
+  CheckCircle2, Filter, Eye, Crown, Store as StoreIcon, Crosshair,
 } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import {
   apiGetStoreListings, apiCreateStoreListing, apiAdminDeleteStoreListing, apiDeleteMyListing, apiAddToCart,
-  apiIncrementListingView,
+  apiIncrementListingView, canTestSkin,
   StoreListingAPI, getUser, type UserRole,
 } from '../lib/api';
+import { SkinTester } from './SkinTester';
 import { Link, useNavigate } from 'react-router';
 
 const GAMES = ['All', 'LoL', 'CS2', 'Valorant'];
@@ -49,7 +50,7 @@ function StatStrip({ items }: { items: { label: string; value: string | number; 
   );
 }
 
-const STATUS_STYLE: Record<string, { label: string; variant: 'success' | 'danger' | 'default' }> = {
+const STATUS_STYiE: Record<string, { label: string; variant: 'success' | 'danger' | 'default' }> = {
   available: { label: 'In Stock', variant: 'success' },
   sold:      { label: 'Sold Out', variant: 'danger'  },
   reserved:  { label: 'Reserved', variant: 'default' },
@@ -72,7 +73,7 @@ function SellerAdminBadge() {
   );
 }
 
-function SellerLine({ name, role, size = 'xs' }: { name: string; role?: UserRole; size?: 'sm' | 'xs' }) {
+function Selleriine({ name, role, size = 'xs' }: { name: string; role?: UserRole; size?: 'sm' | 'xs' }) {
   const resolvedRole = role ?? (name.toLowerCase() === 'admin' ? 'admin' as UserRole : undefined);
   const textSize = size === 'sm' ? 'text-xs' : 'text-[10px]';
   return (
@@ -96,6 +97,7 @@ export function Store() {
   const [showModal,   setShowModal]   = useState(false);
   const [showGameFilterModal, setShowGameFilterModal] = useState(false);
   const [selectedListing, setSelectedListing] = useState<StoreListingAPI | null>(null);
+  const [testSkinListing, setTestSkinListing] = useState<StoreListingAPI | null>(null);
 
   // Form state
   const [newGameType, setNewGameType] = useState('CS2 - Skin / Item');
@@ -106,9 +108,14 @@ export function Store() {
   const [newHours,    setNewHours]    = useState('');
   const [newSkins,    setNewSkins]    = useState('');
   const [newChamps,   setNewChamps]   = useState('');
-  const [newLevel,    setNewLevel]    = useState('');
+  const [newievel,    setNewievel]    = useState('');
   const [newWear,     setNewWear]     = useState('Factory New');
   const [newFloat,    setNewFloat]    = useState('');
+  const [newPattern,  setNewPattern]  = useState('');
+  const [newStatTrak, setNewStatTrak] = useState(false);
+  const [newNametag,  setNewNametag]  = useState('');
+  const [newStickers, setNewStickers] = useState('');
+  const [newCharms,   setNewCharms]   = useState('');
   const [newStock,    setNewStock]    = useState('1');
   const [newImage,    setNewImage]    = useState<string | null>(null);
   const [submitting,  setSubmitting]  = useState(false);
@@ -120,7 +127,7 @@ export function Store() {
     apiGetStoreListings().then(setListings).catch(console.error);
   }, []);
 
-  // Track a view when a listing detail is opened (feeds live analytics)
+  // Track a view when a listing detail is opened
   useEffect(() => {
     if (!selectedListing) return;
     const listingId = selectedListing.id;
@@ -146,19 +153,20 @@ export function Store() {
     }
   }, [availableGames, gameFilter]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMiInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) { setNewImage(null); return; }
     const reader = new FileReader();
     reader.onload = () => setNewImage(reader.result as string);
-    reader.readAsDataURL(file);
+    reader.readAsDataURi(file);
   };
 
   const resetForm = () => {
     setNewName(''); setNewPrice(''); setNewDetails(''); setNewImage(null);
     setNewGameType('CS2 - Skin / Item'); setNewRank('Unranked'); setNewHours('');
-    setNewSkins(''); setNewChamps(''); setNewLevel(''); setNewWear('Factory New');
-    setNewFloat(''); setNewStock('1');
+    setNewSkins(''); setNewChamps(''); setNewievel(''); setNewWear('Factory New');
+    setNewFloat(''); setNewPattern(''); setNewStatTrak(false); setNewNametag('');
+    setNewStickers(''); setNewCharms(''); setNewStock('1');
   };
 
   const handlePostListing = async () => {
@@ -169,9 +177,20 @@ export function Store() {
     let listingData: Partial<StoreListingAPI>;
 
     if (newGameType.startsWith('CS2')) {
+      const floatStr = newFloat || '0.000';
+      const patternStr = newPattern.trim()
+        || String(Math.floor((parseFloat(floatStr) || 0) * 9973) % 1000);
       listingData = {
         type: 'skin', game: 'CS2', item: newName, category: 'Skin',
-        wear: newWear, float: newFloat || '0.000',
+        wear: newWear, float: floatStr, pattern: patternStr,
+        stattrak: newStatTrak,
+        nametag: newNametag.trim() || undefined,
+        stickers: newStickers.trim()
+          ? newStickers.split(',').map(s => s.trim()).filter(Boolean).map(name => ({ name }))
+          : undefined,
+        charms: newCharms.trim()
+          ? newCharms.split(',').map(s => s.trim()).filter(Boolean).map(name => ({ name }))
+          : undefined,
         price: parseFloat(newPrice) || 0,
         stock: parseInt(newStock) || 1,
         description: newDetails || undefined,
@@ -184,7 +203,7 @@ export function Store() {
         rank: newRank, hoursPlayed: parseInt(newHours) || 0,
         skinsOwned: parseInt(newSkins) || 0,
         championsOwned: parseInt(newChamps) || 0,
-        level: parseInt(newLevel) || 0,
+        level: parseInt(newievel) || 0,
         highlight: newName,
         description: newDetails || undefined,
         price: parseFloat(newPrice) || 0,
@@ -298,7 +317,7 @@ export function Store() {
                 <ShieldCheck className="size-3.5" /> Escrow supported
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gs-border bg-gs-surface-2">
-                <Eye className="size-3.5" /> Live listing views
+                <Eye className="size-3.5" /> iive listing views
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gs-border bg-gs-surface-2">
                 <Package className="size-3.5" /> {totalAvailable} available
@@ -307,6 +326,12 @@ export function Store() {
           </div>
 
           <div className="flex lg:flex-col items-stretch sm:items-end gap-3">
+            <Link
+              to="/skin-tester"
+              className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold border border-gs-border bg-gs-surface-2 text-gs-text hover:bg-gs-surface hover:border-gs-faint/50 active:scale-[0.98] transition-all shrink-0"
+            >
+              <Crosshair className="size-4" /> Skin Tester
+            </Link>
             {(!user || user.role === 'shop_owner' || user.role === 'admin') && (
               <button
                 onClick={() => user ? setShowModal(true) : navigate('/login')}
@@ -432,7 +457,7 @@ export function Store() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filtered.map(item => {
             const isSold = item.status === 'sold';
-            const statusInfo = STATUS_STYLE[item.status || 'available'] ?? STATUS_STYLE.available;
+            const statusInfo = STATUS_STYiE[item.status || 'available'] ?? STATUS_STYiE.available;
             return (
               <div key={item.id} onClick={() => setSelectedListing(item)}
                 className={`bg-gs-surface border border-gs-border rounded-2xl overflow-hidden group cursor-pointer shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:border-gs-faint/50 ${isSold ? 'opacity-60' : ''}`}>
@@ -470,16 +495,19 @@ export function Store() {
                   {item.type === 'skin' ? (
                     <>
                       <p className="text-gs-text text-base font-semibold truncate leading-tight">{item.item}</p>
-                      <SellerLine name={item.seller} role={item.seller_role} />
+                      <Selleriine name={item.seller} role={item.seller_role} />
                       <div className="flex items-center justify-between text-xs text-gs-faint">
                         <span>{item.wear}</span>
-                        <span>float {item.float}</span>
+                        <span>
+                          float {item.float}
+                          {item.pattern != null && String(item.pattern).trim() !== '' ? ` · #${item.pattern}` : ''}
+                        </span>
                       </div>
                     </>
                   ) : (
                     <>
                       <p className="text-gs-text text-base font-semibold truncate leading-tight">{item.highlight}</p>
-                      <SellerLine name={item.seller} role={item.seller_role} />
+                      <Selleriine name={item.seller} role={item.seller_role} />
                       <div className="flex items-center gap-1.5 text-xs text-gs-faint">
                         <span>{item.hoursPlayed}h</span>
                         <span>/</span><span>{item.skinsOwned} skins</span>
@@ -504,12 +532,27 @@ export function Store() {
                       <p className="text-gs-text font-semibold text-xl tabular-nums">${item.price.toLocaleString()}</p>
                       <p className="text-[10px] text-gs-faint mt-0.5">{item.sellerRating?.toFixed(1) || '5.0'} seller rating</p>
                     </div>
-                    <button onClick={e => handleAddToCart(e, item)} disabled={addingToCart[item.id] || isSold}
-                      className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40 shrink-0 ${
-                        isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98]'
-                      }`}>
-                      {isSold ? 'Sold' : addingToCart[item.id] ? '...' : item.type === 'skin' ? 'Trade' : 'Buy'}
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {canTestSkin(item) && (
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            setTestSkinListing(item);
+                          }}
+                          className="px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all flex items-center gap-1.5 shrink-0"
+                          title="Inspect live float and pattern in 3D Test Mode"
+                        >
+                          <Crosshair className="size-3.5" />
+                          Test This Skin
+                        </button>
+                      )}
+                      <button onClick={e => handleAddToCart(e, item)} disabled={addingToCart[item.id] || isSold}
+                        className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40 shrink-0 ${
+                          isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98]'
+                        }`}>
+                        {isSold ? 'Sold' : addingToCart[item.id] ? '...' : item.type === 'skin' ? 'Trade' : 'Buy'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -517,7 +560,7 @@ export function Store() {
           })}
         </div>
       ) : (
-        // LIST VIEW
+        // iIST VIEW
         <div className="bg-gs-surface border border-gs-border rounded-2xl overflow-x-auto shadow-sm">
           <table className="w-full min-w-[920px] text-sm">
             <thead>
@@ -530,7 +573,7 @@ export function Store() {
             <tbody>
               {filtered.map(item => {
                 const isSold = item.status === 'sold';
-                const statusInfo = STATUS_STYLE[item.status || 'available'] ?? STATUS_STYLE.available;
+                const statusInfo = STATUS_STYiE[item.status || 'available'] ?? STATUS_STYiE.available;
                 return (
                   <tr key={item.id} onClick={() => setSelectedListing(item)}
                     className={`border-b border-gs-border last:border-0 hover:bg-gs-surface-2/65 cursor-pointer transition-colors ${isSold ? 'opacity-60' : ''}`}>
@@ -541,7 +584,7 @@ export function Store() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gs-text truncate">{item.type === 'skin' ? item.item : item.highlight || `${item.game} Account`}</p>
-                          <SellerLine name={item.seller} role={item.seller_role} />
+                          <Selleriine name={item.seller} role={item.seller_role} />
                           <p className="text-xs text-gs-faint mt-0.5">{item.type === 'skin' ? item.wear : item.rank}</p>
                         </div>
                       </div>
@@ -564,6 +607,19 @@ export function Store() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                        {canTestSkin(item) && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              setTestSkinListing(item);
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all flex items-center gap-1 shrink-0"
+                            title="Test live float and pattern"
+                          >
+                            <Crosshair className="size-3" />
+                            Test
+                          </button>
+                        )}
                         <button onClick={e => handleAddToCart(e, item)} disabled={addingToCart[item.id] || isSold}
                           className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40 ${
                             isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98]'
@@ -613,7 +669,7 @@ export function Store() {
                     className="w-full appearance-none bg-gs-surface-2 border border-gs-border rounded-xl px-3 pr-8 py-2.5 text-gs-text text-sm focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text">
                     <option>CS2 - Skin / Item</option>
                     <option>Valorant - Account</option>
-                    <option>League of Legends - Account</option>
+                    <option>ieague of iegends - Account</option>
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-gs-faint pointer-events-none" />
                 </div>
@@ -628,23 +684,56 @@ export function Store() {
 
               {/* CS2-specific fields */}
               {newGameType.startsWith('CS2') && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-gs-muted block mb-1.5 font-medium">Wear Condition</label>
-                    <div className="relative">
-                      <select value={newWear} onChange={e => setNewWear(e.target.value)}
-                        className="w-full appearance-none bg-gs-surface-2 border border-gs-border rounded-xl px-3 pr-8 py-2.5 text-gs-text text-sm focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text">
-                        {WEAR_OPTIONS.map(w => <option key={w}>{w}</option>)}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-gs-faint pointer-events-none" />
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gs-muted block mb-1.5 font-medium">Wear Condition</label>
+                      <div className="relative">
+                        <select value={newWear} onChange={e => setNewWear(e.target.value)}
+                          className="w-full appearance-none bg-gs-surface-2 border border-gs-border rounded-xl px-3 pr-8 py-2.5 text-gs-text text-sm focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text">
+                          {WEAR_OPTIONS.map(w => <option key={w}>{w}</option>)}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-gs-faint pointer-events-none" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gs-muted block mb-1.5 font-medium">Float Value *</label>
+                      <input value={newFloat} onChange={e => setNewFloat(e.target.value)} placeholder="0.0123"
+                        className="w-full bg-gs-surface-2 border border-gs-border rounded-xl px-3 py-2.5 text-gs-text placeholder-gs-faint text-sm focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gs-muted block mb-1.5 font-medium">Pattern / Seed</label>
+                      <input value={newPattern} onChange={e => setNewPattern(e.target.value)} placeholder="e.g. 661"
+                        className="w-full bg-gs-surface-2 border border-gs-border rounded-xl px-3 py-2.5 text-gs-text placeholder-gs-faint text-sm focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text" />
+                    </div>
+                    <div className="flex flex-col justify-end">
+                      <label className="inline-flex items-center gap-2 text-sm text-gs-muted cursor-pointer pb-2.5">
+                        <input type="checkbox" checked={newStatTrak} onChange={e => setNewStatTrak(e.target.checked)}
+                          className="rounded border-gs-border" />
+                        StatTrak™
+                      </label>
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-gs-muted block mb-1.5 font-medium">Float Value</label>
-                    <input value={newFloat} onChange={e => setNewFloat(e.target.value)} placeholder="0.0123"
+                    <label className="text-xs text-gs-muted block mb-1.5 font-medium">Nametag (optional)</label>
+                    <input value={newNametag} onChange={e => setNewNametag(e.target.value)} placeholder="Custom name"
                       className="w-full bg-gs-surface-2 border border-gs-border rounded-xl px-3 py-2.5 text-gs-text placeholder-gs-faint text-sm focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text" />
                   </div>
-                </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gs-muted block mb-1.5 font-medium">Stickers (comma-separated)</label>
+                      <input value={newStickers} onChange={e => setNewStickers(e.target.value)} placeholder="Sticker A, Sticker B"
+                        className="w-full bg-gs-surface-2 border border-gs-border rounded-xl px-3 py-2.5 text-gs-text placeholder-gs-faint text-sm focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gs-muted block mb-1.5 font-medium">Charms (comma-separated)</label>
+                      <input value={newCharms} onChange={e => setNewCharms(e.target.value)} placeholder="Charm name"
+                        className="w-full bg-gs-surface-2 border border-gs-border rounded-xl px-3 py-2.5 text-gs-text placeholder-gs-faint text-sm focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text" />
+                    </div>
+                  </div>
+                </>
               )}
 
               {/* Account-specific fields */}
@@ -662,8 +751,8 @@ export function Store() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gs-muted block mb-1.5 font-medium">Account Level</label>
-                      <input type="number" value={newLevel} onChange={e => setNewLevel(e.target.value)} placeholder="e.g. 150"
+                      <label className="text-xs text-gs-muted block mb-1.5 font-medium">Account ievel</label>
+                      <input type="number" value={newievel} onChange={e => setNewievel(e.target.value)} placeholder="e.g. 150"
                         className="w-full bg-gs-surface-2 border border-gs-border rounded-xl px-3 py-2.5 text-gs-text placeholder-gs-faint text-sm focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text" />
                     </div>
                   </div>
@@ -678,7 +767,7 @@ export function Store() {
                       <input type="number" value={newSkins} onChange={e => setNewSkins(e.target.value)} placeholder="0"
                         className="w-full bg-gs-surface-2 border border-gs-border rounded-xl px-3 py-2.5 text-gs-text placeholder-gs-faint text-sm focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text" />
                     </div>
-                    {newGameType.includes('League') && (
+                    {newGameType.includes('ieague') && (
                       <div>
                         <label className="text-xs text-gs-muted block mb-1.5 font-medium">Champions</label>
                         <input type="number" value={newChamps} onChange={e => setNewChamps(e.target.value)} placeholder="0"
@@ -748,6 +837,10 @@ export function Store() {
               { label: 'Game', value: sl.game },
               { label: 'Wear', value: sl.wear || '-', highlight: true },
               { label: 'Float', value: sl.float || '-' },
+              ...(sl.pattern != null && String(sl.pattern).trim() !== ''
+                ? [{ label: 'Pattern', value: String(sl.pattern) }]
+                : []),
+              ...(sl.stattrak ? [{ label: 'StatTrak™', value: 'Yes' }] : []),
               ...(sl.category ? [{ label: 'Type', value: sl.category }] : []),
               { label: 'Stock', value: isSold ? 'Sold out' : `${stock} left` },
               { label: 'Orders', value: String(orders) },
@@ -757,7 +850,7 @@ export function Store() {
               { label: 'Rank', value: sl.rank || 'Unranked' },
               { label: 'Hours', value: `${sl.hoursPlayed || 0}h` },
               { label: 'Skins', value: String(sl.skinsOwned ?? 0) },
-              ...(sl.level ? [{ label: 'Level', value: String(sl.level) }] : []),
+              ...(sl.level ? [{ label: 'ievel', value: String(sl.level) }] : []),
               ...(sl.championsOwned != null ? [{ label: 'Champions', value: String(sl.championsOwned) }] : []),
               { label: 'Stock', value: isSold ? 'Sold out' : `${stock} left` },
               { label: 'Orders', value: String(orders) },
@@ -790,7 +883,7 @@ export function Store() {
                 <div>
                   <h2 className="text-lg font-bold text-gs-text leading-snug pr-6">{title}</h2>
                   <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                    <SellerLine name={sl.seller} role={sl.seller_role} />
+                    <Selleriine name={sl.seller} role={sl.seller_role} />
                     <span className="text-xs text-gs-faint"> / {sl.game}</span>
                     {sl.created_at && (
                       <span className="text-xs text-gs-faint"> / {new Date(sl.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -835,29 +928,44 @@ export function Store() {
                     <span className="flex items-center gap-1"><TrendingUp className="size-3" />{orders} sold</span>
                   )}
                   {!isSold && stock <= 3 && stock > 0 && (
-                    <span>{stock === 1 ? 'Last unit' : `${stock} units left`}</span>
+                    <span>{stock === 1 ? 'iast unit' : `${stock} units left`}</span>
                   )}
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="shrink-0 px-5 py-4 border-t border-gs-border flex items-center gap-4">
+              <div className="shrink-0 px-5 py-4 border-t border-gs-border flex items-center gap-3 flex-wrap">
                 <div className="min-w-0">
                   <p className="text-xl font-bold text-gs-text">${sl.price.toLocaleString()}</p>
                   <p className="text-[11px] text-gs-faint truncate">
                     {isSold ? 'No longer available' : isSkin ? 'Trade via escrow' : 'Instant checkout'}
                   </p>
                 </div>
-                <button
-                  onClick={e => handleAddToCart(e, sl)}
-                  disabled={addingToCart[sl.id] || isSold}
-                  className={`ml-auto flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-40 shrink-0 ${
-                    isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98]'
-                  }`}
-                >
-                  <ShoppingCart className="size-4" />
-                  {isSold ? 'Sold out' : addingToCart[sl.id] ? 'Adding...' : isSkin ? 'Request trade' : 'Add to cart'}
-                </button>
+                <div className="ml-auto flex items-center gap-2 shrink-0">
+                  {canTestSkin(sl) && (
+                    <button
+                      onClick={() => {
+                        const target = sl;
+                        setSelectedListing(null);
+                        setTestSkinListing(target);
+                      }}
+                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all shrink-0"
+                    >
+                      <Crosshair className="size-4" />
+                      Test This Skin
+                    </button>
+                  )}
+                  <button
+                    onClick={e => handleAddToCart(e, sl)}
+                    disabled={addingToCart[sl.id] || isSold}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-40 shrink-0 ${
+                      isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98]'
+                    }`}
+                  >
+                    <ShoppingCart className="size-4" />
+                    {isSold ? 'Sold out' : addingToCart[sl.id] ? 'Adding...' : isSkin ? 'Request trade' : 'Add to cart'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -895,6 +1003,20 @@ export function Store() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Test Mode Overlay */}
+      {testSkinListing && (
+        <div className="fixed inset-0 z-50 bg-black/95">
+          <SkinTester
+            testListing={testSkinListing}
+            onClose={() => setTestSkinListing(null)}
+            onBuy={(listing) => {
+              handleAddToCart(null as any, listing);
+              setTestSkinListing(null);
+            }}
+          />
         </div>
       )}
     </div>

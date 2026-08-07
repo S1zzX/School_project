@@ -40,7 +40,9 @@ The UI supports English and Vietnamese, per-account light/dark/auto themes, acce
 
 Confirmed capabilities include:
 
-- Static product catalog for game keys, software, subscriptions, and gift cards.
+- Static and dynamic product catalog for Steam game keys, software, subscriptions, and gift cards.
+- Live Steam Top Sellers chart (`IStoreTopSellers/GetWeeklyTopSellers`) powering real-time Steam game catalog rows.
+- Dynamic game detail pages for any Steam App ID (`/api/catalog/steam-app/:appid`) with live prices, trailers, and screenshots.
 - Community marketplace for game accounts, CS2 skins, Valorant accounts, and similar gaming listings.
 - Cart, checkout, wallet payment, purchase history, and instant local product-key or credential delivery for non-escrow items.
 - MoMo and MB Bank top-up demo flow with USD/VND conversion at `25,000 VND = 1 USD`.
@@ -52,7 +54,7 @@ Confirmed capabilities include:
 - JWT authentication, bcrypt password hashing, role guards, profile updates, and slim token refresh.
 - In-app notifications and per-user notification preferences.
 - Vision AI providers through Groq Cloud, Google Gemini, and local Ollama vision models.
-- External data from Steam Community Market, CSGO-API, Valorant-API, CheapShark, Steam Web API, SteamSpy, and remote artwork CDNs.
+- External data from Steam Community Market, Steam Web API (`ISteamUser`, `IStoreTopSellers`), Steam Store AppDetails, CSGO-API, Valorant-API, CheapShark, SteamSpy, and remote artwork CDNs.
 
 Confirmed constraints and limitations:
 

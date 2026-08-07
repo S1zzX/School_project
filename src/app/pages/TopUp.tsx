@@ -171,7 +171,7 @@ export function TopUp() {
   }
 
   return (
-    <div className="commerce-page max-w-6xl mx-auto px-6 py-8 space-y-6 min-h-[70vh]">
+    <div className="commerce-page wallet-page max-w-6xl mx-auto px-6 py-8 space-y-6 min-h-[70vh]">
       <div className="commerce-hero flex items-center justify-between gap-4 flex-wrap rounded-3xl border px-6 py-6 lg:px-8">
         <div className="flex items-center gap-4">
           <div className="commerce-hero-icon w-14 h-14 rounded-2xl flex items-center justify-center">
@@ -299,7 +299,7 @@ export function TopUp() {
               onClick={submitTopUp}
               disabled={submitting || amountUsd <= 0}
               className="w-full flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white transition-opacity accent-glow disabled:opacity-60 disabled:cursor-not-allowed"
-              style={{ background: 'linear-gradient(135deg, var(--gs-accent), color-mix(in oklab, var(--gs-accent) 70%, #e879f9))' }}
+              style={{ background: 'linear-gradient(135deg, var(--gs-accent, #1a6fd4), var(--gs-accent2, #1557b0))', color: 'var(--gs-accent-fg, #fff)' }}
             >
               {submitting ? <><Loader2 className="size-4 animate-spin" /> Adding Balance...</> : <><Wallet className="size-4" /> Confirm Transfer and Add Balance</>}
             </button>

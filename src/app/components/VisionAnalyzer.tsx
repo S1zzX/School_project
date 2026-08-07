@@ -178,7 +178,7 @@ export function VisionAnalyzer({
                     className="w-14 h-14 rounded-full border-2 border-t-transparent animate-spin"
                     style={{ borderColor: 'rgba(26,111,212,0.3)', borderTopColor: '#1a6fd4' }}
                   />
-                  <span className="absolute inset-0 m-auto w-4 h-4 rounded-full bg-blue-400 animate-pulse" style={{ margin: 'auto', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: 16, height: 16 }} />
+                  <span className="absolute inset-0 m-auto w-4 h-4 rounded-full bg-blue-400" style={{ margin: 'auto', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: 16, height: 16 }} />
                 </div>
                 <p className="text-sm font-semibold text-white">Analyzing with AI Vision…</p>
                 <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Detecting game, items, rank & stats</p>
@@ -215,7 +215,7 @@ export function VisionAnalyzer({
 
       {/* ── Loading ── */}
       {loading && (
-        <div className="space-y-2 animate-pulse">
+        <div className="space-y-2">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="h-9 rounded-lg" style={{ background: 'rgba(255,255,255,0.04)' }} />
           ))}

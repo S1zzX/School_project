@@ -200,7 +200,7 @@ export function ShopOwner() {
 
   return (
     <>
-      <div className="commerce-page max-w-6xl mx-auto px-6 py-8 space-y-7">
+      <div className="commerce-page shop-owner-page max-w-6xl mx-auto px-6 py-8 space-y-7">
 
         {/* Header */}
         <div className="commerce-hero flex items-center justify-between gap-4 rounded-3xl border px-6 py-6 lg:px-8">
