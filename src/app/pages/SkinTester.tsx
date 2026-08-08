@@ -463,6 +463,7 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
               onPointerLeave={() => setIsSpraying(false)}
             >
               <WeaponViewer3D
+                key={weaponSlug}
                 weaponSlug={weaponSlug}
                 skinImage={skinImage}
                 skinName={skinName}

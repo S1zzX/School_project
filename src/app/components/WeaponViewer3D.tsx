@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
@@ -51,23 +52,7 @@ function prepTexture(tex: THREE.Texture, srgb: boolean, anisotropy: number) {
   return tex;
 }
 
-class GLTFTextureWebpExtension {
-  name = 'EXT_texture_webp';
-  parser: any;
-  constructor(parser: any) {
-    this.parser = parser;
-  }
-  loadTexture(textureIndex: number) {
-    const parser = this.parser;
-    const json = parser.json;
-    const textureDef = json.textures?.[textureIndex];
-    if (!textureDef?.extensions?.EXT_texture_webp) {
-      return null;
-    }
-    const sourceIndex = textureDef.extensions.EXT_texture_webp.source;
-    return parser.loadTextureImage(textureIndex, sourceIndex);
-  }
-}
+
 
 function hideLegacyWeaponMeshes(object: THREE.Object3D) {
   const meshes: THREE.Mesh[] = [];
@@ -204,7 +189,7 @@ export function WeaponViewer3D({
       try {
         const snd = new Audio('/cs2-viewmodels/ak47/sounds/shoot.mp3');
         snd.volume = 0.5;
-        snd.play().catch(() => {});
+        snd.play().catch(() => { });
       } catch { /* sound optional */ }
     } else {
       next.setLoop(THREE.LoopOnce, 1);
@@ -213,7 +198,7 @@ export function WeaponViewer3D({
       try {
         const snd = new Audio(`/cs2-viewmodels/ak47/sounds/${action}.mp3`);
         snd.volume = 0.5;
-        snd.play().catch(() => {});
+        snd.play().catch(() => { });
       } catch { /* sound optional */ }
     }
     next.play();
@@ -304,11 +289,25 @@ export function WeaponViewer3D({
         texLoader.load(url, t => resolve(prepTexture(t, srgb, anisotropy)), undefined, reject);
       });
 
-    const gltfLoader = new GLTFLoader();
-    gltfLoader.register(parser => new GLTFTextureWebpExtension(parser));
+    const loadingManager = new THREE.LoadingManager();
+    loadingManager.setURLModifier(url => {
+      if (
+        !url.startsWith('/') &&
+        !url.startsWith('http:') &&
+        !url.startsWith('https:') &&
+        !url.startsWith('data:') &&
+        !url.startsWith('blob:')
+      ) {
+        return 'data:image/png;base64,iVBORw0KGgoAAAANSU5QAAABJRU5ErkJggg==';
+      }
+      return url;
+    });
+
+    const gltfLoader = new GLTFLoader(loadingManager);
+    gltfLoader.setMeshoptDecoder(MeshoptDecoder);
     let disposed = false;
     let raf = 0;
-    const clock = new THREE.Clock();
+    let prevTime = performance.now();
 
     const baseSlug = weaponSlug.toLowerCase().includes('bayonet') ? 'bayonet' : 'ak47';
     const BASE = `/cs2-viewmodels/${baseSlug}`;
@@ -324,74 +323,106 @@ export function WeaponViewer3D({
       shoot: `${ANIM}/shoot.glb`,
     };
 
+    // A mesh counts as "already textured" if GLTFLoader parsed a real map off the
+    // glb itself (this is the case for glbs that ship baked/embedded textures,
+    // e.g. via EXT_texture_webp) — in that case we should NOT overwrite it with a
+    // separately-fetched file.
+    const meshHasEmbeddedTexture = (source: THREE.Material | undefined) =>
+      source instanceof THREE.MeshStandardMaterial &&
+      !!(source.map || source.normalMap || source.roughnessMap || source.metalnessMap || source.aoMap);
+
     const applyMatchedMaterials = async (object: THREE.Object3D) => {
-      const isPreSkinnedGlb = weaponSlug.toLowerCase().includes('autoexec');
       let color: THREE.Texture | null = null;
       let normal: THREE.Texture | null = null;
       let orm: THREE.Texture | null = null;
+      let stickerColor: THREE.Texture | null = null;
+      let stickerOrm: THREE.Texture | null = null;
 
-      if (skinImage && !isPreSkinnedGlb) {
-        try {
-          color = await loadTex(skinImage, true);
-        } catch { /* fallback to local */ }
+      const isAutoexec = /autoexec/i.test(weaponSlug);
+
+      // Does *every* visible mesh already carry its own embedded texture(s)?
+      // If so we can skip network texture fetching entirely.
+      let allEmbedded = true;
+      object.traverse(obj => {
+        if (!(obj instanceof THREE.Mesh) || !obj.visible) return;
+        const sourceMaterials = Array.isArray(obj.material) ? obj.material : [obj.material];
+        for (const source of sourceMaterials) {
+          if (!meshHasEmbeddedTexture(source as THREE.Material)) allEmbedded = false;
+        }
+      });
+
+      // A caller-supplied skinImage always wins (user explicitly picked a skin),
+      // otherwise trust embedded textures when present, and only hit the network
+      // as a fallback for glbs that ship with no baked textures at all.
+      if (skinImage && !isAutoexec) {
+        try { color = await loadTex(skinImage, true); } catch { /* fallback */ }
       }
-      if (!color && !skinImage && !isPreSkinnedGlb) {
-        try {
-          color = await loadTex(`${TEX}/color.png`, true)
-            .catch(() => loadTex(`${TEX}/default_color.png`, true))
-            .catch(() => loadTex(`${BASE}/color.png`, true));
-        } catch { /* keep embedded */ }
-      }
-      if (!isPreSkinnedGlb) {
-        try {
-          normal = await loadTex(`${TEX}/normal.png`, false);
-        } catch { /* optional */ }
-        try {
-          orm = await loadTex(`${TEX}/orm.png`, false);
-        } catch { /* optional */ }
+
+      if (!allEmbedded) {
+        if (isAutoexec) {
+          color = color ?? await loadTex(`${BASE}/textures/skins/autoexec/weapon-color.png`, true).catch(() => null);
+          orm = await loadTex(`${BASE}/textures/skins/autoexec/weapon-orm.png`, false).catch(() => null);
+          stickerColor = await loadTex(`${BASE}/textures/skins/autoexec/sticker-gaps-color.png`, true).catch(() => null);
+          stickerOrm = await loadTex(`${BASE}/textures/skins/autoexec/sticker-gaps-orm.png`, false).catch(() => null);
+        } else {
+          if (!color) {
+            color = await loadTex(`${TEX}/color.png`, true)
+              .catch(() => loadTex(`${TEX}/default_color.png`, true))
+              .catch(() => null);
+          }
+          normal = await loadTex(`${TEX}/normal.png`, false)
+            .catch(() => loadTex(`${TEX}/default_normal.png`, false))
+            .catch(() => null);
+          orm = await loadTex(`${TEX}/orm.png`, false)
+            .catch(() => loadTex(`${TEX}/default_orm.png`, false))
+            .catch(() => null);
+        }
       }
 
       const mats: THREE.MeshStandardMaterial[] = [];
       object.traverse(obj => {
-        if (!(obj instanceof THREE.Mesh)) return;
-        if (!obj.visible) return;
+        if (!(obj instanceof THREE.Mesh) || !obj.visible) return;
         const geom = obj.geometry as THREE.BufferGeometry;
-        if (geom?.attributes?.uv && !geom.attributes.uv2) {
-          geom.setAttribute('uv2', geom.attributes.uv);
-        }
+        if (geom?.attributes?.uv && !geom.attributes.uv2) geom.setAttribute('uv2', geom.attributes.uv);
+        const sourceMaterials = Array.isArray(obj.material) ? obj.material : [obj.material];
+        const materials = sourceMaterials.map(source => {
+          const sourceName = source instanceof THREE.Material ? source.name : '';
+          const isSticker = /sticker[_ ]?gaps/i.test(sourceName);
+          const mat = source instanceof THREE.MeshStandardMaterial ? source : new THREE.MeshStandardMaterial();
+          const embedded = meshHasEmbeddedTexture(source as THREE.Material);
 
-        const existingMat = Array.isArray(obj.material) ? obj.material[0] : obj.material;
-        if (existingMat instanceof THREE.MeshStandardMaterial) {
-          if (color) existingMat.map = color;
-          if (normal) existingMat.normalMap = normal;
-          if (orm) {
-            existingMat.aoMap = orm;
-            existingMat.roughnessMap = orm;
-            existingMat.metalnessMap = orm;
+          // Only stomp on the parsed material's own maps if we actually fetched a
+          // replacement (explicit skinImage, autoexec skin files, or the no-embed
+          // fallback). Otherwise leave the glb's baked textures alone.
+          const map = isSticker ? stickerColor || color : color;
+          const packedMap = isSticker ? stickerOrm || orm : orm;
+          const shouldOverride = !embedded || (skinImage && !isAutoexec);
+
+          if (shouldOverride && map) {
+            mat.map = map;
+            mat.map.colorSpace = THREE.SRGBColorSpace;
+            mat.map.needsUpdate = true;
+          } else if (mat.map) {
+            // Keep the embedded map, just make sure color space is right.
+            mat.map.colorSpace = THREE.SRGBColorSpace;
+            mat.map.needsUpdate = true;
           }
-          if (existingMat.map) {
-            existingMat.map.colorSpace = THREE.SRGBColorSpace;
-            existingMat.map.needsUpdate = true;
+          if (shouldOverride && normal && !isSticker) mat.normalMap = normal;
+          if (shouldOverride && packedMap) {
+            mat.aoMap = packedMap;
+            mat.roughnessMap = packedMap;
+            mat.metalnessMap = packedMap;
+            mat.aoMapIntensity = 0.9;
           }
-          existingMat.envMapIntensity = 1.15;
-          existingMat.needsUpdate = true;
-          mats.push(existingMat);
-        } else {
-          const mat = new THREE.MeshStandardMaterial({
-            map: color || undefined,
-            normalMap: normal || undefined,
-            aoMap: orm || undefined,
-            roughnessMap: orm || undefined,
-            metalnessMap: orm || undefined,
-            roughness: 0.42,
-            metalness: 0.28,
-            envMapIntensity: 1.15,
-          });
-          if (normal) mat.normalScale = new THREE.Vector2(0.85, 0.85);
-          if (orm) mat.aoMapIntensity = 0.9;
-          obj.material = mat;
+
+          mat.roughness = 0.42;
+          mat.metalness = 0.28;
+          mat.envMapIntensity = 1.15;
+          mat.needsUpdate = true;
           mats.push(mat);
-        }
+          return mat;
+        });
+        obj.material = Array.isArray(obj.material) ? materials : materials[0];
       });
       wearMatsRef.current = mats;
     };
@@ -405,9 +436,11 @@ export function WeaponViewer3D({
       try {
         const loadWeaponGlb = async () => {
           const candidates = [
+            ...(weaponSlug.toLowerCase().includes('autoexec')
+              ? [`${MODEL}/ak-47-autoexec.glb`]
+              : []),
             `${MODEL}/${weaponSlug.toLowerCase()}.glb`,
             `${MODEL}/${weaponSlug.toLowerCase()}-default.glb`,
-            `${MODEL}/ak-47-autoexec.glb`,
             `${MODEL}/ak-47-default.glb`,
             `${MODEL}/weapon.glb`,
           ];
@@ -524,7 +557,9 @@ export function WeaponViewer3D({
 
     const tick = () => {
       raf = requestAnimationFrame(tick);
-      const dt = clock.getDelta();
+      const now = performance.now();
+      const dt = Math.min((now - prevTime) / 1000, 0.1);
+      prevTime = now;
       mixerRef.current?.update(dt);
       controls.update();
       renderer.render(scene, camera);
