@@ -323,14 +323,10 @@ export function WeaponViewer3D({
       shoot: `${ANIM}/shoot.glb`,
     };
 
-    // A mesh counts as "already textured" if GLTFLoader parsed a real map off the
-    // glb itself (this is the case for glbs that ship baked/embedded textures,
-    // e.g. via EXT_texture_webp) — in that case we should NOT overwrite it with a
-    // separately-fetched file.
-    const meshHasEmbeddedTexture = (source: THREE.Material | undefined) =>
-      source instanceof THREE.MeshStandardMaterial &&
-      !!(source.map || source.normalMap || source.roughnessMap || source.metalnessMap || source.aoMap);
-
+    // NOTE: glbs exported from Skinshotter embed only tiny 4x4 placeholder
+    // textures (solid-color stubs), never the real 4096x4096 bakes. So we always
+    // fetch the real texture files from /public and only fall back to whatever
+    // GLTFLoader parsed from the glb (the placeholder) if that fetch fails.
     const applyMatchedMaterials = async (object: THREE.Object3D) => {
       let color: THREE.Texture | null = null;
       let normal: THREE.Texture | null = null;
@@ -338,45 +334,39 @@ export function WeaponViewer3D({
       let stickerColor: THREE.Texture | null = null;
       let stickerOrm: THREE.Texture | null = null;
 
-      const isAutoexec = /autoexec/i.test(weaponSlug);
+      const isAutoexec = /autoexec/i.test(weaponSlug) || /autoexec/i.test(skinName);
+      const isAutotronic = /autotronic/i.test(weaponSlug) || /autotronic/i.test(skinName);
 
-      // Does *every* visible mesh already carry its own embedded texture(s)?
-      // If so we can skip network texture fetching entirely.
-      let allEmbedded = true;
-      object.traverse(obj => {
-        if (!(obj instanceof THREE.Mesh) || !obj.visible) return;
-        const sourceMaterials = Array.isArray(obj.material) ? obj.material : [obj.material];
-        for (const source of sourceMaterials) {
-          if (!meshHasEmbeddedTexture(source as THREE.Material)) allEmbedded = false;
-        }
-      });
-
-      // A caller-supplied skinImage always wins (user explicitly picked a skin),
-      // otherwise trust embedded textures when present, and only hit the network
-      // as a fallback for glbs that ship with no baked textures at all.
-      if (skinImage && !isAutoexec) {
+      if (skinImage && !isAutoexec && !isAutotronic) {
         try { color = await loadTex(skinImage, true); } catch { /* fallback */ }
       }
 
-      if (!allEmbedded) {
-        if (isAutoexec) {
-          color = color ?? await loadTex(`${BASE}/textures/skins/autoexec/weapon-color.png`, true).catch(() => null);
-          orm = await loadTex(`${BASE}/textures/skins/autoexec/weapon-orm.png`, false).catch(() => null);
-          stickerColor = await loadTex(`${BASE}/textures/skins/autoexec/sticker-gaps-color.png`, true).catch(() => null);
-          stickerOrm = await loadTex(`${BASE}/textures/skins/autoexec/sticker-gaps-orm.png`, false).catch(() => null);
-        } else {
-          if (!color) {
-            color = await loadTex(`${TEX}/color.png`, true)
-              .catch(() => loadTex(`${TEX}/default_color.png`, true))
-              .catch(() => null);
-          }
-          normal = await loadTex(`${TEX}/normal.png`, false)
-            .catch(() => loadTex(`${TEX}/default_normal.png`, false))
-            .catch(() => null);
-          orm = await loadTex(`${TEX}/orm.png`, false)
-            .catch(() => loadTex(`${TEX}/default_orm.png`, false))
+      if (isAutoexec) {
+        color = color ?? await loadTex(`${BASE}/textures/skins/autoexec/weapon-color.png`, true).catch(() => null);
+        orm = await loadTex(`${BASE}/textures/skins/autoexec/weapon-orm.png`, false).catch(() => null);
+        stickerColor = await loadTex(`${BASE}/textures/skins/autoexec/sticker-gaps-color.png`, true).catch(() => null);
+        stickerOrm = await loadTex(`${BASE}/textures/skins/autoexec/sticker-gaps-orm.png`, false).catch(() => null);
+      } else if (isAutotronic) {
+        const autotronicBase = `/cs2-viewmodels/bayonet/textures/skin/autotronic`;
+        color = color ?? await loadTex(`${autotronicBase}/bayonet-autotronic-color.png`, true)
+          .catch(() => loadTex(`${autotronicBase}/color.png`, true))
+          .catch(() => null);
+        orm = await loadTex(`${autotronicBase}/bayonet-autotronic-roughness-metalness.png`, false)
+          .catch(() => loadTex(`${autotronicBase}/bayonet-autotronic-orm.png`, false))
+          .catch(() => loadTex(`${autotronicBase}/orm.png`, false))
+          .catch(() => null);
+      } else {
+        if (!color) {
+          color = await loadTex(`${TEX}/color.png`, true)
+            .catch(() => loadTex(`${TEX}/default_color.png`, true))
             .catch(() => null);
         }
+        normal = await loadTex(`${TEX}/normal.png`, false)
+          .catch(() => loadTex(`${TEX}/default_normal.png`, false))
+          .catch(() => null);
+        orm = await loadTex(`${TEX}/orm.png`, false)
+          .catch(() => loadTex(`${TEX}/default_orm.png`, false))
+          .catch(() => null);
       }
 
       const mats: THREE.MeshStandardMaterial[] = [];
@@ -389,26 +379,17 @@ export function WeaponViewer3D({
           const sourceName = source instanceof THREE.Material ? source.name : '';
           const isSticker = /sticker[_ ]?gaps/i.test(sourceName);
           const mat = source instanceof THREE.MeshStandardMaterial ? source : new THREE.MeshStandardMaterial();
-          const embedded = meshHasEmbeddedTexture(source as THREE.Material);
 
-          // Only stomp on the parsed material's own maps if we actually fetched a
-          // replacement (explicit skinImage, autoexec skin files, or the no-embed
-          // fallback). Otherwise leave the glb's baked textures alone.
-          const map = isSticker ? stickerColor || color : color;
-          const packedMap = isSticker ? stickerOrm || orm : orm;
-          const shouldOverride = !embedded || (skinImage && !isAutoexec);
+          const map = isSticker ? (stickerColor || color) : color;
+          const packedMap = isSticker ? (stickerOrm || orm) : orm;
 
-          if (shouldOverride && map) {
+          if (map) {
             mat.map = map;
             mat.map.colorSpace = THREE.SRGBColorSpace;
             mat.map.needsUpdate = true;
-          } else if (mat.map) {
-            // Keep the embedded map, just make sure color space is right.
-            mat.map.colorSpace = THREE.SRGBColorSpace;
-            mat.map.needsUpdate = true;
           }
-          if (shouldOverride && normal && !isSticker) mat.normalMap = normal;
-          if (shouldOverride && packedMap) {
+          if (normal && !isSticker) mat.normalMap = normal;
+          if (packedMap) {
             mat.aoMap = packedMap;
             mat.roughnessMap = packedMap;
             mat.metalnessMap = packedMap;
@@ -438,6 +419,9 @@ export function WeaponViewer3D({
           const candidates = [
             ...(weaponSlug.toLowerCase().includes('autoexec')
               ? [`${MODEL}/ak-47-autoexec.glb`]
+              : []),
+            ...(weaponSlug.toLowerCase().includes('autotronic') || skinName.toLowerCase().includes('autotronic')
+              ? [`/cs2-viewmodels/bayonet/models/bayonet-autotronic.glb`, `/cs2-viewmodels/bayonet/models/bayonet-default.glb`]
               : []),
             `${MODEL}/${weaponSlug.toLowerCase()}.glb`,
             `${MODEL}/${weaponSlug.toLowerCase()}-default.glb`,

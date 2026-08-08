@@ -380,9 +380,14 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
 
       const isBayonet = /bayonet/i.test(skin.name) || /bayonet/i.test(skin.weapon || '');
       const isAutoexec = /autoexec/i.test(skin.name);
+      const isAutotronic = /autotronic/i.test(skin.name);
       const isVanilla = /default|vanilla/i.test(skin.name);
 
-      if (isBayonet) {
+      if (isBayonet && isAutotronic) {
+        setWeaponSlug('bayonet-autotronic');
+        setSkinImage(null);
+        setUse3D(true);
+      } else if (isBayonet) {
         setWeaponSlug('bayonet');
         setSkinImage(skin.image);
         setUse3D(true);
