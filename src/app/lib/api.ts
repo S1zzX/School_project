@@ -1195,3 +1195,70 @@ export function apiFetchCatalogLivePrices(steamAppIds: number[]): Promise<Catalo
   const ids = [...new Set(steamAppIds)].join(',');
   return apiFetch<CatalogLivePricesResponse>(`/catalog/live-prices?ids=${encodeURIComponent(ids)}`);
 }
+
+// ─── Steam CS2 Market API Helpers ─────────────────────────────────────────────
+
+export interface SteamMarketItem {
+  id: string;
+  name: string;
+  hash_name: string;
+  sell_listings: number;
+  price_usd: number;
+  price_vnd: number;
+  formatted_usd: string;
+  formatted_vnd: string;
+  image: string;
+  bg_color: string;
+  name_color: string;
+  type: string;
+  wear: string;
+  wear_abbr: string;
+  stattrak: boolean;
+  souvenir: boolean;
+}
+
+export interface SteamMarketSearchResponse {
+  success: boolean;
+  total_count: number;
+  start: number;
+  count: number;
+  items: SteamMarketItem[];
+}
+
+export interface SteamSingleListing {
+  id: string;
+  listing_id: string;
+  hash_name: string;
+  title: string;
+  image: string;
+  wear: string;
+  wear_abbr: string;
+  float: number;
+  pattern: number;
+  price_usd: number;
+  price_vnd: number;
+  formatted_usd: string;
+  formatted_vnd: string;
+  stattrak: boolean;
+  souvenir: boolean;
+  stickers: string[];
+  charms: string[];
+  seller: string;
+}
+
+export interface SteamListingsResponse {
+  hash_name: string;
+  total_listings: number;
+  weekly_sales: number;
+  listings: SteamSingleListing[];
+}
+
+export async function apiSearchSteamCS2(params: Record<string, string | number>): Promise<SteamMarketSearchResponse> {
+  const query = new URLSearchParams(params as any).toString();
+  return apiFetch<SteamMarketSearchResponse>(`/steam/cs2/search?${query}`, { auth: false });
+}
+
+export async function apiGetSteamCS2Listings(params: Record<string, string | number>): Promise<SteamListingsResponse> {
+  const query = new URLSearchParams(params as any).toString();
+  return apiFetch<SteamListingsResponse>(`/steam/cs2/listings?${query}`, { auth: false });
+}

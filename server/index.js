@@ -20,6 +20,7 @@ const visionRoutes         = require('./routes/vision');
 const analyticsRoutes      = require('./routes/analytics');
 const catalogRoutes        = require('./routes/catalog');
 const walletRoutes         = require('./routes/wallet');
+const steamRoutes          = require('./routes/steam');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -46,6 +47,7 @@ app.use('/api/vision',        visionRoutes);
 app.use('/api/analytics',     analyticsRoutes);
 app.use('/api/catalog',       catalogRoutes);
 app.use('/api/wallet',        walletRoutes);
+app.use('/api/steam',         steamRoutes);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {

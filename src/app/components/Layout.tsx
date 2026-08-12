@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, type FormEvent } from 'react';
 import { Outlet, NavLink, Link, useNavigate, useLocation, useSearchParams } from 'react-router';
 import {
-  ShoppingCart, User, Search, ChevronDown,
+  ShoppingCart, ShoppingBag, User, Search, ChevronDown,
   LogOut, ShieldCheck, Settings, X,
   HeadphonesIcon, BarChart3, Wallet,
 } from 'lucide-react';

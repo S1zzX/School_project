@@ -17,6 +17,7 @@ import { VisionPage } from './pages/VisionPage';
 import { Analytics } from './pages/Analytics';
 import { TopUp } from './pages/TopUp';
 import { SkinTester } from './pages/SkinTester';
+import { SteamMarket } from './pages/SteamMarket';
 
 export const router = createBrowserRouter([
   // Auth + fullscreen tools (no Layout shell)
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
 
       { path: 'community', Component: Community },
       { path: 'store', Component: Store },
+      { path: 'store/cs2-market', Component: SteamMarket },
       { path: 'cart', Component: Cart },
       { path: 'admin', Component: Admin },
       { path: 'settings', Component: Settings },

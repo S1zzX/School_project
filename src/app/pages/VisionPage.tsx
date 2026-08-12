@@ -1,4 +1,4 @@
-// src/app/pages/VisionPage.tsx ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Computer Vision page with side chat
+// src/app/pages/VisionPage.tsx — Computer Vision page with side chat
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { ChevronDown, Scan, Sparkles, Upload, WandSparkles, MessageSquare, ArrowUpRight } from 'lucide-react';
@@ -61,7 +61,7 @@ export function VisionPage() {
   return (
     <div className="vision-page max-w-7xl mx-auto px-5 py-8 space-y-6">
 
-      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Page Header ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
+      {/* Page Header */}
       <div className="vision-hero relative overflow-hidden rounded-3xl border px-7 py-8 lg:px-10 lg:py-10 space-y-1">
         <div className="vision-grid absolute inset-0 pointer-events-none" />
         <div className="vision-hero-orb absolute -right-16 -top-24 size-72 rounded-full pointer-events-none" />
@@ -76,11 +76,11 @@ export function VisionPage() {
           Game Screenshot Analyzer
         </h1>
         <p className="relative z-10 text-sm lg:text-base max-w-3xl leading-relaxed mt-3" style={{ color: 'var(--gs-muted)' }}>
-          Upload any game screenshot ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the AI will identify the item, rank, or account details, then you can chat with it about anything in the image.
+          Upload any game screenshot — the AI will identify the item, rank, or account details, then you can chat with it about anything in the image.
         </p>
       </div>
 
-      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Info strip ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
+      {/* Info strip */}
       <div
         className="vision-control-bar flex flex-wrap items-center gap-x-6 gap-y-3 text-xs px-5 py-4 rounded-2xl border"
         style={{ borderColor: 'var(--gs-border)', background: 'var(--gs-surface)' }}
@@ -102,7 +102,7 @@ export function VisionPage() {
               {!hasProviders && <option value="">No models configured</option>}
               {visionStatus?.providers.map((p) => (
                 <option key={p.id} value={p.id} disabled={p.ready === false}>
-                  {p.shortLabel} ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {p.model}{p.ready === false ? ' (not ready)' : ''}
+                  {p.shortLabel} — {p.model}{p.ready === false ? ' (not ready)' : ''}
                 </option>
               ))}
             </select>
@@ -114,12 +114,12 @@ export function VisionPage() {
         </label>
         {selectedOption?.id === 'ollama' && selectedOption.ready === false && (
           <span className="text-amber-600 dark:text-amber-400">
-            Install Ollama ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ run <code className="text-xs">ollama pull {selectedOption.model}</code>
+            Install Ollama → run <code className="text-xs">ollama pull {selectedOption.model}</code>
           </span>
         )}
         <span style={{ color: 'var(--gs-faint)' }}>
           <span className="font-semibold" style={{ color: 'var(--gs-muted)' }}>Supports: </span>
-          CS2 Ãƒâ€šÃ‚Â· Valorant Ãƒâ€šÃ‚Â· LoL Ãƒâ€šÃ‚Â· Apex Ãƒâ€šÃ‚Â· PUBG Ãƒâ€šÃ‚Â· Fortnite
+          CS2 • Valorant • LoL • Apex • PUBG • Fortnite
         </span>
         <span style={{ color: 'var(--gs-faint)' }}>
           <span className="font-semibold" style={{ color: 'var(--gs-muted)' }}>CS2 prices: </span>
@@ -135,10 +135,10 @@ export function VisionPage() {
         </span>
       </div>
 
-      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Two-column: Analyzer + Chat ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
+      {/* Two-column: Analyzer + Chat */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
 
-        {/* Left ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Upload + Analysis */}
+        {/* Left — Upload + Analysis */}
         <div
           className="vision-work-card lg:col-span-5 rounded-3xl border overflow-hidden"
           style={{ borderColor: 'var(--gs-border)', background: 'var(--gs-surface)' }}
@@ -157,13 +157,13 @@ export function VisionPage() {
           </div>
         </div>
 
-        {/* Right ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â AI Chat */}
+        {/* Right — AI Chat */}
         <div className="vision-chat-wrap lg:col-span-7">
           <VisionChat visionResult={visionResult} provider={selectedProvider || undefined} />
         </div>
       </div>
 
-      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ How it works ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
+      {/* How it works */}
       <div
         className="vision-steps rounded-3xl border overflow-hidden"
         style={{ borderColor: 'var(--gs-border)', background: 'var(--gs-surface)' }}
@@ -175,12 +175,12 @@ export function VisionPage() {
           {[
             { n: '1', title: 'Upload', icon: Upload, body: 'Drag and drop or click to select any gaming screenshot from your device.' },
             { n: '2', title: 'Analyze', icon: WandSparkles, body: 'Pick a vision model above, then the AI reads the image and extracts structured game data.' },
-            { n: '3', title: 'Chat', icon: MessageSquare, body: 'Ask the AI anything about the screenshot ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â price, trade tips, rank info and more.' },
+            { n: '3', title: 'Chat', icon: MessageSquare, body: 'Ask the AI anything about the screenshot — price, trade tips, rank info and more.' },
           ].map(step => (
             <div key={step.n} className="vision-step-card group px-6 py-6 flex gap-4">
               <span className="vision-step-icon"><step.icon className="size-5" /></span>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: 'var(--gs-accent)' }}>ttep 0{step.n}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: 'var(--gs-accent)' }}>Step 0{step.n}</p>
                 <p className="text-sm font-bold mb-1" style={{ color: 'var(--gs-text)' }}>{step.title}</p>
                 <p className="text-xs leading-relaxed" style={{ color: 'var(--gs-faint)' }}>{step.body}</p>
               </div>
@@ -190,15 +190,15 @@ export function VisionPage() {
         </div>
       </div>
 
-      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ thop owner note ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
+      {/* Shop owner note */}
       <p className="text-xs pb-2" style={{ color: 'var(--gs-faint)' }}>
-        thop Owner?{' '}
+        Shop Owner?{' '}
         <Link
           to="/shop-owner"
           className="underline underline-offset-2 transition-colors hover:text-gs-muted"
           style={{ color: 'var(--gs-muted)' }}
         >
-          Open the thop Dashboard
+          Open the Shop Dashboard
         </Link>
         {' '}to scan screenshots and auto-fill listing details directly from there.
       </p>

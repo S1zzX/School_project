@@ -9,10 +9,10 @@
 			m_nFormat = "PCM16"
 			m_nChannels = 1
 			m_nLoopStart = -1
-			m_nSampleCount = 16544
-			m_flDuration = 0.375147
+			m_nSampleCount = 19920
+			m_flDuration = 0.451701
 			m_Sentences = [  ]
-			m_nStreamingSize = 33088
+			m_nStreamingSize = 39840
 			m_nSeekTable = [  ]
 			m_nLoopEnd = 0
 			m_encodedHeader = #[  ]

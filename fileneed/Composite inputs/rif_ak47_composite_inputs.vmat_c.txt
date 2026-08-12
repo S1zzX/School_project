@@ -1,0 +1,65 @@
+<!-- kv3 encoding:text:version{e21c7f3c-8a33-41c5-9977-a76d3a32aa0d} format:generic:version{7412167c-06e9-4698-aff2-e63eb59037e7} -->
+{
+    m_materialName = "materials/models/weapons/customization/rif_ak47/rif_ak47_composite_inputs.vmat"
+    m_shaderName = "csgo_composite_inputs.vfx"
+    m_intParams = 
+    [
+        {
+            m_name = "MaterialLayerReferenceShaderId_1"
+            m_nValue = -1
+        },
+    ]
+    m_floatParams = 
+    [
+        {
+            m_name = "g_flUvScale1"
+            m_flValue = 0.549
+        },
+        {
+            m_name = "g_flWeaponLength1"
+            m_flValue = 37.745998
+        },
+    ]
+    m_vectorParams = [  ]
+    m_textureParams = 
+    [
+        {
+            m_name = "g_tAmbientOcclusion"
+            m_pValue = resource:"materials/models/weapons/customization/rif_ak47/rif_ak47_ao_psd_3cdda94d.vtex"
+        },
+        {
+            m_name = "g_tColor"
+            m_pValue = resource:"materials/models/weapons/v_models/rif_ak47/ak47_color_psd_1f318532.vtex"
+        },
+        {
+            m_name = "g_tMasks"
+            m_pValue = resource:"materials/models/weapons/customization/rif_ak47/rif_ak47_masks_psd_cc08789a.vtex"
+        },
+        {
+            m_name = "g_tMetalness"
+            m_pValue = resource:"materials/models/weapons/v_models/rif_ak47/ak47_rough_psd_73589151.vtex"
+        },
+        {
+            m_name = "g_tPosition"
+            m_pValue = resource:"materials/models/weapons/customization/rif_ak47/rif_ak47_pos_pfm_4291f8c1.vtex"
+        },
+        {
+            m_name = "g_tSurface"
+            m_pValue = resource:"materials/models/weapons/customization/rif_ak47/rif_ak47_surface_psd_1262e7bf.vtex"
+        },
+    ]
+    m_dynamicParams = [  ]
+    m_dynamicTextureParams = [  ]
+    m_intAttributes = [  ]
+    m_floatAttributes = [  ]
+    m_vectorAttributes = [  ]
+    m_textureAttributes = [  ]
+    m_stringAttributes = 
+    [
+        {
+            m_name = "layer_name_1"
+            m_value = "materials\\models\\weapons\\v_models\\rif_ak47\\ak47.vmat"
+        },
+    ]
+    m_renderAttributesUsed = [  ]
+}

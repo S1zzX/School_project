@@ -11,6 +11,7 @@ import {
   StoreListingAPI, getUser, type UserRole,
 } from '../lib/api';
 import { SkinTester } from './SkinTester';
+import { SteamMarket } from './SteamMarket';
 import { Link, useNavigate } from 'react-router';
 
 const GAMES = ['All', 'LoL', 'CS2', 'Valorant'];
@@ -88,6 +89,7 @@ export function Store() {
   const navigate = useNavigate();
   const user     = getUser();
 
+  const [activeTab,   setActiveTab]   = useState<'steam' | 'community'>('steam');
   const [listings,    setListings]    = useState<StoreListingAPI[]>([]);
   const [gameFilter,  setGameFilter]  = useState('All');
   const [typeFilter,  setTypeFilter]  = useState<FilterType>('all');
@@ -317,31 +319,52 @@ export function Store() {
                 <ShieldCheck className="size-3.5" /> Escrow supported
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gs-border bg-gs-surface-2">
-                <Eye className="size-3.5" /> iive listing views
+                <Eye className="size-3.5" /> Live Steam API
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gs-border bg-gs-surface-2">
-                <Package className="size-3.5" /> {totalAvailable} available
+                <Package className="size-3.5" /> CS2 Categories
               </span>
             </div>
           </div>
 
           <div className="flex lg:flex-col items-stretch sm:items-end gap-3">
-            <Link
-              to="/skin-tester"
-              className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold border border-gs-border bg-gs-surface-2 text-gs-text hover:bg-gs-surface hover:border-gs-faint/50 active:scale-[0.98] transition-all shrink-0"
-            >
-              <Crosshair className="size-4" /> Skin Tester
-            </Link>
-            {(!user || user.role === 'shop_owner' || user.role === 'admin') && (
+            <div className="flex items-center gap-1.5 p-1 bg-gs-surface-2 border border-gs-border rounded-xl">
               <button
-                onClick={() => user ? setShowModal(true) : navigate('/login')}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98] transition-all shrink-0"
+                onClick={() => setActiveTab('steam')}
+                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'steam'
+                    ? 'bg-gs-text text-gs-bg shadow-sm'
+                    : 'text-gs-muted hover:text-gs-text'
+                }`}
               >
-                <Plus className="size-4" /> Post Listing
+                🎮 CS2 Steam Market
               </button>
-            )}
-            <div className="hidden sm:block text-right text-[11px] text-gs-faint leading-relaxed max-w-44">
-              Browse carefully. Seller details appear before checkout.
+              <button
+                onClick={() => setActiveTab('community')}
+                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'community'
+                    ? 'bg-gs-text text-gs-bg shadow-sm'
+                    : 'text-gs-muted hover:text-gs-text'
+                }`}
+              >
+                📦 Community Listings
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                to="/skin-tester"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold border border-gs-border bg-gs-surface-2 text-gs-text hover:bg-gs-surface hover:border-gs-faint/50 active:scale-[0.98] transition-all shrink-0"
+              >
+                <Crosshair className="size-3.5" /> Skin Tester
+              </Link>
+              {(!user || user.role === 'shop_owner' || user.role === 'admin') && (
+                <button
+                  onClick={() => user ? setShowModal(true) : navigate('/login')}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98] transition-all shrink-0"
+                >
+                  <Plus className="size-3.5" /> Post Listing
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -349,301 +372,312 @@ export function Store() {
 
       {/* Stats */}
       <StatStrip items={[
-        { label: 'Total Listings', value: listings.length, icon: <Layers className="size-4" /> },
-        { label: 'Available Now', value: totalAvailable, icon: <Package className="size-4" /> },
-        { label: 'Total Sold', value: totalSold, icon: <TrendingUp className="size-4" /> },
-        { label: 'Active Sellers', value: new Set(listings.map(l => l.seller)).size, icon: <Star className="size-4" /> },
+        { label: 'CS2 Categories', value: '35,000+', icon: <Layers className="size-4" /> },
+        { label: 'Available Items', value: 'Real-time', icon: <Package className="size-4" /> },
+        { label: 'Live Data', value: 'Steam API', icon: <TrendingUp className="size-4" /> },
+        { label: 'Community Listings', value: listings.length, icon: <Star className="size-4" /> },
       ]} />
 
-      {/* Filters */}
-      <section className="rounded-2xl border border-gs-border bg-gs-surface p-3 sm:p-4 shadow-sm space-y-4">
-        <div className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_auto_auto] lg:items-center">
-          <div className="relative min-w-0">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gs-faint" />
-            <input
-              value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search skins, accounts, ranks..."
-              className="w-full bg-gs-surface-2 border border-gs-border rounded-xl pl-11 pr-4 py-3 text-gs-text placeholder:text-gs-faint focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text text-sm transition-all"
-            />
-          </div>
+      {/* Main Content Area based on activeTab */}
+      {activeTab === 'steam' ? (
+        <SteamMarket embedMode={true} />
+      ) : (
+        <>
+          {/* Filters */}
+          <section className="rounded-2xl border border-gs-border bg-gs-surface p-3 sm:p-4 shadow-sm space-y-4">
+            <div className="grid gap-3 lg:grid-cols-[minmax(260px,1fr)_auto_auto] lg:items-center">
+              <div className="relative min-w-0">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gs-faint" />
+                <input
+                  value={search} onChange={e => setSearch(e.target.value)}
+                  placeholder="Search skins, accounts, ranks..."
+                  className="w-full bg-gs-surface-2 border border-gs-border rounded-xl pl-11 pr-4 py-3 text-gs-text placeholder:text-gs-faint focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text text-sm transition-all"
+                />
+              </div>
 
-          <div className="relative min-w-44">
-            <select value={sort} onChange={e => setSort(e.target.value)}
-              className="w-full appearance-none bg-gs-surface-2 border border-gs-border rounded-xl pl-4 pr-9 py-3 text-gs-text text-sm font-semibold focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text cursor-pointer transition-all">
-              {SORT.map(s => <option key={s}>{s}</option>)}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gs-faint pointer-events-none" />
-          </div>
+              <div className="relative min-w-44">
+                <select value={sort} onChange={e => setSort(e.target.value)}
+                  className="w-full appearance-none bg-gs-surface-2 border border-gs-border rounded-xl pl-4 pr-9 py-3 text-gs-text text-sm font-semibold focus:outline-none focus:border-gs-text focus:ring-1 focus:ring-gs-text cursor-pointer transition-all">
+                  {SORT.map(s => <option key={s}>{s}</option>)}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gs-faint pointer-events-none" />
+              </div>
 
-          <div className="flex gap-1 bg-gs-surface-2 border border-gs-border rounded-xl p-1">
-            {([
-              { mode: 'grid' as const, icon: <Layers className="size-4" />, label: 'Grid view' },
-              { mode: 'list' as const, icon: <Filter className="size-4" />, label: 'List view' },
-            ]).map(v => (
-              <button key={v.mode} onClick={() => setViewMode(v.mode)} title={v.label}
-                className={`p-2 rounded-lg transition-all active:scale-[0.98] ${viewMode === v.mode ? 'bg-gs-text text-gs-bg shadow-sm' : 'text-gs-faint hover:text-gs-text hover:bg-gs-surface'}`}>
-                {v.icon}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-start">
-          <div className="space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gs-faint">Games</p>
-            <div className="flex gap-2 flex-wrap items-center">
-              {useGameFilterModal ? (
-                <>
-                  <button onClick={() => setGameFilter('All')} className={filterBtnClass(gameFilter === 'All')}>All</button>
-                  {gameFilter !== 'All' && (
-                    <span className={filterBtnClass(true)}>{gameFilter}</span>
-                  )}
-                  <button
-                    onClick={() => setShowGameFilterModal(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-gs-muted hover:text-gs-text border border-gs-border bg-gs-surface hover:bg-gs-surface-2 transition-colors"
-                  >
-                    <Filter className="size-3.5" />
-                    {gameFilter === 'All' ? `More games (${availableGames.length - 1})` : 'Change game'}
+              <div className="flex gap-1 bg-gs-surface-2 border border-gs-border rounded-xl p-1">
+                {([
+                  { mode: 'grid' as const, icon: <Layers className="size-4" />, label: 'Grid view' },
+                  { mode: 'list' as const, icon: <Filter className="size-4" />, label: 'List view' },
+                ]).map(v => (
+                  <button key={v.mode} onClick={() => setViewMode(v.mode)} title={v.label}
+                    className={`p-2 rounded-lg transition-all active:scale-[0.98] ${viewMode === v.mode ? 'bg-gs-text text-gs-bg shadow-sm' : 'text-gs-faint hover:text-gs-text hover:bg-gs-surface'}`}>
+                    {v.icon}
                   </button>
-                </>
-              ) : (
-                availableGames.map(g => (
-                  <button key={g} onClick={() => setGameFilter(g)} className={filterBtnClass(gameFilter === g)}>
-                    {g}
-                  </button>
-                ))
-              )}
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2 lg:text-right">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gs-faint">Listing type</p>
-            <div className="flex gap-2 flex-wrap lg:justify-end">
-              {(['all', 'skin', 'account'] as FilterType[]).map(t => (
-                <button key={t} onClick={() => setTypeFilter(t)} className={filterBtnClass(typeFilter === t)}>
-                  {t === 'all' ? 'All Types' : t === 'skin' ? 'Skins' : 'Accounts'}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Results count */}
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gs-faint">{filtered.length} listing{filtered.length !== 1 ? 's' : ''} found</p>
-      </div>
-      {/* Listings */}
-      {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-gs-surface-2 border border-gs-border">
-            <Package className="size-7 text-gs-faint" />
-          </div>
-          <p className="text-gs-text font-semibold">No listings found</p>
-          {user?.role === 'gamer' ? (
-            <p className="text-gs-faint text-sm max-w-xs">No items match your filters. Try adjusting your search or check back soon.</p>
-          ) : (
-            <>
-              <p className="text-gs-faint text-sm max-w-xs">Be the first! Post a CS2 skin or a LoL / Valorant account to the Trade Vault.</p>
-              <button onClick={() => user ? setShowModal(true) : navigate('/login')}
-                className="mt-1 flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98] transition-all">
-                <Plus className="size-4" /> Post a Listing
-              </button>
-            </>
-          )}
-        </div>
-      ) : viewMode === 'grid' ? (
-        // GRID VIEW
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {filtered.map(item => {
-            const isSold = item.status === 'sold';
-            const statusInfo = STATUS_STYiE[item.status || 'available'] ?? STATUS_STYiE.available;
-            return (
-              <div key={item.id} onClick={() => setSelectedListing(item)}
-                className={`bg-gs-surface border border-gs-border rounded-2xl overflow-hidden group cursor-pointer shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:border-gs-faint/50 ${isSold ? 'opacity-60' : ''}`}>
-
-                <div className="relative h-48 overflow-hidden bg-gs-surface-2">
-                  <ImageWithFallback src={item.image} alt={item.type === 'skin' ? item.item! : item.game}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
-                    <Badge>{item.type === 'skin' ? 'Skin' : 'Account'}</Badge>
-                    {item.type === 'account' && item.rank && (
-                      <Badge>{item.rank}</Badge>
-                    )}
-                    {item.type === 'skin' && (
-                      <Badge>Middleman</Badge>
-                    )}
-                  </div>
-
-                  {isSold && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                      <span className="text-xs font-semibold text-gs-text bg-gs-surface/95 px-3 py-1.5 rounded-lg border border-gs-border shadow-sm">Sold</span>
-                    </div>
-                  )}
-
-                  {canDeleteListing(item) && (
-                    <button onClick={e => handleDeleteListing(e, item)}
-                      className="absolute top-3 right-3 z-10 bg-black/70 text-white/70 hover:text-white p-2 rounded-lg border border-white/10 transition-colors">
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                <div className="p-4 space-y-3">
-                  {item.type === 'skin' ? (
+            <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-start">
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gs-faint">Games</p>
+                <div className="flex gap-2 flex-wrap items-center">
+                  {useGameFilterModal ? (
                     <>
-                      <p className="text-gs-text text-base font-semibold truncate leading-tight">{item.item}</p>
-                      <Selleriine name={item.seller} role={item.seller_role} />
-                      <div className="flex items-center justify-between text-xs text-gs-faint">
-                        <span>{item.wear}</span>
-                        <span>
-                          float {item.float}
-                          {item.pattern != null && String(item.pattern).trim() !== '' ? ` · #${item.pattern}` : ''}
-                        </span>
-                      </div>
+                      <button onClick={() => setGameFilter('All')} className={filterBtnClass(gameFilter === 'All')}>All</button>
+                      {gameFilter !== 'All' && (
+                        <span className={filterBtnClass(true)}>{gameFilter}</span>
+                      )}
+                      <button
+                        onClick={() => setShowGameFilterModal(true)}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-gs-muted hover:text-gs-text border border-gs-border bg-gs-surface hover:bg-gs-surface-2 transition-colors"
+                      >
+                        <Filter className="size-3.5" />
+                        {gameFilter === 'All' ? `More games (${availableGames.length - 1})` : 'Change game'}
+                      </button>
                     </>
                   ) : (
-                    <>
-                      <p className="text-gs-text text-base font-semibold truncate leading-tight">{item.highlight}</p>
-                      <Selleriine name={item.seller} role={item.seller_role} />
-                      <div className="flex items-center gap-1.5 text-xs text-gs-faint">
-                        <span>{item.hoursPlayed}h</span>
-                        <span>/</span><span>{item.skinsOwned} skins</span>
-                        {item.championsOwned ? <><span>/</span><span>{item.championsOwned} champs</span></> : null}
-                      </div>
-                    </>
-                  )}
-
-                  <div className="flex items-center gap-1.5 text-xs">
-                    {item.stock && item.stock > 1 ? (
-                      <Badge variant="success">{item.stock} in stock</Badge>
-                    ) : (
-                      <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
-                    )}
-                    {(item.order_count ?? 0) > 0 && (
-                      <span className="text-gs-faint flex items-center gap-0.5"><TrendingUp className="size-3" />{item.order_count}</span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 pt-3 border-t border-gs-border">
-                    <div>
-                      <p className="text-gs-text font-semibold text-xl tabular-nums">${item.price.toLocaleString()}</p>
-                      <p className="text-[10px] text-gs-faint mt-0.5">{item.sellerRating?.toFixed(1) || '5.0'} seller rating</p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {canTestSkin(item) && (
-                        <button
-                          onClick={e => {
-                            e.stopPropagation();
-                            setTestSkinListing(item);
-                          }}
-                          className="px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all flex items-center gap-1.5 shrink-0"
-                          title="Inspect live float and pattern in 3D Test Mode"
-                        >
-                          <Crosshair className="size-3.5" />
-                          Test This Skin
-                        </button>
-                      )}
-                      <button onClick={e => handleAddToCart(e, item)} disabled={addingToCart[item.id] || isSold}
-                        className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40 shrink-0 ${
-                          isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98]'
-                        }`}>
-                        {isSold ? 'Sold' : addingToCart[item.id] ? '...' : item.type === 'skin' ? 'Trade' : 'Buy'}
+                    availableGames.map(g => (
+                      <button key={g} onClick={() => setGameFilter(g)} className={filterBtnClass(gameFilter === g)}>
+                        {g}
                       </button>
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
               </div>
-            );
-          })}
-        </div>
-      ) : (
-        // iIST VIEW
-        <div className="bg-gs-surface border border-gs-border rounded-2xl overflow-x-auto shadow-sm">
-          <table className="w-full min-w-[920px] text-sm">
-            <thead>
-              <tr className="border-b border-gs-border bg-gs-surface-2">
-                {['Item', 'Game', 'Type', 'Details', 'Stock', 'Orders', 'Price', 'Actions'].map(h => (
-                  <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gs-faint">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+
+              <div className="space-y-2 lg:text-right">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gs-faint">Listing type</p>
+                <div className="flex gap-2 flex-wrap lg:justify-end">
+                  {(['all', 'skin', 'account'] as FilterType[]).map(t => (
+                    <button key={t} onClick={() => setTypeFilter(t)} className={filterBtnClass(typeFilter === t)}>
+                      {t === 'all' ? 'All Types' : t === 'skin' ? 'Skins' : 'Accounts'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {activeTab === 'community' && (
+        <>
+          {/* Results count */}
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gs-faint">{filtered.length} listing{filtered.length !== 1 ? 's' : ''} found</p>
+          </div>
+          {/* Listings */}
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-gs-surface-2 border border-gs-border">
+                <Package className="size-7 text-gs-faint" />
+              </div>
+              <p className="text-gs-text font-semibold">No listings found</p>
+              {user?.role === 'gamer' ? (
+                <p className="text-gs-faint text-sm max-w-xs">No items match your filters. Try adjusting your search or check back soon.</p>
+              ) : (
+                <>
+                  <p className="text-gs-faint text-sm max-w-xs">Be the first! Post a CS2 skin or a LoL / Valorant account to the Trade Vault.</p>
+                  <button onClick={() => user ? setShowModal(true) : navigate('/login')}
+                    className="mt-1 flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98] transition-all">
+                    <Plus className="size-4" /> Post a Listing
+                  </button>
+                </>
+              )}
+            </div>
+          ) : viewMode === 'grid' ? (
+            // GRID VIEW
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {filtered.map(item => {
                 const isSold = item.status === 'sold';
                 const statusInfo = STATUS_STYiE[item.status || 'available'] ?? STATUS_STYiE.available;
                 return (
-                  <tr key={item.id} onClick={() => setSelectedListing(item)}
-                    className={`border-b border-gs-border last:border-0 hover:bg-gs-surface-2/65 cursor-pointer transition-colors ${isSold ? 'opacity-60' : ''}`}>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-gs-surface-2 shrink-0 border border-gs-border">
-                          <ImageWithFallback src={item.image} alt="" className="w-full h-full object-cover" />
+                  <div key={item.id} onClick={() => setSelectedListing(item)}
+                    className={`bg-gs-surface border border-gs-border rounded-2xl overflow-hidden group cursor-pointer shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:border-gs-faint/50 ${isSold ? 'opacity-60' : ''}`}>
+
+                    <div className="relative h-48 overflow-hidden bg-gs-surface-2">
+                      <ImageWithFallback src={item.image} alt={item.type === 'skin' ? item.item! : item.game}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
+                        <Badge>{item.type === 'skin' ? 'Skin' : 'Account'}</Badge>
+                        {item.type === 'account' && item.rank && (
+                          <Badge>{item.rank}</Badge>
+                        )}
+                        {item.type === 'skin' && (
+                          <Badge>Middleman</Badge>
+                        )}
+                      </div>
+
+                      {isSold && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                          <span className="text-xs font-semibold text-gs-text bg-gs-surface/95 px-3 py-1.5 rounded-lg border border-gs-border shadow-sm">Sold</span>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gs-text truncate">{item.type === 'skin' ? item.item : item.highlight || `${item.game} Account`}</p>
+                      )}
+
+                      {canDeleteListing(item) && (
+                        <button onClick={e => handleDeleteListing(e, item)}
+                          className="absolute top-3 right-3 z-10 bg-black/70 text-white/70 hover:text-white p-2 rounded-lg border border-white/10 transition-colors">
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="p-4 space-y-3">
+                      {item.type === 'skin' ? (
+                        <>
+                          <p className="text-gs-text text-base font-semibold truncate leading-tight">{item.item}</p>
                           <Selleriine name={item.seller} role={item.seller_role} />
-                          <p className="text-xs text-gs-faint mt-0.5">{item.type === 'skin' ? item.wear : item.rank}</p>
+                          <div className="flex items-center justify-between text-xs text-gs-faint">
+                            <span>{item.wear}</span>
+                            <span>
+                              float {item.float}
+                              {item.pattern != null && String(item.pattern).trim() !== '' ? ` · #${item.pattern}` : ''}
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-gs-text text-base font-semibold truncate leading-tight">{item.highlight}</p>
+                          <Selleriine name={item.seller} role={item.seller_role} />
+                          <div className="flex items-center gap-1.5 text-xs text-gs-faint">
+                            <span>{item.hoursPlayed}h</span>
+                            <span>/</span><span>{item.skinsOwned} skins</span>
+                            {item.championsOwned ? <><span>/</span><span>{item.championsOwned} champs</span></> : null}
+                          </div>
+                        </>
+                      )}
+
+                      <div className="flex items-center gap-1.5 text-xs">
+                        {item.stock && item.stock > 1 ? (
+                          <Badge variant="success">{item.stock} in stock</Badge>
+                        ) : (
+                          <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                        )}
+                        {(item.order_count ?? 0) > 0 && (
+                          <span className="text-gs-faint flex items-center gap-0.5"><TrendingUp className="size-3" />{item.order_count}</span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 pt-3 border-t border-gs-border">
+                        <div>
+                          <p className="text-gs-text font-semibold text-xl tabular-nums">${item.price.toLocaleString()}</p>
+                          <p className="text-[10px] text-gs-faint mt-0.5">{item.sellerRating?.toFixed(1) || '5.0'} seller rating</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {canTestSkin(item) && (
+                            <button
+                              onClick={e => {
+                                e.stopPropagation();
+                                setTestSkinListing(item);
+                              }}
+                              className="px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all flex items-center gap-1.5 shrink-0"
+                              title="Inspect live float and pattern in 3D Test Mode"
+                            >
+                              <Crosshair className="size-3.5" />
+                              Test This Skin
+                            </button>
+                          )}
+                          <button onClick={e => handleAddToCart(e, item)} disabled={addingToCart[item.id] || isSold}
+                            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40 shrink-0 ${
+                              isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98]'
+                            }`}>
+                            {isSold ? 'Sold' : addingToCart[item.id] ? '...' : item.type === 'skin' ? 'Trade' : 'Buy'}
+                          </button>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-5 py-4"><Badge>{item.game}</Badge></td>
-                    <td className="px-5 py-4 text-xs text-gs-muted capitalize">{item.type}</td>
-                    <td className="px-5 py-4 text-xs text-gs-faint">
-                      {item.type === 'skin' ? `Float: ${item.float}` : `${item.hoursPlayed}h / ${item.skinsOwned} skins`}
-                    </td>
-                    <td className="px-5 py-4">
-                      <Badge variant={statusInfo.variant}>
-                        {item.stock && item.stock > 1 ? `${item.stock} left` : statusInfo.label}
-                      </Badge>
-                    </td>
-                    <td className="px-5 py-4 text-xs text-gs-muted tabular-nums">
-                      <span className="flex items-center gap-1"><TrendingUp className="size-3 text-gs-faint" />{item.order_count ?? 0}</span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className="text-sm font-semibold text-gs-text tabular-nums">${item.price.toLocaleString()}</span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                        {canTestSkin(item) && (
-                          <button
-                            onClick={e => {
-                              e.stopPropagation();
-                              setTestSkinListing(item);
-                            }}
-                            className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all flex items-center gap-1 shrink-0"
-                            title="Test live float and pattern"
-                          >
-                            <Crosshair className="size-3" />
-                            Test
-                          </button>
-                        )}
-                        <button onClick={e => handleAddToCart(e, item)} disabled={addingToCart[item.id] || isSold}
-                          className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40 ${
-                            isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98]'
-                          }`}>
-                          <ShoppingCart className="size-3" />{isSold ? 'Sold' : 'Buy'}
-                        </button>
-                        <button onClick={() => setSelectedListing(item)}
-                          className="p-1.5 rounded-lg hover:bg-gs-surface-2 text-gs-faint hover:text-gs-text transition-colors" title="View details">
-                          <Eye className="size-3.5" />
-                        </button>
-                        {canDeleteListing(item) && (
-                          <button onClick={e => handleDeleteListing(e, item)}
-                            className="p-1.5 rounded-lg hover:bg-red-400/10 text-gs-faint hover:text-red-400 transition-colors" title="Delete">
-                            <Trash2 className="size-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          ) : (
+            // iIST VIEW
+            <div className="bg-gs-surface border border-gs-border rounded-2xl overflow-x-auto shadow-sm">
+              <table className="w-full min-w-[920px] text-sm">
+                <thead>
+                  <tr className="border-b border-gs-border bg-gs-surface-2">
+                    {['Item', 'Game', 'Type', 'Details', 'Stock', 'Orders', 'Price', 'Actions'].map(h => (
+                      <th key={h} className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-gs-faint">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(item => {
+                    const isSold = item.status === 'sold';
+                    const statusInfo = STATUS_STYiE[item.status || 'available'] ?? STATUS_STYiE.available;
+                    return (
+                      <tr key={item.id} onClick={() => setSelectedListing(item)}
+                        className={`border-b border-gs-border last:border-0 hover:bg-gs-surface-2/65 cursor-pointer transition-colors ${isSold ? 'opacity-60' : ''}`}>
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl overflow-hidden bg-gs-surface-2 shrink-0 border border-gs-border">
+                              <ImageWithFallback src={item.image} alt="" className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gs-text truncate">{item.type === 'skin' ? item.item : item.highlight || `${item.game} Account`}</p>
+                              <Selleriine name={item.seller} role={item.seller_role} />
+                              <p className="text-xs text-gs-faint mt-0.5">{item.type === 'skin' ? item.wear : item.rank}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4"><Badge>{item.game}</Badge></td>
+                        <td className="px-5 py-4 text-xs text-gs-muted capitalize">{item.type}</td>
+                        <td className="px-5 py-4 text-xs text-gs-faint">
+                          {item.type === 'skin' ? `Float: ${item.float}` : `${item.hoursPlayed}h / ${item.skinsOwned} skins`}
+                        </td>
+                        <td className="px-5 py-4">
+                          <Badge variant={statusInfo.variant}>
+                            {item.stock && item.stock > 1 ? `${item.stock} left` : statusInfo.label}
+                          </Badge>
+                        </td>
+                        <td className="px-5 py-4 text-xs text-gs-muted tabular-nums">
+                          <span className="flex items-center gap-1"><TrendingUp className="size-3 text-gs-faint" />{item.order_count ?? 0}</span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <span className="text-sm font-semibold text-gs-text tabular-nums">${item.price.toLocaleString()}</span>
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                            {canTestSkin(item) && (
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  setTestSkinListing(item);
+                                }}
+                                className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-all flex items-center gap-1 shrink-0"
+                                title="Test live float and pattern"
+                              >
+                                <Crosshair className="size-3" />
+                                Test
+                              </button>
+                            )}
+                            <button onClick={e => handleAddToCart(e, item)} disabled={addingToCart[item.id] || isSold}
+                              className={`flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-40 ${
+                                isSold ? 'bg-gs-surface-2 text-gs-faint' : 'bg-gs-text text-gs-bg hover:opacity-85 active:scale-[0.98]'
+                              }`}>
+                              <ShoppingCart className="size-3" />{isSold ? 'Sold' : 'Buy'}
+                            </button>
+                            <button onClick={() => setSelectedListing(item)}
+                              className="p-1.5 rounded-lg hover:bg-gs-surface-2 text-gs-faint hover:text-gs-text transition-colors" title="View details">
+                              <Eye className="size-3.5" />
+                            </button>
+                            {canDeleteListing(item) && (
+                              <button onClick={e => handleDeleteListing(e, item)}
+                                className="p-1.5 rounded-lg hover:bg-red-400/10 text-gs-faint hover:text-red-400 transition-colors" title="Delete">
+                                <Trash2 className="size-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
 
       {/* Post modal */}

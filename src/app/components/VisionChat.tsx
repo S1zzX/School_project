@@ -1,13 +1,13 @@
-// src/app/components/VisionChat.tsx
-// AI chat panel Ã¢â‚¬â€ works as general gaming chat + image-aware mode
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot } from 'lucide-react';
-import { apiVisionChat, isVisionProviderId, VISION_PROVIDER_STORAGE_KEY, type VisionProviderId, type VisionResult, type ChatMessage } from '../lib/api';
-
-interface VisionChatProps {
-  visionResult: VisionResult | null;
-  provider?: VisionProviderId;
-}
+import React, { useState, useEffect, useRef } from 'react';
+import { Bot, Send, Sparkles } from 'lucide-react';
+import {
+  apiVisionChat,
+  isVisionProviderId,
+  VISION_PROVIDER_STORAGE_KEY,
+  type ChatMessage,
+  type VisionProviderId,
+  type VisionResult,
+} from '../lib/api';
 
 const GENERAL_SUGGESTIONS = [
   'What CS2 skins are trending?',
@@ -17,25 +17,28 @@ const GENERAL_SUGGESTIONS = [
 ];
 
 const IMAGE_SUGGESTIONS = [
-  'What is this worth?',
-  'Is this a good account to buy?',
-  'How do I trade this?',
-  'Tell me more about this item.',
+  'What item is shown in this screenshot?',
+  'What is the estimated market price of this skin?',
+  'Give me 3 trading tips for this item.',
+  'What rank or achievement is shown here?',
 ];
 
+interface VisionChatProps {
+  visionResult: VisionResult | null;
+  provider?: VisionProviderId;
+}
+
 export function VisionChat({ visionResult, provider }: VisionChatProps) {
-  const hasContext = visionResult?.detected === true;
-
-  const welcomeMsg: ChatMessage = {
-    role: 'assistant',
-    content: hasContext
-      ? `I've analyzed your screenshot Ã¢â‚¬â€ it looks like a **${visionResult!.game}** ${visionResult!.type ?? 'screenshot'}${visionResult!.item ? ` (${visionResult!.item})` : ''}. Ask me anything about it!`
-      : "Hi! I'm your gaming assistant. Upload a screenshot for image analysis, or just ask me anything about games, skins, trading, or pricing.",
-  };
-
-  const [messages, setMessages] = useState<ChatMessage[]>([welcomeMsg]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      role: 'assistant',
+      content:
+        "Hi! I'm your gaming assistant. Upload a screenshot for image analysis, or just ask me anything about games, skins, trading, or pricing.",
+    },
+  ]);
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(false);
+  const hasContext              = Boolean(visionResult?.detected);
   const bottomRef               = useRef<HTMLDivElement>(null);
   const inputRef                = useRef<HTMLTextAreaElement>(null);
 
@@ -53,7 +56,7 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
     const intro: ChatMessage = {
       role: 'assistant',
       content: visionResult.detected
-        ? `I've analyzed your screenshot Ã¢â‚¬â€ **${visionResult.game}** ${visionResult.type ?? ''}${visionResult.item ? ` Ã‚Â· ${visionResult.item}` : ''}. What would you like to know?`
+        ? `I've analyzed your screenshot — **${visionResult.game}** ${visionResult.type ?? ''}${visionResult.item ? ` · ${visionResult.item}` : ''}. What would you like to know?`
         : `I couldn't detect a game in that screenshot. ${visionResult.description} Ask me anything!`,
     };
     setMessages(prev => [...prev, intro]);
@@ -115,8 +118,8 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
           <p className="text-sm font-semibold" style={{ color: 'var(--gs-text)' }}>AI Gaming Assistant</p>
           <p className="text-[11px] truncate" style={{ color: 'var(--gs-faint)' }}>
             {hasContext
-              ? `Context: ${visionResult!.game} Ã‚Â· ${visionResult!.type}`
-              : 'General chat Ã‚Â· upload a screenshot to add image context'}
+              ? `Context: ${visionResult!.game} · ${visionResult!.type}`
+              : 'General chat · upload a screenshot to add image context'}
           </p>
         </div>
         {hasContext && (
@@ -213,7 +216,7 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={hasContext ? 'Ask about this screenshotÃ¢â‚¬Â¦' : 'Ask me anything about gamingÃ¢â‚¬Â¦'}
+            placeholder={hasContext ? 'Ask about this screenshot...' : 'Ask me anything about gaming...'}
             disabled={loading}
             className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-sm"
             style={{ color: 'var(--gs-text)', maxHeight: 120, lineHeight: '1.5' }}
@@ -233,7 +236,7 @@ export function VisionChat({ visionResult, provider }: VisionChatProps) {
           </button>
         </div>
         <p className="text-[10px] mt-1.5 text-center" style={{ color: 'var(--gs-faint)' }}>
-          Enter to send Ã‚Â· Shift+Enter for new line
+          Enter to send · Shift+Enter for new line
         </p>
       </div>
     </div>

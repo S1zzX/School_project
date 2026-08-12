@@ -11,6 +11,8 @@
     "dev": "concurrently --kill-others-on-fail --names \"client,server\" --prefix-colors \"cyan,yellow\" \"npm:dev:client\" \"npm:dev:server\""
   },
   "dependencies": {
+    "@babylonjs/core": "^9.20.0",
+    "@babylonjs/loaders": "^9.20.0",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "7.3.5",
@@ -65,13 +67,11 @@
     "recharts": "2.15.2",
     "sonner": "2.0.3",
     "tailwind-merge": "3.2.0",
-    "three": "^0.185.1",
     "tw-animate-css": "1.3.8",
     "vaul": "1.1.2"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.1.12",
-    "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "4.7.0",
     "concurrently": "^10.0.3",
     "tailwindcss": "4.1.12",

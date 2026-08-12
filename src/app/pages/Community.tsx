@@ -519,13 +519,13 @@ export function Community() {
                       <Crown className="size-2" strokeWidth={2.5} />
                     </span>
                   )}
-                  <span>Â·</span>
+                  <span>·</span>
                   <span>{(post.author_post_count ?? 1).toLocaleString()} posts</span>
-                  <span>Â·</span>
+                  <span>·</span>
                   <span>{(post.reply_count ?? 0).toLocaleString()} replies</span>
-                  <span>Â·</span>
+                  <span>·</span>
                   <span>{(post.views ?? 0).toLocaleString()} views</span>
-                  <span>Â·</span>
+                  <span>·</span>
                   <span>{timeAgo(post.created_at)}</span>
                 </p>
               </div>

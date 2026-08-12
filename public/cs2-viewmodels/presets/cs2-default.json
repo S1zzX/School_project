@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "label": "CS2 Default Viewmodel",
+  "fov": 68,
+  "fps": {
+    "rigPosition": [1.17, -0.03, -0.72],
+    "rigRotation": [-0.24, -1.52, 0],
+    "offsetOrigin": [2.5, -1.5, -1],
+    "offsetScale": [0.08, 0.08, 0.12]
+  },
+  "inspect": {
+    "cameraPosition": [0.95, 0.2, 0.35],
+    "target": [0, 0, 0]
+  }
+}

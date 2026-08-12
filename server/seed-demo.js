@@ -19,6 +19,12 @@ function ensureUser({ username, email, password, role, shop_category = null }) {
   return row;
 }
 
+if (process.argv.includes('--clear')) {
+  const info = db.prepare('DELETE FROM store_listings').run();
+  console.log(`Cleared ${info.changes} store listings.`);
+  process.exit(0);
+}
+
 function insertListing(userId, seller, listing) {
   const exists = db.prepare(
     'SELECT id FROM store_listings WHERE user_id = ? AND type = ? AND game = ? AND COALESCE(item, highlight) = ?'

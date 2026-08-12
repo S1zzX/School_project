@@ -1,0 +1,923 @@
+<!-- kv3 encoding:text:version{e21c7f3c-8a33-41c5-9977-a76d3a32aa0d} format:generic:version{7412167c-06e9-4698-aff2-e63eb59037e7} -->
+{
+    _class = "CCompositeMaterialEditorDoc"
+    m_nVersion = 1
+    m_Points = 
+    [
+        {
+            m_vecCompositeMaterialAssemblyProcedures = 
+            [
+                {
+                    m_vecMatchFilters = 
+                    [
+                        {
+                            m_nCompositeMaterialMatchFilterType = "MATCH_FILTER_MATERIAL_ATTRIBUTE_EXISTS"
+                            m_strMatchFilter = "composite_inputs"
+                        },
+                    ]
+                    m_vecCompositeInputContainers = 
+                    [
+                        {
+                            m_nCompositeMaterialInputContainerSourceType = "CONTAINER_SOURCE_TYPE_TARGET_MATERIAL"
+                            m_strAlias = "target"
+                        },
+                        {
+                            m_nCompositeMaterialInputContainerSourceType = "CONTAINER_SOURCE_TYPE_LOOSE_VARIABLES"
+                            m_strAlias = "econ_instance"
+                            m_vecLooseVariables = 
+                            [
+                                {
+                                    m_strName = "g_nRandomSeed"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                    m_nValueIntX = 0
+                                },
+                                {
+                                    m_strName = "g_flWearAmount"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-1100}Wear Range"
+                                    m_strExposedFriendlyGroupName = "Wear and Grunge"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_flPatternTexCoordRotation"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-230}Texture Rotation"
+                                    m_strExposedFriendlyGroupName = "Texture Placement"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 0.0
+                                },
+                                {
+                                    m_strName = "g_vPatternTexCoordOffset"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-240}Texture Offset"
+                                    m_strExposedFriendlyGroupName = "Texture Placement"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT2"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 0.0
+                                    m_flValueFloatY = 0.0
+                                    m_flValueFloatY_Min = 0.0
+                                    m_flValueFloatY_Max = 0.0
+                                },
+                            ]
+                        },
+                        {
+                            m_nCompositeMaterialInputContainerSourceType = "CONTAINER_SOURCE_TYPE_MATERIAL_FROM_TARGET_ATTR"
+                            m_strAttrName = "composite_inputs"
+                            m_strAlias = "composite_inputs"
+                        },
+                        {
+                            m_nCompositeMaterialInputContainerSourceType = "CONTAINER_SOURCE_TYPE_SPECIFIC_MATERIAL"
+                            m_strSpecificContainerMaterial = resource_name:"workshop/paintkits/templates/cu_extended_template.vmat"
+                            m_strAlias = "paint"
+                        },
+                        {
+                            m_nCompositeMaterialInputContainerSourceType = "CONTAINER_SOURCE_TYPE_TARGET_INSTANCE_MATERIAL"
+                            m_strAlias = "target_instance"
+                        },
+                        {
+                            m_nCompositeMaterialInputContainerSourceType = "CONTAINER_SOURCE_TYPE_LOOSE_VARIABLES"
+                            m_strAlias = "exposed_params"
+                            m_vecLooseVariables = 
+                            [
+                                {
+                                    m_strName = "g_tPattern"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-10}Albedo Texture"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_RESOURCE_TEXTURE"
+                                    m_strTextureContentAssetPath = "items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_albedo_texture.tga"
+                                    m_strTextureRuntimeResourcePath = resource_name:"items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_albedo_texture_tga_5e17359d.vtex"
+                                    m_nTextureType = "INPUT_TEXTURE_TYPE_COLOR"
+                                },
+                                {
+                                    m_strName = "g_flPatternTexCoordScale"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-30}Texture Scale"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 1.0
+                                    m_flValueFloatX_Min = -10.0
+                                    m_flValueFloatX_Max = 10.0
+                                },
+                                {
+                                    m_strName = "g_bIgnoreWeaponSizeScale"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-40}Ignore Weapon Size Scale"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_BOOLEAN"
+                                    m_bValueBoolean = true
+                                },
+                                {
+                                    m_strName = "g_bUseRoughness"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-310}Use Roughness Texture"
+                                    m_strExposedFriendlyGroupName = "Materials"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_BOOLEAN"
+                                    m_bValueBoolean = true
+                                },
+                                {
+                                    m_strName = "g_tPaintRoughness"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-320}Roughness Texture"
+                                    m_strExposedFriendlyGroupName = "Materials"
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseRoughness"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_RESOURCE_TEXTURE"
+                                    m_strTextureContentAssetPath = "items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_roughness_texture.tga"
+                                    m_strTextureRuntimeResourcePath = resource_name:"items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_roughness_texture_tga_b6a8b9ea.vtex"
+                                    m_nTextureType = "INPUT_TEXTURE_TYPE_ROUGHNESS"
+                                },
+                                {
+                                    m_strName = "g_flPaintRoughness"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-350}Paint Roughness"
+                                    m_strExposedFriendlyGroupName = "Materials"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_strExposedHiddenWhenTrue = "exposed_params.g_bUseRoughness"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.3
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_bUseMetalness"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-360}Use Paint Metalness Mask"
+                                    m_strExposedFriendlyGroupName = "Materials"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_BOOLEAN"
+                                    m_bValueBoolean = true
+                                },
+                                {
+                                    m_strName = "g_tPaintMetalness"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-370}Paint Metalness Mask"
+                                    m_strExposedFriendlyGroupName = "Materials"
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseMetalness"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_RESOURCE_TEXTURE"
+                                    m_strTextureContentAssetPath = "items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_material_mask.tga"
+                                    m_strTextureRuntimeResourcePath = resource_name:"items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_material_mask_tga_6790fed9.vtex"
+                                    m_nTextureType = "INPUT_TEXTURE_TYPE_ROUGHNESS"
+                                },
+                                {
+                                    m_strName = "g_bUsePearlescenceMask"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-810}Use SFX Mask"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_BOOLEAN"
+                                    m_bValueBoolean = true
+                                },
+                                {
+                                    m_strName = "g_tPearlescenceMask"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-820}SFX Mask"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUsePearlescenceMask"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_RESOURCE_TEXTURE"
+                                    m_strTextureContentAssetPath = "items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_sfx.png"
+                                    m_strTextureRuntimeResourcePath = resource_name:"items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_sfx_png_83af96f0.vtex"
+                                    m_nTextureType = "INPUT_TEXTURE_TYPE_PEARLESCENCE_MASK"
+                                },
+                                {
+                                    m_strName = "g_flPearlescentScale"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-830}Pearlescent Scale"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = -6.0
+                                    m_flValueFloatX_Max = 6.0
+                                },
+                                {
+                                    m_strName = "g_fGlitterIntensity"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-840}Glitter Intensity"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.386792
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 5.0
+                                },
+                                {
+                                    m_strName = "g_fGlitterRainbowBalance"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-860}Glitter Rainbow Balance"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.25
+                                    m_flValueFloatX_Min = -1.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_fGlitterRainbowSpread"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-870}Glitter Rainbow Spread"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 1.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_fGlitterScale"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-850}Glitter Scale"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 40.0
+                                },
+                                {
+                                    m_strName = "g_fGlitterRainbowBalance"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-860}Glitter Rainbow Balance"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.25
+                                    m_flValueFloatX_Min = -1.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_fGlitterRainbowSpread"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-870}Glitter Rainbow Spread"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 1.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_flIridescentStrength"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-880}Iridescent Strength"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 2.0
+                                },
+                                {
+                                    m_strName = "g_flIridescentScale"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-890}Iridescent Scale"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 2.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 20.0
+                                },
+                                {
+                                    m_strName = "g_flIridescentHueShift"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-900}Iridescent Hue Shift"
+                                    m_strExposedFriendlyGroupName = "Effects"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.5
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_bUseOverlay"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-500}Enable Overlay"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_BOOLEAN"
+                                    m_bValueBoolean = false
+                                },
+                                {
+                                    m_strName = "g_tOverlay"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-510}Overlay Texture"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseOverlay"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_RESOURCE_TEXTURE"
+                                    m_strTextureContentAssetPath = "materials/default/default_color.tga"
+                                    m_strTextureRuntimeResourcePath = resource_name:"materials/default/default_color_tga_11c1db2c.vtex"
+                                    m_nTextureType = "INPUT_TEXTURE_TYPE_COLOR"
+                                },
+                                {
+                                    m_strName = "F_OVERLAY_BLEND_MODE"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-560}Blend Mode"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseOverlay"
+                                    m_strExposedValueList = "0=Translucent, 1=Color, 2=Multiply, 3=Add, 4=Layer"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                    m_nValueIntX = 0
+                                },
+                                {
+                                    m_strName = "g_fOverlayBrightness"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-580}Brightness"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseOverlay"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 1.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 2.0
+                                },
+                                {
+                                    m_strName = "g_fOverlayStrength"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-590}Albedo Strength"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseOverlay"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 1.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_fOverlayDurability"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-600}Durability"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseOverlay"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_fOverlayMaterialStrength"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-610}Material Effect Strength"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseOverlay"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 1.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_fOverlayMetalness"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-620}Metalness"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseOverlay"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_fOverlayRoughness"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-630}Roughness"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseOverlay"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.6
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_fOverlayPearlescentMask"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-640}SFX"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseOverlay"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_bOverlayUsesPatternUVs"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-520}Randomize Overlay UVs"
+                                    m_strExposedFriendlyGroupName = "Overlay"
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseOverlay"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_BOOLEAN"
+                                    m_bValueBoolean = false
+                                },
+                                {
+                                    m_strName = "g_bUseNormalMap"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-700}Use Custom Normal Map"
+                                    m_strExposedFriendlyGroupName = "Normals"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_BOOLEAN"
+                                    m_bValueBoolean = true
+                                },
+                                {
+                                    m_strName = "g_tNormal"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-710}Normal Map Texture"
+                                    m_strExposedFriendlyGroupName = "Normals"
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bUseNormalMap"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_RESOURCE_TEXTURE"
+                                    m_strTextureContentAssetPath = "items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_normal_map_texture.tga"
+                                    m_strTextureRuntimeResourcePath = resource_name:"items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_normal_map_texture_tga_1c610e5a.vtex"
+                                    m_nTextureType = "INPUT_TEXTURE_TYPE_NORMALMAP"
+                                },
+                                {
+                                    m_strName = "g_bOverrideAmbientOcclusion"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-720}Use Custom Ambient Occlusion"
+                                    m_strExposedFriendlyGroupName = "Normals"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_BOOLEAN"
+                                    m_bValueBoolean = true
+                                },
+                                {
+                                    m_strName = "g_tFinalAmbientOcclusion"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-730}Ambient Occlusion"
+                                    m_strExposedFriendlyGroupName = "Normals"
+                                    m_strExposedVisibleWhenTrue = "exposed_params.g_bOverrideAmbientOcclusion"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_RESOURCE_TEXTURE"
+                                    m_strTextureContentAssetPath = "items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_ambient_occlusion.tga"
+                                    m_strTextureRuntimeResourcePath = resource_name:"items/assets/paintkits/set_spy_tech/ak47_autoexec_camo_ambient_occlusion_tga_fa879c5e.vtex"
+                                    m_nTextureType = "INPUT_TEXTURE_TYPE_AO"
+                                },
+                                {
+                                    m_strName = "g_tWear"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-1110}Wear Texture"
+                                    m_strExposedFriendlyGroupName = "Wear and Grunge"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_RESOURCE_TEXTURE"
+                                    m_strTextureContentAssetPath = "materials/models/weapons/customization/shared/paint_wear.psd"
+                                    m_strTextureRuntimeResourcePath = resource_name:"materials/models/weapons/customization/shared/paint_wear_psd_41a616da.vtex"
+                                    m_nTextureType = "INPUT_TEXTURE_TYPE_ROUGHNESS"
+                                },
+                                {
+                                    m_strName = "g_fWearSoftness"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-1130}Wear Softness"
+                                    m_strExposedFriendlyGroupName = "Wear and Grunge"
+                                    m_bExposedVariableIsFixedRange = true
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_tGrunge"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-1140}Grunge Texture"
+                                    m_strExposedFriendlyGroupName = "Wear and Grunge"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_RESOURCE_TEXTURE"
+                                    m_strTextureContentAssetPath = "materials/models/weapons/customization/shared/gun_grunge.psd"
+                                    m_strTextureRuntimeResourcePath = resource_name:"materials/models/weapons/customization/shared/gun_grunge_psd_66b72907.vtex"
+                                    m_nTextureType = "INPUT_TEXTURE_TYPE_COLOR"
+                                },
+                            ]
+                        },
+                        {
+                            m_nCompositeMaterialInputContainerSourceType = "CONTAINER_SOURCE_TYPE_LOOSE_VARIABLES"
+                            m_strAlias = "grunge_wear"
+                            m_vecLooseVariables = 
+                            [
+                                {
+                                    m_strName = "g_flWearTexCoordScale"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 1.6
+                                    m_flValueFloatX_Min = 1.6
+                                    m_flValueFloatX_Max = 1.8
+                                },
+                                {
+                                    m_strName = "g_vWearTexCoordOffset"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT2"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                    m_flValueFloatY = 0.0
+                                    m_flValueFloatY_Min = 0.0
+                                    m_flValueFloatY_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_flWearTexCoordRotation"
+                                    m_bExposeExternally = true
+                                    m_strExposedFriendlyName = "{-1120}Wear Rotation"
+                                    m_strExposedFriendlyGroupName = "Wear and Grunge"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 0.0
+                                },
+                                {
+                                    m_strName = "g_flGrungeTexCoordScale"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 1.6
+                                    m_flValueFloatX_Min = 1.6
+                                    m_flValueFloatX_Max = 1.8
+                                },
+                                {
+                                    m_strName = "g_vGrungeTexCoordOffset"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT2"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 1.0
+                                    m_flValueFloatY = 0.0
+                                    m_flValueFloatY_Min = 0.0
+                                    m_flValueFloatY_Max = 1.0
+                                },
+                                {
+                                    m_strName = "g_flGrungeTexCoordRotation"
+                                    m_nVariableType = "LOOSE_VARIABLE_TYPE_FLOAT1"
+                                    m_bHasFloatBounds = true
+                                    m_flValueFloatX = 0.0
+                                    m_flValueFloatX_Min = 0.0
+                                    m_flValueFloatX_Max = 360.0
+                                },
+                            ]
+                        },
+                    ]
+                    m_vecPropertyMutators = 
+                    [
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_CONDITIONAL_MUTATORS"
+                            m_vecConditionalMutators = 
+                            [
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_RANDOM_ROLL_INPUT_VARIABLES"
+                                    m_strRandomRollInputVars_SeedInputVar = "econ_instance.g_nRandomSeed"
+                                    m_vecRandomRollInputVars_InputVarsToRoll = 
+                                    [
+                                        "econ_instance.g_vPatternTexCoordOffset.xy",
+                                        "econ_instance.g_flPatternTexCoordRotation.x",
+                                        "grunge_wear.g_flWearTexCoordScale.x",
+                                        "grunge_wear.g_vWearTexCoordOffset.xy",
+                                        "grunge_wear.g_flWearTexCoordRotation.x",
+                                        "grunge_wear.g_flGrungeTexCoordScale.x",
+                                        "grunge_wear.g_vGrungeTexCoordOffset.xy",
+                                        "grunge_wear.g_flGrungeTexCoordRotation.x",
+                                    ]
+                                },
+                            ]
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_INIT"
+                            m_strInitWith_Container = "target_instance"
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_GENERATE_TEXTURE"
+                            m_strGenerateTexture_TargetParam = "g_tColor"
+                            m_strGenerateTexture_InitialContainer = "paint"
+                            m_nResolution = 4096
+                            m_vecTexGenInstructions = 
+                            [
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_MATCHING_KEYS"
+                                    m_strCopyMatchingKeys_InputContainerSrc = "composite_inputs"
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_MATCHING_KEYS"
+                                    m_strCopyMatchingKeys_InputContainerSrc = "econ_instance"
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_MATCHING_KEYS"
+                                    m_strCopyMatchingKeys_InputContainerSrc = "exposed_params"
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_MATCHING_KEYS"
+                                    m_strCopyMatchingKeys_InputContainerSrc = "grunge_wear"
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_SET_VALUE"
+                                    m_nSetValue_Value = 
+                                    {
+                                        m_strName = "F_OVERLAY_TEXTURE"
+                                        m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                        m_nValueIntX = 0
+                                    }
+                                    m_vecConditions = 
+                                    [
+                                        {
+                                            m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                            m_strMutatorConditionContainerName = "exposed_params"
+                                            m_strMutatorConditionContainerVarName = "g_bUseOverlay"
+                                            m_strMutatorConditionContainerVarValue = "0"
+                                        },
+                                    ]
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_SET_VALUE"
+                                    m_nSetValue_Value = 
+                                    {
+                                        m_strName = "F_METALNESS_TEXTURE"
+                                        m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                        m_nValueIntX = 0
+                                    }
+                                    m_vecConditions = 
+                                    [
+                                        {
+                                            m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                            m_strMutatorConditionContainerName = "exposed_params"
+                                            m_strMutatorConditionContainerVarName = "g_bUseMetalness"
+                                            m_strMutatorConditionContainerVarValue = "0"
+                                        },
+                                    ]
+                                },
+                            ]
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_GENERATE_TEXTURE"
+                            m_strGenerateTexture_TargetParam = "g_tMetalness"
+                            m_strGenerateTexture_InitialContainer = "paint"
+                            m_nResolution = 4096
+                            m_vecTexGenInstructions = 
+                            [
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_MATCHING_KEYS"
+                                    m_strCopyMatchingKeys_InputContainerSrc = "composite_inputs"
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                                    m_strCopyProperty_InputContainerSrc = "target"
+                                    m_strCopyProperty_InputContainerProperty = "g_tMetalness"
+                                    m_strCopyProperty_TargetProperty = "g_tMetalness"
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                                    m_strCopyProperty_InputContainerSrc = "target"
+                                    m_strCopyProperty_InputContainerProperty = "g_tRoughness"
+                                    m_strCopyProperty_TargetProperty = "g_tRoughness"
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_SET_VALUE"
+                                    m_nSetValue_Value = 
+                                    {
+                                        m_strName = "F_ROUGHNESS_MODE"
+                                        m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                        m_nValueIntX = 1
+                                    }
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_SET_VALUE"
+                                    m_nSetValue_Value = 
+                                    {
+                                        m_strName = "F_ROUGHNESS_TEXTURE"
+                                        m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                        m_nValueIntX = 0
+                                    }
+                                    m_vecConditions = 
+                                    [
+                                        {
+                                            m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                            m_strMutatorConditionContainerName = "exposed_params"
+                                            m_strMutatorConditionContainerVarName = "g_bUseRoughness"
+                                            m_strMutatorConditionContainerVarValue = "0"
+                                        },
+                                    ]
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_SET_VALUE"
+                                    m_nSetValue_Value = 
+                                    {
+                                        m_strName = "F_PEARLESCENCE_MASK"
+                                        m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                        m_nValueIntX = 0
+                                    }
+                                    m_vecConditions = 
+                                    [
+                                        {
+                                            m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                            m_strMutatorConditionContainerName = "exposed_params"
+                                            m_strMutatorConditionContainerVarName = "g_bUsePearlescenceMask"
+                                            m_strMutatorConditionContainerVarValue = "0"
+                                        },
+                                    ]
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_MATCHING_KEYS"
+                                    m_strCopyMatchingKeys_InputContainerSrc = "econ_instance"
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_MATCHING_KEYS"
+                                    m_strCopyMatchingKeys_InputContainerSrc = "exposed_params"
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_MATCHING_KEYS"
+                                    m_strCopyMatchingKeys_InputContainerSrc = "grunge_wear"
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_SET_VALUE"
+                                    m_nSetValue_Value = 
+                                    {
+                                        m_strName = "F_OVERLAY_TEXTURE"
+                                        m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                        m_nValueIntX = 0
+                                    }
+                                    m_vecConditions = 
+                                    [
+                                        {
+                                            m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                            m_strMutatorConditionContainerName = "exposed_params"
+                                            m_strMutatorConditionContainerVarName = "g_bUseOverlay"
+                                            m_strMutatorConditionContainerVarValue = "0"
+                                        },
+                                    ]
+                                },
+                                {
+                                    m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_SET_VALUE"
+                                    m_nSetValue_Value = 
+                                    {
+                                        m_strName = "F_METALNESS_TEXTURE"
+                                        m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                        m_nValueIntX = 0
+                                    }
+                                    m_vecConditions = 
+                                    [
+                                        {
+                                            m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                            m_strMutatorConditionContainerName = "exposed_params"
+                                            m_strMutatorConditionContainerVarName = "g_bUseMetalness"
+                                            m_strMutatorConditionContainerVarValue = "0"
+                                        },
+                                    ]
+                                },
+                            ]
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "exposed_params"
+                            m_strCopyProperty_InputContainerProperty = "g_tNormal"
+                            m_strCopyProperty_TargetProperty = "g_tNormal"
+                            m_vecConditions = 
+                            [
+                                {
+                                    m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                    m_strMutatorConditionContainerName = "exposed_params"
+                                    m_strMutatorConditionContainerVarName = "g_bUseNormalMap"
+                                    m_strMutatorConditionContainerVarValue = "true"
+                                },
+                            ]
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "exposed_params"
+                            m_strCopyProperty_InputContainerProperty = "g_flPearlescentScale"
+                            m_strCopyProperty_TargetProperty = "g_flPearlescentScale"
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "exposed_params"
+                            m_strCopyProperty_InputContainerProperty = "g_tFinalAmbientOcclusion"
+                            m_strCopyProperty_TargetProperty = "g_tAmbientOcclusion"
+                            m_vecConditions = 
+                            [
+                                {
+                                    m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                    m_strMutatorConditionContainerName = "exposed_params"
+                                    m_strMutatorConditionContainerVarName = "g_bOverrideAmbientOcclusion"
+                                    m_strMutatorConditionContainerVarValue = "1"
+                                },
+                            ]
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "exposed_params"
+                            m_strCopyProperty_InputContainerProperty = "g_fGlitterScale"
+                            m_strCopyProperty_TargetProperty = "g_fGlitterScale"
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "exposed_params"
+                            m_strCopyProperty_InputContainerProperty = "g_fGlitterIntensity"
+                            m_strCopyProperty_TargetProperty = "g_fGlitterIntensity"
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "exposed_params"
+                            m_strCopyProperty_InputContainerProperty = "g_fGlitterRainbowBalance"
+                            m_strCopyProperty_TargetProperty = "g_fGlitterRainbowBalance"
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "exposed_params"
+                            m_strCopyProperty_InputContainerProperty = "g_fGlitterRainbowSpread"
+                            m_strCopyProperty_TargetProperty = "g_fGlitterRainbowSpread"
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_SET_VALUE"
+                            m_nSetValue_Value = 
+                            {
+                                m_strName = "F_GLITTER"
+                                m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                m_nValueIntX = 1
+                            }
+                            m_vecConditions = 
+                            [
+                                {
+                                    m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                    m_strMutatorConditionContainerName = "exposed_params"
+                                    m_strMutatorConditionContainerVarName = "g_fGlitterIntensity"
+                                    m_strMutatorConditionContainerVarValue = "0"
+                                    m_bPassWhenTrue = false
+                                },
+                            ]
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_SET_VALUE"
+                            m_nSetValue_Value = 
+                            {
+                                m_strName = "F_IRIDESCENCE"
+                                m_nVariableType = "LOOSE_VARIABLE_TYPE_INTEGER1"
+                                m_nValueIntX = 1
+                            }
+                            m_vecConditions = 
+                            [
+                                {
+                                    m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                    m_strMutatorConditionContainerName = "exposed_params"
+                                    m_strMutatorConditionContainerVarName = "g_flIridescentStrength"
+                                    m_strMutatorConditionContainerVarValue = "0"
+                                    m_bPassWhenTrue = false
+                                },
+                            ]
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "exposed_params"
+                            m_strCopyProperty_InputContainerProperty = "g_flIridescentScale"
+                            m_strCopyProperty_TargetProperty = "g_flIridescentScale"
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "exposed_params"
+                            m_strCopyProperty_InputContainerProperty = "g_flIridescentStrength"
+                            m_strCopyProperty_TargetProperty = "g_flIridescentStrength"
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "exposed_params"
+                            m_strCopyProperty_InputContainerProperty = "g_flIridescentHueShift"
+                            m_strCopyProperty_TargetProperty = "g_flIridescentHueShift"
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "composite_inputs"
+                            m_strCopyProperty_InputContainerProperty = "g_flUvScale1"
+                            m_strCopyProperty_TargetProperty = "g_flUvScale1"
+                        },
+                        {
+                            m_nMutatorCommandType = "COMP_MAT_PROPERTY_MUTATOR_COPY_PROPERTY"
+                            m_strCopyProperty_InputContainerSrc = "paint"
+                            m_strCopyProperty_InputContainerProperty = "g_tGlitterNormal"
+                            m_strCopyProperty_TargetProperty = "g_tGlitterNormal"
+                            m_vecConditions = 
+                            [
+                                {
+                                    m_nMutatorCondition = "COMP_MAT_MUTATOR_CONDITION_INPUT_CONTAINER_VALUE_EQUALS"
+                                    m_strMutatorConditionContainerName = "exposed_params"
+                                    m_strMutatorConditionContainerVarName = "g_fGlitterIntensity"
+                                    m_strMutatorConditionContainerVarValue = "0"
+                                    m_bPassWhenTrue = false
+                                },
+                            ]
+                        },
+                    ]
+                },
+            ]
+        },
+    ]
+}

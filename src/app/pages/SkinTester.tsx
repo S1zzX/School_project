@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState, type ButtonHTMLAttributes, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 import {
-  ChevronDown, X, Crosshair, RotateCcw, Eye, Hand, Search,
+  Box, Check, ChevronDown, Crosshair, Eye, EyeOff, Hand, Lock, Orbit,
+  RotateCcw, ScanLine, Search, Settings2, ShoppingCart, Sparkles, Undo2,
+  SlidersHorizontal, Users, X,
 } from 'lucide-react';
 import {
   apiSearchCs2Skins,
@@ -13,13 +15,44 @@ import {
   type Cs2AttachItem,
 } from '../lib/api';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { WeaponViewer3D, type WeaponAnimAction } from '../components/WeaponViewer3D';
+import {
+  FPS_VIEWMODEL_DEFAULTS,
+  FPS_VIEWMODEL_LIMITS,
+  type FpsViewmodelTransform,
+  type WeaponAnimAction,
+} from '../components/weaponViewerTypes';
+import {
+  DEFAULT_VIEWMODEL_ARM_ID,
+  getViewmodelArmAsset,
+  VIEWMODEL_ARM_ASSETS,
+} from '../lib/viewmodelArms';
 
-const MAPS = ['Warehouse', 'Office', 'Nuke', 'Mirage'] as const;
+// Keep the rendering runtime out of the initial application bundle.
+const WeaponViewerBabylon = lazy(() => import('../components/WeaponViewerBabylon').then(module => ({
+  default: module.WeaponViewerBabylon,
+})));
+
+const MAP_CATALOG = [
+  { id: 'warehouse', label: 'Warehouse' },
+  { id: 'ancient', label: 'Ancient' },
+  { id: 'ancient-night', label: 'Ancient Night' },
+  { id: 'anubis', label: 'Anubis' },
+  { id: 'baggage', label: 'Baggage' },
+  { id: 'cache', label: 'Cache' },
+  { id: 'dust-ii', label: 'Dust II' },
+  { id: 'inferno', label: 'Inferno' },
+  { id: 'italy', label: 'Italy' },
+  { id: 'mirage', label: 'Mirage' },
+  { id: 'nuke', label: 'Nuke' },
+  { id: 'office', label: 'Office' },
+  { id: 'overpass', label: 'Overpass' },
+  { id: 'train', label: 'Train' },
+  { id: 'vertigo', label: 'Vertigo', image: '/cs2-viewmodels/backgrounds/vertigo.png' },
+] as const;
+type MapId = (typeof MAP_CATALOG)[number]['id'];
 const RATIOS = ['16:9', '16:10', '4:3', '5:4'] as const;
 const DEFAULT_SKIN = 'AK-47 | Default (Vanilla)';
 const USE_LOCAL_3D = true; // POC: local GLB from public/cs2-viewmodels/ak47
-
 const DEFAULT_WEAPON_IMAGES: Record<string, string> = {
   'AK-47': 'https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJKz2lu_XuWbwcuyMESA4Fdl-4nnpU7iQA3-kKnh9nYMoaCvMfxudKGVC2bIwLku5bFsHn2xzU1w4W_Tm9-ucn2eaQZxWcYmR-IU8k7vea-fOvM',
   'M4A4': 'https://community.akamai.steamstatic.com/economy/image/i0CoZ81Ui0m-9KwlBY1L_18myuGuq1wfhWSaZgMttyVfPaERSR0Wqmu7LAocGJKz2lu_XuWbwcuyMESA4Fdl-4nnpU7iQA3-kKntqSMK0OGnZKFjI_WBQD_Cleh0teA_F37qkERy52rWm9yhdynGblMgD5AkQrZeuhXtkt3iMOv8p1uJZpwq8Vo',
@@ -46,16 +79,53 @@ function skinPaintName(full: string) {
   return (parts[1] || parts[0] || full).trim();
 }
 
+function ViewerLoadOverlay({
+  label,
+  error,
+  onRetry,
+}: {
+  label: string;
+  error: string | null;
+  onRetry: () => void;
+}) {
+  const failed = Boolean(error);
+  return (
+    <div
+      className={`stv-viewer-load-state ${failed ? 'is-error' : ''}`}
+      role={failed ? 'alert' : 'status'}
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <div className="stv-viewer-load-panel">
+        <div className="stv-viewer-load-heading">
+          {failed ? <X className="size-4" aria-hidden="true" /> : <RotateCcw className="stv-viewer-load-spinner size-4" aria-hidden="true" />}
+          <strong>{failed ? 'Preview unavailable' : label}</strong>
+        </div>
+        <p>{failed ? error : 'Preparing the model and applying its materials.'}</p>
+        {failed ? (
+          <button type="button" className="stv-viewer-retry" onClick={onRetry}>
+            <RotateCcw className="size-3.5" aria-hidden="true" />
+            Try again
+          </button>
+        ) : (
+          <div className="stv-viewer-load-track" aria-hidden="true"><span /></div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PanelShell({
-  num, title, summary, open, onToggle, children,
+  num, title, summary, open, onToggle, children, icon,
 }: {
   num: number; title: string; summary?: string; open: boolean;
-  onToggle: () => void; children: React.ReactNode;
+  onToggle: () => void; children: ReactNode; icon: ReactNode;
 }) {
   return (
     <section className="stv-panel">
       <button type="button" className="stv-panel-head" onClick={onToggle} aria-expanded={open}>
-        <span className="stv-panel-num">{num}</span>
+        <span className="stv-panel-num" aria-hidden="true">{num}</span>
+        <span className="stv-panel-icon" aria-hidden="true">{icon}</span>
         <span className="stv-panel-title">{title}</span>
         {summary ? <span className="stv-panel-summary">{summary}</span> : null}
         <ChevronDown
@@ -65,6 +135,31 @@ function PanelShell({
       </button>
       {open ? <div className="stv-panel-body">{children}</div> : null}
     </section>
+  );
+}
+
+function ToolButton({
+  label, shortcut, icon, active = false, className = '', children, ...props
+}: {
+  label: string;
+  shortcut?: string;
+  icon: ReactNode;
+  active?: boolean;
+  className?: string;
+  children?: ReactNode;
+} & ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      className={`stv-tool ${active ? 'is-active' : ''} ${className}`}
+      title={`${label}${shortcut ? ` (${shortcut})` : ''}`}
+      aria-label={label}
+      {...props}
+    >
+      {shortcut ? <kbd className="stv-tool-key">{shortcut}</kbd> : null}
+      <span className="stv-tool-icon" aria-hidden="true">{icon}</span>
+      <span className="stv-tool-label">{children || label}</span>
+    </button>
   );
 }
 
@@ -96,6 +191,21 @@ function LiveSlider({
       />
     </div>
   );
+}
+
+function formatTransformNumber(value: number, precision: number) {
+  return (Math.abs(value) < 10 ** -precision / 2 ? 0 : value).toFixed(precision);
+}
+
+function isTextEntryTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) {
+    return true;
+  }
+  if (!(target instanceof HTMLInputElement)) return false;
+  // Range controls keep keyboard focus after a viewmodel adjustment. They
+  // should not disable F/R/C/Space weapon shortcuts like a text field does.
+  return !['range', 'button', 'checkbox', 'radio'].includes(target.type);
 }
 
 import { type StoreListingAPI } from '../lib/api';
@@ -140,23 +250,32 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
   const [glovesImage, setGlovesImage] = useState<string | null>(null);
   const [glovesFloat, setGlovesFloat] = useState(0.0);
   const [glovesPattern, setGlovesPattern] = useState(1);
-  const [agentNote] = useState('None');
+  const [selectedArmId, setSelectedArmId] = useState(DEFAULT_VIEWMODEL_ARM_ID);
 
-  const [map, setMap] = useState<(typeof MAPS)[number]>('Warehouse');
+  const [map, setMap] = useState<MapId>('vertigo');
+  const [mapPickerOpen, setMapPickerOpen] = useState(false);
   const [volume, setVolume] = useState(50);
-  const [fov, setFov] = useState(68);
-  const [offsetX, setOffsetX] = useState(2.5);
-  const [offsetY, setOffsetY] = useState(-1.5);
-  const [offsetZ, setOffsetZ] = useState(-1);
+  const [fov, setFov] = useState(FPS_VIEWMODEL_DEFAULTS.fov);
+  const [offsetX, setOffsetX] = useState(FPS_VIEWMODEL_DEFAULTS.offsetX);
+  const [offsetY, setOffsetY] = useState(FPS_VIEWMODEL_DEFAULTS.offsetY);
+  const [offsetZ, setOffsetZ] = useState(FPS_VIEWMODEL_DEFAULTS.offsetZ);
   const [ratio, setRatio] = useState<(typeof RATIOS)[number]>('16:9');
 
   const [uiHidden, setUiHidden] = useState(false);
+  const [mobileControlsOpen, setMobileControlsOpen] = useState(false);
   const [inspecting, setInspecting] = useState(false);
   const [weaponAction, setWeaponAction] = useState<WeaponAnimAction>('idle');
+  const [animationLocked, setAnimationLocked] = useState(false);
   const [actionNonce, setActionNonce] = useState(0);
+  const [viewResetNonce, setViewResetNonce] = useState(0);
+  const [fpsTransform, setFpsTransform] = useState<FpsViewmodelTransform | null>(null);
+  const [viewerLoading, setViewerLoading] = useState(true);
+  const [viewerLoadError, setViewerLoadError] = useState<string | null>(null);
+  const [viewerLoadReason, setViewerLoadReason] = useState<'model' | 'texture'>('model');
+  const [viewerReloadNonce, setViewerReloadNonce] = useState(0);
   const [openPanels, setOpenPanels] = useState<Record<PanelKey, boolean>>({
     weapon: true,
-    attachments: true,
+    attachments: false,
     gloves: false,
     agent: false,
     settings: false,
@@ -172,6 +291,7 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
   const [pickerLoading, setPickerLoading] = useState(false);
 
   const dragRef = useRef({ active: false, startX: 0, startY: 0, baseX: 0, baseY: 0 });
+  const firingPointersRef = useRef(new Set<number>());
   const [drag, setDrag] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
 
@@ -196,7 +316,8 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (picker) setPicker(null);
+        if (mapPickerOpen) setMapPickerOpen(false);
+        else if (picker) setPicker(null);
         else navigate('/store');
       }
       if (e.key.toLowerCase() === 'h' && !picker) setUiHidden(v => !v);
@@ -207,12 +328,12 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     };
-  }, [navigate, picker]);
+  }, [mapPickerOpen, navigate, picker]);
 
   // Global Keyboard Hotkeys: F (Inspect), R (Reload), C (Draw), Q (Quick Open), H (Hide UI), Space (Shoot/Spray)
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (isTextEntryTarget(e.target)) return;
       const k = e.key.toLowerCase();
       if (k === 'f') {
         e.preventDefault();
@@ -231,7 +352,7 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
         setUiHidden(v => !v);
       } else if (k === ' ' || k === 'e') {
         e.preventDefault();
-        setIsSpraying(true);
+        if (!animationLocked) setIsSpraying(true);
       }
     };
 
@@ -248,7 +369,7 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, [use3D]);
+  }, [animationLocked, use3D]);
 
   // Load picker catalogue
   useEffect(() => {
@@ -340,7 +461,26 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
     setDragging(false);
   };
 
+  const onFpsFireDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (animationLocked || viewMode3D !== 'fps' || (event.button !== 0 && event.button !== 2)) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    firingPointersRef.current.add(event.pointerId);
+    setIsSpraying(true);
+  };
+
+  const onFpsFireUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!firingPointersRef.current.has(event.pointerId)) return;
+    event.preventDefault();
+    firingPointersRef.current.delete(event.pointerId);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    if (firingPointersRef.current.size === 0) setIsSpraying(false);
+  };
+
   const playWeaponAction = (next: WeaponAnimAction) => {
+    if (animationLocked) return;
     setWeaponAction(next);
     setActionNonce(n => n + 1);
   };
@@ -350,17 +490,56 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
       playWeaponAction('inspect');
       return;
     }
+    if (animationLocked) return;
+    setAnimationLocked(true);
     setInspecting(true);
-    window.setTimeout(() => setInspecting(false), 1400);
+    window.setTimeout(() => {
+      setInspecting(false);
+      setAnimationLocked(false);
+    }, 1400);
+  };
+
+  const resetFpsViewmodel = () => {
+    setDrag({ x: 0, y: 0 });
+    setFov(FPS_VIEWMODEL_DEFAULTS.fov);
+    setOffsetX(FPS_VIEWMODEL_DEFAULTS.offsetX);
+    setOffsetY(FPS_VIEWMODEL_DEFAULTS.offsetY);
+    setOffsetZ(FPS_VIEWMODEL_DEFAULTS.offsetZ);
+    setViewResetNonce(value => value + 1);
   };
 
   const resetView = () => {
-    setDrag({ x: 0, y: 0 });
-    setFov(68);
-    setOffsetX(2.5);
-    setOffsetY(-1.5);
-    setOffsetZ(-1);
+    resetFpsViewmodel();
     if (use3D) playWeaponAction('draw');
+  };
+
+  const showFirstPersonView = () => {
+    // Restore the entire calibrated FPS preset—not only the drag state—so a
+    // changed FOV or offset cannot leave the rifle small in the screen corner.
+    resetFpsViewmodel();
+    firingPointersRef.current.clear();
+    setIsSpraying(false);
+    setAnimationLocked(false);
+    setViewMode3D('fps');
+  };
+
+  const beginViewerLoad = (reason: 'model' | 'texture') => {
+    setViewerLoadReason(reason);
+    setViewerLoadError(null);
+    setViewerLoading(true);
+  };
+
+  const showThirdPersonView = () => {
+    firingPointersRef.current.clear();
+    setIsSpraying(false);
+    setAnimationLocked(false);
+    if (viewMode3D !== 'inspect') beginViewerLoad('model');
+    setViewMode3D('inspect');
+  };
+
+  const toggle3DView = () => {
+    if (!use3D) beginViewerLoad('model');
+    setUse3D(value => !value);
   };
 
   const selectPickerItem = (item: Cs2SkinVisual | Cs2AttachItem) => {
@@ -375,6 +554,8 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
       setOpenPanels(p => ({ ...p, attachments: true }));
     } else {
       const skin = item as Cs2SkinVisual;
+      beginViewerLoad('texture');
+      setViewerReloadNonce(value => value + 1);
       setSkinName(skin.name);
       setWeaponLabel(skin.weapon || weaponLabel);
 
@@ -411,6 +592,8 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
 
   const wearOpacity = floatToWearOpacity(floatVal);
   const activeCharm = charms[0] || null;
+  const activeArm = getViewmodelArmAsset(selectedArmId);
+  const activeMap = MAP_CATALOG.find(entry => entry.id === map) ?? MAP_CATALOG[0];
 
   const pickerTitle =
     picker === 'gloves' ? 'Gloves'
@@ -445,7 +628,7 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
         ['--stv-wear-opacity' as string]: String(wearOpacity),
         ['--stv-ry' as string]: `${-8 + drag.x * 0.2}deg`,
         ['--stv-rx' as string]: `${4 - drag.y * 0.15}deg`,
-        aspectRatio: ratio.replace(':', ' / '),
+        ['--stv-aspect-ratio' as string]: ratio.replace(':', ' / '),
       }}
     >
       <div
@@ -455,20 +638,25 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
         onPointerUp={use3D ? undefined : onPointerUp}
         onPointerCancel={use3D ? undefined : onPointerUp}
       >
-        <div className="stv-map" data-map={map} />
+        <div
+          className={`stv-map ${activeMap.image ? 'has-map-art' : ''}`}
+          data-map={activeMap.label}
+          style={activeMap.image ? { ['--stv-map-image' as string]: `url("${activeMap.image}")` } : undefined}
+        />
         <div className="stv-fog" />
         <div className="stv-weapon-stage">
           {use3D ? (
             <div
-              className="stv-3d-host cursor-crosshair"
-              onPointerDown={(e) => {
-                if (e.button === 0) setIsSpraying(true);
-              }}
-              onPointerUp={() => setIsSpraying(false)}
-              onPointerLeave={() => setIsSpraying(false)}
+              className={`stv-3d-host select-none ${viewMode3D === 'inspect' ? 'is-orbit' : 'is-fps'}`}
+              aria-busy={viewMode3D === 'inspect' && viewerLoading}
+              onPointerDown={viewMode3D === 'fps' ? onFpsFireDown : undefined}
+              onPointerUp={viewMode3D === 'fps' ? onFpsFireUp : undefined}
+              onPointerCancel={viewMode3D === 'fps' ? onFpsFireUp : undefined}
+              onContextMenu={viewMode3D === 'fps' ? event => event.preventDefault() : undefined}
             >
-              <WeaponViewer3D
-                key={weaponSlug}
+              <Suspense fallback={null}>
+              <WeaponViewerBabylon
+                key={`${weaponSlug}-${skinName}-${activeArm.id}-${viewMode3D}-${viewerReloadNonce}`}
                 weaponSlug={weaponSlug}
                 skinImage={skinImage}
                 skinName={skinName}
@@ -478,12 +666,36 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
                 offsetX={offsetX}
                 offsetY={offsetY}
                 offsetZ={offsetZ}
+                armModelUrl={activeArm.modelUrl}
+                armTextureFallbackNames={activeArm.hiddenTexturePrefixes}
+                armTransform={activeArm.transform}
+                usesSharedWeaponRig={activeArm.usesSharedWeaponRig}
                 viewMode={viewMode3D}
+                volume={volume}
                 isSpraying={isSpraying}
                 action={weaponAction}
                 actionNonce={actionNonce}
+                viewResetNonce={viewResetNonce}
+                onFpsTransformChange={setFpsTransform}
+                onActionLockChange={setAnimationLocked}
+                onLoadStateChange={loading => {
+                  setViewerLoading(loading);
+                  if (loading) setViewerLoadError(null);
+                }}
+                onLoadError={setViewerLoadError}
                 className="stv-3d-canvas"
               />
+              </Suspense>
+              {viewMode3D === 'inspect' && (viewerLoading || viewerLoadError) ? (
+                <ViewerLoadOverlay
+                  label={viewerLoadReason === 'texture' ? `Applying ${skinPaintName(skinName)}` : 'Loading 3D weapon'}
+                  error={viewerLoadError}
+                  onRetry={() => {
+                    beginViewerLoad(viewerLoadReason);
+                    setViewerReloadNonce(value => value + 1);
+                  }}
+                />
+              ) : null}
             </div>
           ) : (
             <div style={{ position: 'relative', transformStyle: 'preserve-3d' }}>
@@ -502,13 +714,39 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
             </div>
           )}
         </div>
+        {use3D && !uiHidden ? (
+          <>
+            {viewMode3D === 'fps' && fpsTransform ? (
+              <div
+                className="stv-transform-readout"
+                aria-label={`Viewmodel position X ${formatTransformNumber(fpsTransform.position[0], 3)}, Y ${formatTransformNumber(fpsTransform.position[1], 3)}, Z ${formatTransformNumber(fpsTransform.position[2], 3)}; rotation X ${formatTransformNumber(fpsTransform.rotationDegrees[0], 1)} degrees, Y ${formatTransformNumber(fpsTransform.rotationDegrees[1], 1)} degrees, Z ${formatTransformNumber(fpsTransform.rotationDegrees[2], 1)} degrees`}
+              >
+                <div className="stv-transform-row">
+                  <span className="stv-transform-label">Position</span>
+                  {(['X', 'Y', 'Z'] as const).map((axis, index) => (
+                    <span className="stv-transform-value" key={axis}>
+                      <b>{axis}</b> {formatTransformNumber(fpsTransform.position[index], 3)}
+                    </span>
+                  ))}
+                </div>
+                <div className="stv-transform-row">
+                  <span className="stv-transform-label">Rotation</span>
+                  {(['X', 'Y', 'Z'] as const).map((axis, index) => (
+                    <span className="stv-transform-value" key={axis}>
+                      <b>{axis}</b> {formatTransformNumber(fpsTransform.rotationDegrees[index], 1)}°
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : null}
       </div>
 
       <header className="stv-topbar">
-        <div className="flex items-center gap-2">
-          <div className="stv-logo">
-            SKIN<span>SHOTTER</span>
-          </div>
+        <div className="stv-brand-lockup">
+          <div className="stv-brand-mark" aria-hidden="true">S1</div>
+          <div className="stv-logo"><span>S1zz</span>Skin</div>
           {isTestMode && (
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
               🔒 Listing Test Mode
@@ -518,54 +756,67 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
         {!uiHidden && (
           <div className="stv-actions">
             {isTestMode && testListing && (
-              <button
-                type="button"
-                className="stv-chip bg-emerald-600/90 text-white font-bold border-emerald-400 hover:bg-emerald-500 transition-colors"
+              <ToolButton
+                label="Buy this item"
+                icon={<ShoppingCart className="size-3.5" />}
+                className="stv-tool-buy"
                 onClick={() => onBuy ? onBuy(testListing) : navigate('/cart')}
               >
-                <span className="inline-flex items-center gap-1.5">
-                  <ShoppingCart className="size-3.5" />
-                  Buy This Item (${testListing.price.toLocaleString()})
-                </span>
-              </button>
+                Buy ${testListing.price.toLocaleString()}
+              </ToolButton>
             )}
-            <button type="button" className="stv-chip" onClick={() => { setPicker('weapon'); setPickerWeapon('All'); }}>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-white/15 text-white border border-white/20 mr-1.5">Q</span> Quick Open
-            </button>
-            <button type="button" className="stv-chip" onClick={() => setUiHidden(true)}>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-white/15 text-white border border-white/20 mr-1.5">H</span> Hide UI
-            </button>
-            <button type="button" className="stv-chip" onClick={triggerInspect}>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-white/15 text-white border border-white/20 mr-1.5">F</span> Inspect
-            </button>
+            <ToolButton label="Quick open" shortcut="Q" icon={<Search className="size-3.5" />} onClick={() => { setPicker('weapon'); setPickerWeapon('All'); }} />
+            <ToolButton label="Hide UI" shortcut="H" icon={<EyeOff className="size-3.5" />} onClick={() => setUiHidden(true)} />
+            <ToolButton label="Inspect" shortcut="F" icon={<ScanLine className="size-3.5" />} disabled={animationLocked} onClick={triggerInspect} />
             {use3D && (
               <>
-                <button
-                  type="button"
-                  className={`stv-chip font-bold transition-all ${isSpraying ? 'bg-amber-500/30 text-amber-300 border-amber-500/40 scale-105' : ''}`}
-                  onMouseDown={() => setIsSpraying(true)}
+                <ToolButton
+                  label="Shoot"
+                  shortcut="LMB/RMB"
+                  icon={<Crosshair className="size-3.5" />}
+                  active={isSpraying}
+                  disabled={animationLocked && !isSpraying}
+                  onMouseDown={() => { if (!animationLocked) setIsSpraying(true); }}
                   onMouseUp={() => setIsSpraying(false)}
                   onMouseLeave={() => setIsSpraying(false)}
-                >
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30 mr-1.5">LMB</span> Shoot
-                </button>
-                <button type="button" className="stv-chip" onClick={() => playWeaponAction('reload')}>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-white/15 text-white border border-white/20 mr-1.5">R</span> Reload
-                </button>
-                <button type="button" className="stv-chip" onClick={() => playWeaponAction('draw')}>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-white/15 text-white border border-white/20 mr-1.5">C</span> Draw
-                </button>
+                />
+                <ToolButton label="Reload" shortcut="R" icon={<RotateCcw className="size-3.5" />} disabled={animationLocked} onClick={() => playWeaponAction('reload')} />
+                <ToolButton label="Draw" shortcut="C" icon={<Hand className="size-3.5" />} disabled={animationLocked} onClick={() => playWeaponAction('draw')} />
               </>
             )}
-            <button type="button" className="stv-chip" onClick={resetView}>
-              <span className="inline-flex items-center gap-1.5"><RotateCcw className="size-3" /> Reset</span>
-            </button>
-            <button type="button" className={`stv-chip ${use3D ? 'is-active' : ''}`} onClick={() => setUse3D(v => !v)}>
-              {use3D ? '3D Local' : '2D Image'}
-            </button>
+            <ToolButton label="Reset view" icon={<Undo2 className="size-3.5" />} onClick={resetView} />
+            <ToolButton label={use3D ? '3D local' : '2D image'} icon={<Box className="size-3.5" />} active={use3D} onClick={toggle3DView} />
+            {use3D && (
+              <div className="stv-view-switch" role="group" aria-label="View mode">
+                <ToolButton
+                  label="First person"
+                  icon={<Eye className="size-3.5" />}
+                  active={viewMode3D === 'fps'}
+                  aria-pressed={viewMode3D === 'fps'}
+                  onClick={showFirstPersonView}
+                >1P</ToolButton>
+                <ToolButton
+                  label="Orbit view"
+                  icon={<Orbit className="size-3.5" />}
+                  active={viewMode3D === 'inspect'}
+                  aria-pressed={viewMode3D === 'inspect'}
+                  onClick={showThirdPersonView}
+                >3P</ToolButton>
+              </div>
+            )}
           </div>
         )}
         <div className="stv-top-right">
+          <button
+            type="button"
+            className={`stv-icon-btn stv-mobile-controls-toggle ${mobileControlsOpen ? 'is-active' : ''}`}
+            onClick={() => setMobileControlsOpen(open => !open)}
+            aria-label={mobileControlsOpen ? 'Close controls' : 'Open controls'}
+            aria-expanded={mobileControlsOpen}
+            title={mobileControlsOpen ? 'Close controls' : 'Open controls'}
+          >
+            <SlidersHorizontal className="size-4" />
+          </button>
           <button
             type="button"
             className="stv-icon-btn"
@@ -580,10 +831,18 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
 
       {!uiHidden && (
         <>
-          <aside className="stv-sidebar">
+          <button
+            type="button"
+            className={`stv-mobile-backdrop ${mobileControlsOpen ? 'is-visible' : ''}`}
+            onClick={() => setMobileControlsOpen(false)}
+            aria-label="Close controls"
+            tabIndex={mobileControlsOpen ? 0 : -1}
+          />
+          <aside className={`stv-sidebar ${mobileControlsOpen ? 'is-mobile-open' : ''}`}>
             <PanelShell
               num={1}
               title="Weapon"
+              icon={<Crosshair className="size-3.5" />}
               summary={skinName}
               open={openPanels.weapon}
               onToggle={() => togglePanel('weapon')}
@@ -666,6 +925,7 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
             <PanelShell
               num={2}
               title="Attachments"
+              icon={<Sparkles className="size-3.5" />}
               summary={
                 stickers.length || charms.length
                   ? `${stickers.length} sticker${stickers.length === 1 ? '' : 's'} · ${charms.length} charm${charms.length === 1 ? '' : 's'}`
@@ -717,6 +977,7 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
             <PanelShell
               num={3}
               title="Gloves"
+              icon={<Hand className="size-3.5" />}
               summary={glovesName || 'None'}
               open={openPanels.gloves}
               onToggle={() => togglePanel('gloves')}
@@ -772,40 +1033,62 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
             <PanelShell
               num={4}
               title="Agent"
-              summary={agentNote}
+              icon={<Users className="size-3.5" />}
+              summary={activeArm.label}
               open={openPanels.agent}
               onToggle={() => togglePanel('agent')}
             >
-              <div className="stv-empty">Select agent model — cosmetic only (TAB)</div>
+              <p className="stv-section-label">Viewmodel arms</p>
+              <div className="stv-agent-list" role="radiogroup" aria-label="Viewmodel agent">
+                {VIEWMODEL_ARM_ASSETS.map(agent => (
+                  <button
+                    key={agent.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={agent.id === activeArm.id}
+                    className={`stv-agent-option ${agent.id === activeArm.id ? 'is-active' : ''}`}
+                    onClick={() => setSelectedArmId(agent.id)}
+                  >
+                    <span className="stv-agent-copy">
+                      <span className="stv-agent-name">{agent.label}</span>
+                      <span className="stv-agent-detail">{agent.detail}</span>
+                    </span>
+                    <span className="stv-agent-team">{agent.team}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="stv-agent-hint">
+                Add another exported arm folder to the registry to make it selectable here.
+              </p>
             </PanelShell>
 
             <PanelShell
               num={5}
               title="Settings"
-              summary={map}
+              icon={<Settings2 className="size-3.5" />}
+              summary={activeMap.label}
               open={openPanels.settings}
               onToggle={() => togglePanel('settings')}
             >
               <p className="stv-section-label">Map</p>
-              <div className="stv-map-row">
-                {MAPS.map(m => (
-                  <button
-                    key={m}
-                    type="button"
-                    className={`stv-map-btn ${map === m ? 'is-active' : ''}`}
-                    onClick={() => setMap(m)}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
+              <button
+                type="button"
+                className="stv-map-change"
+                onClick={() => setMapPickerOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={mapPickerOpen}
+              >
+                <span className="stv-map-change-label">Change</span>
+                <strong>{activeMap.label}</strong>
+                <ChevronDown className="size-4" aria-hidden="true" />
+              </button>
               <p className="stv-section-label">Audio</p>
               <LiveSlider label="Volume" value={volume} display={String(Math.round(volume))} min={0} max={100} step={1} onChange={setVolume} />
               <p className="stv-section-label">Viewmodel</p>
               <LiveSlider label="FOV" value={fov} display={String(Math.round(fov))} min={54} max={90} step={1} onChange={setFov} />
-              <LiveSlider label="Offset X" value={offsetX} display={offsetX.toFixed(1)} min={-5} max={5} step={0.1} onChange={setOffsetX} />
-              <LiveSlider label="Offset Y" value={offsetY} display={offsetY.toFixed(1)} min={-5} max={5} step={0.1} onChange={setOffsetY} />
-              <LiveSlider label="Offset Z" value={offsetZ} display={offsetZ.toFixed(1)} min={-5} max={5} step={0.1} onChange={setOffsetZ} />
+              <LiveSlider label="Offset X" value={offsetX} display={offsetX.toFixed(1)} min={FPS_VIEWMODEL_LIMITS.offsetX.min} max={FPS_VIEWMODEL_LIMITS.offsetX.max} step={0.1} onChange={setOffsetX} />
+              <LiveSlider label="Offset Y" value={offsetY} display={offsetY.toFixed(1)} min={FPS_VIEWMODEL_LIMITS.offsetY.min} max={FPS_VIEWMODEL_LIMITS.offsetY.max} step={0.1} onChange={setOffsetY} />
+              <LiveSlider label="Offset Z" value={offsetZ} display={offsetZ.toFixed(1)} min={FPS_VIEWMODEL_LIMITS.offsetZ.min} max={FPS_VIEWMODEL_LIMITS.offsetZ.max} step={0.1} onChange={setOffsetZ} />
               <p className="stv-section-label">Aspect ratio</p>
               <div className="stv-ratio-row">
                 {RATIOS.map(r => (
@@ -843,6 +1126,53 @@ export function SkinTester({ testListing, onClose, onBuy }: SkinTesterProps = {}
         >
           Show UI
         </button>
+      )}
+
+      {mapPickerOpen && (
+        <div className="stv-map-picker" role="dialog" aria-modal="true" aria-label="Choose map background">
+          <button
+            type="button"
+            className="stv-map-picker-scrim"
+            onClick={() => setMapPickerOpen(false)}
+            aria-label="Close map picker"
+          />
+          <section className="stv-map-picker-panel">
+            <header className="stv-map-picker-head">
+              <div>
+                <p className="stv-picker-kicker">Map background</p>
+                <h2 className="stv-map-picker-title">Choose a scene</h2>
+              </div>
+              <button type="button" className="stv-icon-btn" onClick={() => setMapPickerOpen(false)} aria-label="Close map picker">
+                <X className="size-4" />
+              </button>
+            </header>
+            <div className="stv-map-card-grid" aria-label="Available map backgrounds">
+              {MAP_CATALOG.map(entry => {
+                const selected = entry.id === activeMap.id;
+                return (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    className={`stv-map-card ${selected ? 'is-active' : ''} ${entry.image ? 'has-art' : ''}`}
+                    data-map-card={entry.id}
+                    style={entry.image ? { ['--stv-map-card-image' as string]: `url("${entry.image}")` } : undefined}
+                    onClick={() => {
+                      setMap(entry.id);
+                      setMapPickerOpen(false);
+                    }}
+                    aria-pressed={selected}
+                  >
+                    <span className="stv-map-card-preview" aria-hidden="true" />
+                    <span className="stv-map-card-footer">
+                      <span>{entry.label}</span>
+                      {selected ? <Check className="size-3.5" aria-label="Selected" /> : null}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </div>
       )}
 
       {picker && (
